@@ -261,12 +261,72 @@ function calcularForcaPerfil(p) {
 
 async function carregarProfissionais() {
   const profissionais = await apiFetch("/api/profissionais");
-  profissionaisCache = profissionais;
-  return profissionais;
+  profissionaisCache = ordenarProfissionaisPorPlano(profissionais);
+  return profissionaisCache;
 }
 
 async function carregarProfissionalPorId(id) {
   return apiFetch(`/api/profissionais/${id}`);
+}
+
+
+function normalizarPlanoNome(plano) {
+  return normalizarTextoNorteServic(plano || "Gratuito");
+}
+
+function planoEstaAtivo(p) {
+  return normalizarTextoNorteServic(p?.planoStatus || "ativo") === "ativo";
+}
+
+function planoRankNorteServic(p) {
+  if (!p || !planoEstaAtivo(p)) return 0;
+
+  const plano = normalizarPlanoNome(p.planoAtual);
+
+  if (plano.includes("premium") || plano.includes("top")) return 3;
+  if (plano.includes("profissional") || plano.includes("plus")) return 2;
+  if (plano.includes("destaque") || plano.includes("essencial")) return 1;
+
+  return 0;
+}
+
+function profissionalTemPlanoPago(p) {
+  return planoRankNorteServic(p) > 0;
+}
+
+function seloPlanoTexto(p) {
+  const rank = planoRankNorteServic(p);
+  const plano = p?.planoAtual || "Gratuito";
+
+  if (rank === 3) return "Top";
+  if (rank === 2) return "Pro";
+  if (rank === 1) return "Destaque";
+  return plano;
+}
+
+function seloVerificadoPlanoHTML(p, modo = "card") {
+  if (!profissionalTemPlanoPago(p)) return "";
+
+  const texto = seloPlanoTexto(p);
+  const classe = planoRankNorteServic(p) === 3 ? "premium" : planoRankNorteServic(p) === 2 ? "profissional" : "destaque";
+
+  return `<span class="selo-plano-verificado ${classe} ${modo}" title="Plano ${p.planoAtual || texto} ativo">✓ ${texto}</span>`;
+}
+
+function ordenarProfissionaisPorPlano(lista = []) {
+  return [...lista].sort((a, b) => {
+    const rankA = planoRankNorteServic(a);
+    const rankB = planoRankNorteServic(b);
+
+    if (rankB !== rankA) return rankB - rankA;
+
+    const avaliacoesB = Number(b.avaliacoes || 0);
+    const avaliacoesA = Number(a.avaliacoes || 0);
+
+    if (avaliacoesB !== avaliacoesA) return avaliacoesB - avaliacoesA;
+
+    return String(a.nome || "").localeCompare(String(b.nome || ""), "pt-BR");
+  });
 }
 
 /* ================================================= */
@@ -363,10 +423,11 @@ function cardProfissionalHTML(p, index = 0) {
   const temFotosTrabalhos = Array.isArray(p.fotosTrabalhos) && p.fotosTrabalhos.length > 0;
   const cidadesTexto = formatarCidadesAtendidas(p);
 
+  const classePlano = profissionalTemPlanoPago(p) ? ` plano-ativo plano-${seloPlanoTexto(p).toLowerCase()}` : "";
   return `
-    <div class="card" style="animation-delay: ${index * 0.08}s">
+    <div class="card${classePlano}" style="animation-delay: ${index * 0.08}s">
       <div class="foto-card">${fotoCard}</div>
-      <h3>${p.nome}</h3>
+      <h3 class="nome-profissional-linha"><span>${p.nome}</span>${seloVerificadoPlanoHTML(p, "card")}</h3>
       <p class="profissao">${p.profissao || "Profissional"}</p>
       <p>${p.descricao || "Profissional cadastrado na Norte Servic."}</p>
       <p><strong>Atende:</strong> ${cidadesTexto}</p>
@@ -374,6 +435,7 @@ function cardProfissionalHTML(p, index = 0) {
       <p>⭐ ${p.avaliacao || "Novo"} | ${p.avaliacoes || 0} avaliações</p>
       <p>⚡ Responde pelo WhatsApp</p>
       <div class="selos">
+        ${profissionalTemPlanoPago(p) ? `<p class="selo-pago-card">✓ Plano ${p.planoAtual} ativo</p>` : ""}
         <p>✓ WhatsApp confirmado</p>
         <p>${temFotosTrabalhos ? "✓ Fotos reais disponíveis" : "✓ Fotos reais em análise"}</p>
         <p>${p.verificado ? "✓ Profissional verificado" : "• Aguardando verificação"}</p>
@@ -391,7 +453,7 @@ async function mostrarProfissionais(lista = null) {
   if (!container) return;
 
   try {
-    const profissionais = lista || await carregarProfissionais();
+    const profissionais = ordenarProfissionaisPorPlano(lista || await carregarProfissionais());
     container.innerHTML = "";
 
     if (!profissionais || profissionais.length === 0) {
@@ -423,7 +485,7 @@ async function buscarProfissionais() {
   try {
     const query = termo ? `?q=${encodeURIComponent(termo)}` : "";
     const profissionais = await apiFetch(`/api/profissionais${query}`);
-    mostrarProfissionais(profissionais);
+    mostrarProfissionais(ordenarProfissionaisPorPlano(profissionais));
   } catch (error) {
     const container = document.getElementById("listaProfissionais");
     if (container) container.innerHTML = `<div class="admin-vazio"><h3>Erro na busca</h3><p>${error.message}</p></div>`;
@@ -832,7 +894,7 @@ async function carregarPerfilProfissional() {
           <div class="perfil-foto-area"><div class="perfil-foto-premium">${fotoPerfil}</div></div>
           <div class="perfil-lateral-info">
             <span class="selo-verificado-premium">${profissional.verificado ? "✓ Profissional verificado" : "Cadastro em análise"}</span>
-            <h1>${profissional.nome}</h1>
+            <h1 class="nome-profissional-linha perfil-nome"><span>${profissional.nome}</span>${seloVerificadoPlanoHTML(profissional, "perfil")}</h1>
             <p class="profissao">${profissional.profissao}</p>
             <div class="perfil-meta">
               <p>📍 ${profissional.cidade} - ${profissional.bairro}</p>
@@ -967,7 +1029,7 @@ async function carregarPainelProfissional() {
       <div class="painel-foto-profissional">${foto}</div>
       <div class="painel-card-conteudo-premium">
         <span class="admin-status ${perfilDisponivel ? "status-aprovado" : "status-pendente"}">${perfilDisponivel ? "Perfil publicado" : "Aguardando aprovação"}</span>
-        <h2>${profissional.nome}</h2>
+        <h2 class="nome-profissional-linha painel-nome"><span>${profissional.nome}</span>${seloVerificadoPlanoHTML(profissional, "painel")}</h2>
         <p class="profissao">${profissional.profissao || "Profissão não informada"}</p>
         <div class="painel-chip-row">
           <span>${profissional.categoria || "Categoria não informada"}</span>
@@ -1254,7 +1316,7 @@ async function mostrarAdmin() {
           <div class="admin-prof-foto">${fotoCard}</div>
           <div class="admin-prof-info">
             <span class="admin-status ${statusClasse}">${statusTexto}</span>
-            <h3>${p.nome}</h3>
+            <h3 class="nome-profissional-linha admin-nome"><span>${p.nome}</span>${seloVerificadoPlanoHTML(p, "admin")}</h3>
             <p class="profissao">${p.profissao}</p>
             <p><strong>Tipo:</strong> ${p.tipoProfissional || "Não informado"}</p>
             <p><strong>Categoria:</strong> ${p.categoria || "Não informada"}</p>
@@ -1416,11 +1478,11 @@ function fecharPopCadastro() {
 }
 
 function solicitarPlanoProfissional(plano, valor) {
-  if (!getTokenProfissional()) {
-    window.location.href = "login.html";
-    return;
-  }
-  alert(`Plano ${plano} selecionado. A integração com Stripe será conectada no próximo passo.`);
+  const mensagem = encodeURIComponent(
+    `Olá! Quero contratar o plano ${plano} da Norte Servic.\n\nValor: R$ ${valor}\nNome:\nProfissão:\nCidade:\nWhatsApp do cadastro:`
+  );
+
+  window.open(`https://wa.me/5563992229673?text=${mensagem}`, "_blank");
 }
 
 /* ================================================= */
