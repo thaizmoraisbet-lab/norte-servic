@@ -305,7 +305,15 @@ function seloPlanoTexto(p) {
 }
 
 function seloVerificadoPlanoHTML(p, modo = "card") {
-  if (!profissionalTemPlanoPago(p)) return "";
+  if (!p) return "";
+
+  if (!profissionalTemPlanoPago(p)) {
+    if (p.verificado) {
+      return `<span class="selo-plano-verificado verificado ${modo}" title="Profissional verificado pela Norte Servic">✓</span>`;
+    }
+
+    return "";
+  }
 
   const texto = seloPlanoTexto(p);
   const classe = planoRankNorteServic(p) === 3 ? "premium" : planoRankNorteServic(p) === 2 ? "profissional" : "destaque";
