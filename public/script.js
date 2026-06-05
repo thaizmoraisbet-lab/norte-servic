@@ -1359,10 +1359,26 @@ function ativarTopoMenorAoRolar() {
   const topo = document.querySelector(".novo-topo");
   if (!topo) return;
 
+  // No celular o cabeçalho não diminui ao rolar. Isso evita flicker/piscadas
+  // em navegadores móveis e deixa a navegação mais estável.
+  if (window.matchMedia("(max-width: 820px)").matches) {
+    topo.classList.remove("topo-menor");
+    return;
+  }
+
+  let ticking = false;
+
   window.addEventListener("scroll", function() {
-    if (window.scrollY > 40) topo.classList.add("topo-menor");
-    else topo.classList.remove("topo-menor");
-  });
+    if (ticking) return;
+
+    window.requestAnimationFrame(function() {
+      if (window.scrollY > 40) topo.classList.add("topo-menor");
+      else topo.classList.remove("topo-menor");
+      ticking = false;
+    });
+
+    ticking = true;
+  }, { passive: true });
 }
 
 function mostrarPopCadastro() {
