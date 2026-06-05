@@ -7762,3 +7762,298 @@ body {
     padding-top: 0 !important;
   }
 }
+/* ================================================= */
+/* CABEÇALHO MOBILE CORRIGIDO - NORTE SERVIC */
+/* ================================================= */
+
+@media (max-width: 820px) {
+
+  header.topo,
+  header.novo-topo,
+  .topo.novo-topo {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 999999 !important;
+
+    width: 100% !important;
+    min-height: auto !important;
+
+    background: #111827 !important;
+    background-color: #111827 !important;
+    color: #F9FAFB !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    padding: 10px 12px 12px !important;
+    gap: 8px !important;
+
+    border: none !important;
+    border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+    box-shadow: 0 10px 28px rgba(17, 24, 39, 0.25) !important;
+
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+
+    transform: none !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+  }
+
+  header.topo::before,
+  header.topo::after,
+  header.novo-topo::before,
+  header.novo-topo::after,
+  .topo.novo-topo::before,
+  .topo.novo-topo::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  .logo,
+  .logo-central,
+  header .logo,
+  header .logo-central {
+    width: auto !important;
+    height: auto !important;
+    min-height: 36px !important;
+
+    background: transparent !important;
+    background-color: transparent !important;
+
+    color: #F9FAFB !important;
+
+    font-size: 20px !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+
+    padding: 0 !important;
+    margin: 0 auto !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+
+    text-decoration: none !important;
+    text-align: center !important;
+
+    box-shadow: none !important;
+    border: none !important;
+    opacity: 1 !important;
+  }
+
+  .logo::before,
+  .logo-central::before,
+  header .logo::before,
+  header .logo-central::before {
+    content: "✓" !important;
+
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+
+    border-radius: 10px !important;
+
+    background: #2563EB !important;
+    color: #FFFFFF !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    font-size: 18px !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.35) !important;
+    opacity: 1 !important;
+  }
+
+  .menu-esquerda,
+  .menu-direita,
+  header nav,
+  .novo-topo nav {
+    width: 100% !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    flex-wrap: wrap !important;
+    gap: 7px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .menu-esquerda a,
+  .menu-direita a,
+  header nav a,
+  .novo-topo nav a {
+    color: #F9FAFB !important;
+    background: rgba(255, 255, 255, 0.10) !important;
+
+    border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    border-radius: 999px !important;
+
+    padding: 8px 10px !important;
+
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+
+    text-decoration: none !important;
+    text-align: center !important;
+
+    opacity: 1 !important;
+    visibility: visible !important;
+
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  .menu-esquerda a:hover,
+  .menu-direita a:hover,
+  header nav a:hover,
+  .novo-topo nav a:hover {
+    background: #2563EB !important;
+    color: #FFFFFF !important;
+    transform: none !important;
+  }
+
+  .novo-topo.topo-menor,
+  header.topo.topo-menor {
+    background: #111827 !important;
+    background-color: #111827 !important;
+    padding: 8px 12px 10px !important;
+    transform: none !important;
+  }
+
+  body {
+    padding-top: 0 !important;
+  }
+}
+/* ================================================= */
+/* HEADER MOBILE - CORREÇÃO FINAL */
+/* ================================================= */
+
+@media (max-width: 820px) {
+  body .topo,
+  body .novo-topo,
+  body header.topo,
+  body header.novo-topo {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 999999 !important;
+    width: 100% !important;
+
+    background: #111827 !important;
+    background-color: #111827 !important;
+    color: #F9FAFB !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    padding: 10px 12px 12px !important;
+    gap: 8px !important;
+
+    box-shadow: 0 10px 28px rgba(17, 24, 39, 0.25) !important;
+    border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+
+  body .topo::before,
+  body .topo::after,
+  body .novo-topo::before,
+  body .novo-topo::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  body .logo,
+  body .logo-central,
+  body header .logo,
+  body header .logo-central {
+    color: #F9FAFB !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+
+    font-size: 19px !important;
+    font-weight: 900 !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+
+    padding: 0 !important;
+    margin: 0 auto !important;
+    opacity: 1 !important;
+    text-decoration: none !important;
+  }
+
+  body .logo::before,
+  body .logo-central::before {
+    content: "✓" !important;
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+
+    border-radius: 10px !important;
+    background: #2563EB !important;
+    color: #FFFFFF !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    font-size: 18px !important;
+    font-weight: 900 !important;
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.35) !important;
+  }
+
+  body .menu-esquerda,
+  body .menu-direita,
+  body header nav {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 7px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  body .menu-esquerda a,
+  body .menu-direita a,
+  body header nav a {
+    color: #F9FAFB !important;
+    background: rgba(255,255,255,0.10) !important;
+    border: 1px solid rgba(255,255,255,0.10) !important;
+
+    padding: 8px 10px !important;
+    border-radius: 999px !important;
+
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+
+    text-decoration: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+}
