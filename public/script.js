@@ -871,6 +871,7 @@ function iniciarCadastroBackend() {
       atualizarInputServicosSelecionados();
       atualizarCidadesSelecionadasVisual();
       alternarCidadesAtendidas();
+  adicionarAdminNoRodape();
 
       const servicosBox = document.getElementById("servicosTagsBox");
       if (servicosBox) {
@@ -1166,6 +1167,7 @@ async function preencherFormularioEdicao(profissional) {
     : [];
 
   alternarCidadesAtendidas();
+  adicionarAdminNoRodape();
   atualizarCidadesSelecionadasVisual();
 }
 
@@ -1502,6 +1504,23 @@ function fecharPopCadastro() {
   }, 300);
 }
 
+
+function adicionarAdminNoRodape() {
+  const rodapes = document.querySelectorAll("footer");
+  if (!rodapes.length) return;
+
+  rodapes.forEach((rodape) => {
+    if (rodape.querySelector(".rodape-admin-link")) return;
+
+    const link = document.createElement("a");
+    link.href = "admin.html";
+    link.className = "rodape-admin-link";
+    link.setAttribute("aria-label", "Acessar área administrativa");
+    link.textContent = "Área administrativa";
+    rodape.appendChild(link);
+  });
+}
+
 function solicitarPlanoProfissional(plano, valor) {
   const mensagem = encodeURIComponent(
     `Olá! Quero contratar o plano ${plano} da Norte Servic.\n\nValor: R$ ${valor}\nNome:\nProfissão:\nCidade:\nWhatsApp do cadastro:`
@@ -1530,6 +1549,7 @@ document.addEventListener("DOMContentLoaded", function() {
   carregarPainelProfissional();
   iniciarEditarPerfil();
   alternarCidadesAtendidas();
+  adicionarAdminNoRodape();
 
   const adminBusca = document.getElementById("adminBusca");
   if (adminBusca) adminBusca.addEventListener("input", mostrarAdmin);
