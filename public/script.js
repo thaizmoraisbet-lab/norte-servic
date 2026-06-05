@@ -210,6 +210,70 @@ function converterImagemParaBase64(arquivo) {
   });
 }
 
+function carregarDimensoesImagem(arquivo) {
+  return new Promise((resolve, reject) => {
+    if (!arquivo) return resolve(null);
+
+    const url = URL.createObjectURL(arquivo);
+    const img = new Image();
+
+    img.onload = () => {
+      const dimensoes = { largura: img.naturalWidth, altura: img.naturalHeight };
+      URL.revokeObjectURL(url);
+      resolve(dimensoes);
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Não foi possível ler as dimensões da imagem."));
+    };
+
+    img.src = url;
+  });
+}
+
+async function validarFotoPerfil1000(arquivo, obrigatoria = false) {
+  if (!arquivo) {
+    if (obrigatoria) throw new Error("Envie uma foto de perfil quadrada, exatamente 1000x1000 px.");
+    return;
+  }
+
+  const dimensoes = await carregarDimensoesImagem(arquivo);
+
+  if (!dimensoes || dimensoes.largura !== 1000 || dimensoes.altura !== 1000) {
+    throw new Error(`A foto de perfil precisa ser quadrada e ter exatamente 1000x1000 px. A imagem enviada tem ${dimensoes?.largura || 0}x${dimensoes?.altura || 0} px.`);
+  }
+}
+
+function limiteFotosPorPlano(profissional = {}) {
+  const plano = normalizarTextoNorteServic(profissional.planoAtual || profissional.plano_atual || "Gratuito");
+
+  if (plano.includes("premium") || plano.includes("top")) return 30;
+  if (plano.includes("profissional")) return 12;
+  if (plano.includes("destaque")) return 6;
+  return 3;
+}
+
+function criarLinkInstagram(instagram) {
+  const valor = String(instagram || "").trim();
+  if (!valor) return "";
+
+  let usuario = valor.replace(/^https?:\/\/(www\.)?instagram\.com\//i, "");
+  usuario = usuario.replace(/^@/, "").split(/[/?#]/)[0].trim();
+
+  if (!usuario) return "";
+
+  return `https://instagram.com/${encodeURIComponent(usuario)}`;
+}
+
+function instagramHTML(instagram, classe = "") {
+  const link = criarLinkInstagram(instagram);
+  if (!link) return "Não informado";
+
+  const usuario = String(instagram || "").trim().replace(/^@/, "");
+  return `<a class="instagram-link ${classe}" href="${link}" target="_blank" rel="noopener">@${usuario}</a>`;
+}
+
 async function converterVariasImagensParaBase64(arquivos) {
   const listaArquivos = Array.from(arquivos || []);
   const imagens = [];
@@ -853,9 +917,11 @@ function iniciarCadastroBackend() {
       const arquivoFotoPerfil = document.getElementById("fotoPerfil")?.files[0];
       const arquivosTrabalhos = document.getElementById("fotosTrabalhos")?.files;
 
+      await validarFotoPerfil1000(arquivoFotoPerfil, true);
+
       const dados = dadosFormularioProfissional(true);
       dados.fotoPerfil = await converterImagemParaBase64(arquivoFotoPerfil);
-      dados.fotosTrabalhos = await converterVariasImagensParaBase64(arquivosTrabalhos);
+      dados.fotosTrabalhos = (await converterVariasImagensParaBase64(arquivosTrabalhos)).slice(0, 3);
 
       await apiFetch("/api/cadastro", {
         method: "POST",
@@ -908,8 +974,20 @@ async function carregarPerfilProfissional() {
     const servicosArray = (profissional.servicos || "").split(",").map(s => s.trim()).filter(Boolean);
     const cidadesTexto = formatarCidadesAtendidas(profissional);
 
-    const galeriaTrabalhos = Array.isArray(profissional.fotosTrabalhos) && profissional.fotosTrabalhos.length > 0
-      ? `<div class="galeria-premium">${profissional.fotosTrabalhos.map(foto => `<img src="${foto}" alt="Foto de trabalho realizado por ${profissional.nome}">`).join("")}</div>`
+    const fotosTrabalhosPerfil = Array.isArray(profissional.fotosTrabalhos) ? profissional.fotosTrabalhos : [];
+    const galeriaTrabalhos = fotosTrabalhosPerfil.length > 0
+      ? `
+        <div class="galeria-carousel" data-carousel="trabalhos">
+          <div class="galeria-carousel-track">
+            ${fotosTrabalhosPerfil.map((foto, idx) => `
+              <figure class="galeria-slide">
+                <img src="${foto}" alt="Foto ${idx + 1} de trabalho realizado por ${profissional.nome}">
+              </figure>
+            `).join("")}
+          </div>
+          ${fotosTrabalhosPerfil.length > 1 ? `<div class="galeria-carousel-dots">${fotosTrabalhosPerfil.map((_, idx) => `<button type="button" class="${idx === 0 ? "ativo" : ""}" aria-label="Ver foto ${idx + 1}"></button>`).join("")}</div>` : ""}
+        </div>
+      `
       : `<p>Este profissional ainda não adicionou fotos dos trabalhos. Mesmo assim, você pode entrar em contato e solicitar referências.</p>`;
 
     container.innerHTML = `
@@ -950,17 +1028,67 @@ async function carregarPerfilProfissional() {
             <p><strong>Forma de atendimento:</strong> ${profissional.formaAtendimento || "Não informado"}</p>
             <p><strong>Tipo:</strong> ${profissional.tipoProfissional || "Não informado"}</p>
             <p><strong>Categoria:</strong> ${profissional.categoria || "Não informada"}</p>
-            <p><strong>Instagram:</strong> ${profissional.instagram || "Não informado"}</p>
+            <p><strong>Instagram:</strong> ${instagramHTML(profissional.instagram, "perfil-instagram")}</p>
           </div>
         </section>
       </div>
     `;
+    iniciarCarrosseisFotos();
   } catch (error) {
     container.innerHTML = `
       <a class="botao-voltar-perfil" href="index.html">← Voltar para a busca</a>
       <div class="perfil-conteudo"><div class="perfil-hero-texto"><span>Perfil indisponível</span><h2>Profissional não encontrado</h2><p>${error.message}</p></div></div>
     `;
   }
+}
+
+
+function iniciarCarrosseisFotos() {
+  document.querySelectorAll(".galeria-carousel").forEach((carousel) => {
+    const track = carousel.querySelector(".galeria-carousel-track");
+    const slides = Array.from(carousel.querySelectorAll(".galeria-slide"));
+    const dots = Array.from(carousel.querySelectorAll(".galeria-carousel-dots button"));
+
+    if (!track || slides.length <= 1 || carousel.dataset.iniciado === "true") return;
+
+    carousel.dataset.iniciado = "true";
+    let index = 0;
+
+    function irPara(proximo) {
+      index = (proximo + slides.length) % slides.length;
+      track.style.transform = `translateX(-${index * 100}%)`;
+      dots.forEach((dot, idx) => dot.classList.toggle("ativo", idx === index));
+    }
+
+    dots.forEach((dot, idx) => dot.addEventListener("click", () => irPara(idx)));
+    setInterval(() => irPara(index + 1), 4200);
+  });
+}
+
+function iniciarCarrosselBannersMobile() {
+  const track = document.querySelector(".home-banners-track");
+  if (!track || track.dataset.autoMobile === "true") return;
+
+  track.dataset.autoMobile = "true";
+  let index = 0;
+
+  function mover() {
+    if (!window.matchMedia("(max-width: 820px)").matches) return;
+
+    const cards = Array.from(track.querySelectorAll(".home-banner-card"));
+    if (cards.length <= 1) return;
+
+    index = (index + 1) % cards.length;
+    const card = cards[index];
+    track.scrollTo({ left: card.offsetLeft - 16, behavior: "smooth" });
+  }
+
+  let intervalo = setInterval(mover, 3800);
+
+  track.addEventListener("touchstart", () => {
+    clearInterval(intervalo);
+    intervalo = setInterval(mover, 5200);
+  }, { passive: true });
 }
 
 /* ================================================= */
@@ -1166,6 +1294,19 @@ async function preencherFormularioEdicao(profissional) {
     ? profissional.cidadesAtendidas.filter(cidade => normalizarTextoNorteServic(cidade) !== normalizarTextoNorteServic(profissional.cidade))
     : [];
 
+  const preview = document.getElementById("previewImagensEdicao");
+  if (preview) {
+    const fotos = Array.isArray(profissional.fotosTrabalhos) ? profissional.fotosTrabalhos : [];
+    preview.innerHTML = `
+      <div class="preview-foto-atual">
+        ${profissional.fotoPerfil ? `<img src="${profissional.fotoPerfil}" alt="Foto atual do perfil">` : `<span>Sem foto de perfil</span>`}
+      </div>
+      <div class="preview-trabalhos-atual">
+        ${fotos.slice(0, limiteFotosPorPlano(profissional)).map(foto => `<img src="${foto}" alt="Foto de serviço atual">`).join("") || `<span>Nenhuma foto de serviço adicionada.</span>`}
+      </div>
+    `;
+  }
+
   alternarCidadesAtendidas();
   adicionarAdminNoRodape();
   atualizarCidadesSelecionadasVisual();
@@ -1225,8 +1366,22 @@ function iniciarEditarPerfil() {
       const dados = dadosFormularioProfissional(false);
       dados.servicos = servicos;
       dados.senha = novaSenha || undefined;
-      dados.fotoPerfil = profissionalAtual?.fotoPerfil || "";
-      dados.fotosTrabalhos = profissionalAtual?.fotosTrabalhos || [];
+
+      const arquivoFotoPerfil = document.getElementById("fotoPerfilEditar")?.files[0];
+      const arquivosTrabalhos = document.getElementById("fotosTrabalhosEditar")?.files;
+      const fotosAtuais = Array.isArray(profissionalAtual?.fotosTrabalhos) ? profissionalAtual.fotosTrabalhos : [];
+      const limiteFotos = limiteFotosPorPlano(profissionalAtual || {});
+
+      await validarFotoPerfil1000(arquivoFotoPerfil, false);
+
+      dados.fotoPerfil = arquivoFotoPerfil
+        ? await converterImagemParaBase64(arquivoFotoPerfil)
+        : (profissionalAtual?.fotoPerfil || "");
+
+      const novasFotosTrabalho = await converterVariasImagensParaBase64(arquivosTrabalhos);
+      dados.fotosTrabalhos = novasFotosTrabalho.length
+        ? [...fotosAtuais, ...novasFotosTrabalho].slice(0, limiteFotos)
+        : fotosAtuais;
 
       await apiFetch("/api/me", {
         method: "PUT",
@@ -1550,6 +1705,7 @@ document.addEventListener("DOMContentLoaded", function() {
   iniciarEditarPerfil();
   alternarCidadesAtendidas();
   adicionarAdminNoRodape();
+  iniciarCarrosselBannersMobile();
 
   const adminBusca = document.getElementById("adminBusca");
   if (adminBusca) adminBusca.addEventListener("input", mostrarAdmin);

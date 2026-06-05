@@ -6,7 +6,7 @@
 
   <title>Editar Perfil - Norte Servic</title>
 
-  <link rel="stylesheet" href="style.css?v=mobile-botoes-planos-final2">
+  <link rel="stylesheet" href="style.css?v=prioridades-mobile-20260605">
 </head>
 <body>
 
@@ -219,6 +219,35 @@
 
             <label>Descrição do trabalho</label>
             <textarea id="descricao" rows="5" required></textarea>
+          </div>
+
+          <div class="grupo-form-premium grupo-imagens-edicao">
+            <h3>Imagens do perfil</h3>
+
+            <div class="form-grid-2">
+              <div>
+                <label>Trocar foto de perfil</label>
+                <input
+                  type="file"
+                  id="fotoPerfilEditar"
+                  accept="image/*"
+                >
+                <small class="campo-ajuda-foto">Opcional: para trocar, envie uma imagem quadrada exatamente 1000x1000 px.</small>
+              </div>
+
+              <div>
+                <label>Adicionar fotos dos serviços</label>
+                <input
+                  type="file"
+                  id="fotosTrabalhosEditar"
+                  accept="image/*"
+                  multiple
+                >
+                <small class="campo-ajuda-foto">As fotos entram no carrossel do seu perfil. Plano gratuito: até 3 fotos.</small>
+              </div>
+            </div>
+
+            <div class="preview-imagens-edicao" id="previewImagensEdicao"></div>
           </div>
 
           <div class="grupo-form-premium">
