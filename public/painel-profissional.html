@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Painel do Profissional - Norte Servic</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="mini-loading" id="miniLoading">
+    <div class="loader-bolinha"></div>
+    <p>Carregando painel...</p>
+  </div>
+
+  <header class="topo novo-topo">
+    <nav class="menu-esquerda">
+      <a href="index.html">Início</a>
+      <a href="cadastro.html">Cadastrar serviço</a>
+    </nav>
+
+    <a href="index.html" class="logo logo-central">
+      Norte Servic
+    </a>
+
+    <nav class="menu-direita">
+      <a href="planos.html">Planos</a>
+      <a href="login.html">Área profissional</a>
+      <a href="admin.html">Admin</a>
+    </nav>
+  </header>
+
+  <main class="painel-profissional-page painel-profissional-premium-page">
+    <section class="painel-profissional-header painel-profissional-header-premium" id="painelProfissionalHeader"></section>
+
+    <section class="painel-status-grid painel-status-grid-premium" id="painelStatusProfissional"></section>
+
+    <section class="painel-profissional-grid painel-profissional-grid-premium">
+      <div class="painel-card-principal painel-card-principal-premium" id="painelResumoProfissional"></div>
+
+      <aside class="painel-acoes-profissional painel-acoes-premium">
+        <div class="painel-acoes-topo">
+          <span>Ações rápidas</span>
+          <h3>Gerenciar conta</h3>
+        </div>
+
+        <a href="editar-perfil.html" class="painel-acao destaque">Editar meu perfil</a>
+        <a href="planos.html" class="painel-acao">Ver planos de destaque</a>
+        <a href="#" id="linkPerfilPublico" class="painel-acao">Ver perfil público</a>
+        <button type="button" onclick="sairProfissional()" class="painel-acao sair">Sair da conta</button>
+      </aside>
+    </section>
+
+    <section class="painel-profissional-extra-grid">
+      <div class="painel-extra-card" id="painelPlanoProfissional"></div>
+      <div class="painel-extra-card" id="painelDicasProfissional"></div>
+    </section>
+  </main>
+
+  <footer class="rodape-minimo">
+    <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

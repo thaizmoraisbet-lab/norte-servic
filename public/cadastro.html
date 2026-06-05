@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Cadastro de Profissional - Norte Servic</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="mini-loading" id="miniLoading">
+    <div class="loader-bolinha"></div>
+    <p>Enviando cadastro...</p>
+  </div>
+
+  <header class="topo novo-topo">
+    <nav class="menu-esquerda">
+      <a href="index.html">Início</a>
+      <a href="cadastro.html">Cadastrar serviço</a>
+    </nav>
+
+    <a href="index.html" class="logo logo-central">
+      Norte Servic
+    </a>
+
+    <nav class="menu-direita">
+      <a href="planos.html">Planos</a>
+      <a href="login.html">Área profissional</a>
+      <a href="admin.html">Admin</a>
+    </nav>
+  </header>
+
+  <main class="cadastro-premium-page">
+
+    <section class="cadastro-premium-hero">
+      <span>Cadastro profissional</span>
+
+      <h1>Crie seu perfil e seja encontrado por clientes da região.</h1>
+
+      <p>
+        Cadastre sua profissão, selecione os serviços que realiza e informe as cidades onde atende.
+      </p>
+    </section>
+
+    <section class="cadastro-premium-layout">
+
+      <aside class="cadastro-beneficios">
+        <div class="cadastro-beneficios-topo">
+          <span>Para profissionais</span>
+
+          <h2>Seu serviço com aparência mais profissional.</h2>
+
+          <p>
+            Quanto mais completo for seu cadastro, maior a confiança para o cliente entrar em contato.
+          </p>
+        </div>
+
+        <div class="cadastro-beneficio-lista">
+          <div>
+            <strong>01</strong>
+            <h3>Cadastro organizado</h3>
+            <p>Escolha categoria, profissão e serviços de forma guiada.</p>
+          </div>
+
+          <div>
+            <strong>02</strong>
+            <h3>Atendimento regional</h3>
+            <p>Informe sua cidade principal e outras cidades que você também atende.</p>
+          </div>
+
+          <div>
+            <strong>03</strong>
+            <h3>Mais confiança</h3>
+            <p>Adicione fotos reais, descrição e dados corretos de contato.</p>
+          </div>
+        </div>
+
+        <div class="cadastro-alerta-premium">
+          <h3>Dica importante</h3>
+
+          <p>
+            Cadastros com foto, descrição clara e serviços bem selecionados têm mais chance de receber contatos.
+          </p>
+        </div>
+      </aside>
+
+      <section class="cadastro-form-card">
+        <div class="cadastro-form-topo">
+          <span>Preencha com atenção</span>
+
+          <h2>Dados do profissional</h2>
+
+          <p>
+            Essas informações serão usadas para montar seu perfil dentro da Norte Servic.
+          </p>
+        </div>
+
+        <form id="formCadastro">
+
+          <div class="grupo-form-premium">
+            <h3>Informações principais</h3>
+
+            <div class="form-grid-2">
+              <div>
+                <label>Nome completo</label>
+                <input 
+                  type="text" 
+                  id="nome" 
+                  placeholder="Ex: João Silva" 
+                  required
+                >
+              </div>
+
+              <div>
+                <label>Tipo de profissional</label>
+                <select id="tipoProfissional" required>
+                  <option value="">Selecione</option>
+                  <option value="Autônomo">Autônomo</option>
+                  <option value="MEI">MEI</option>
+                  <option value="Empresa / CNPJ">Empresa / CNPJ</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="grupo-form-premium">
+            <h3>Categoria e profissão</h3>
+
+            <div class="form-grid-2">
+              <div>
+                <label>Categoria</label>
+                <select id="categoria" required>
+                  <option value="">Selecione uma categoria</option>
+                </select>
+              </div>
+
+              <div>
+                <label>Profissão principal</label>
+                <select id="profissao" required>
+                  <option value="">Selecione primeiro uma categoria</option>
+                </select>
+              </div>
+            </div>
+
+            <label>Serviços que realiza</label>
+
+            <div class="servicos-tags-box" id="servicosTagsBox">
+              <p class="servicos-placeholder">
+                Selecione uma profissão para ver os serviços disponíveis.
+              </p>
+            </div>
+
+            <input type="hidden" id="servicos" required>
+
+            <div class="servicos-selecionados" id="servicosSelecionados"></div>
+
+            <div class="servico-extra-box">
+              <label>Outro serviço que realiza</label>
+
+              <div class="servico-extra-linha">
+                <input 
+                  type="text" 
+                  id="servicoExtra" 
+                  placeholder="Ex: assentamento de porcelanato"
+                >
+
+                <button type="button" onclick="adicionarServicoExtra()">
+                  Adicionar
+                </button>
+              </div>
+            </div>
+
+            <p class="aviso-foto premium">
+              Clique nos serviços que você realiza. Eles serão adicionados automaticamente ao seu perfil.
+            </p>
+          </div>
+
+          <div class="grupo-form-premium">
+            <h3>Área de atendimento</h3>
+
+            <div class="form-grid-2">
+              <div>
+                <label>Cidade principal</label>
+
+                <div class="campo-cidade-inteligente">
+                  <input 
+                    type="text" 
+                    id="cidade" 
+                    placeholder="Digite sua cidade"
+                    autocomplete="off"
+                    required
+                  >
+
+                  <div class="sugestoes-cidade" id="sugestoesCidade"></div>
+                </div>
+              </div>
+
+              <div>
+                <label>Bairro</label>
+                <input 
+                  type="text" 
+                  id="bairro" 
+                  placeholder="Ex: Centro" 
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="form-grid-2">
+              <div>
+                <label>Atende outras cidades?</label>
+                <select id="atendeOutrasCidades" onchange="alternarCidadesAtendidas()" required>
+                  <option value="">Selecione</option>
+                  <option value="Não">Não, somente minha cidade</option>
+                  <option value="Sim">Sim, atendo cidades próximas</option>
+                  <option value="Depende do serviço">Depende do serviço</option>
+                </select>
+              </div>
+
+              <div>
+                <label>Forma de atendimento</label>
+                <select id="formaAtendimento" required>
+                  <option value="">Selecione</option>
+                  <option value="Presencial">Presencial</option>
+                  <option value="Online">Online</option>
+                  <option value="Presencial e online">Presencial e online</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="boxCidadesAtendidas" class="box-cidades-atendidas escondido">
+              <label>Cidades que também atende</label>
+
+              <div class="campo-cidade-inteligente">
+                <input 
+                  type="text" 
+                  id="cidadeAtendidaInput" 
+                  placeholder="Digite uma cidade e selecione"
+                  autocomplete="off"
+                >
+
+                <div class="sugestoes-cidade" id="sugestoesCidadeAtendida"></div>
+              </div>
+
+              <div class="cidades-selecionadas" id="cidadesSelecionadas"></div>
+
+              <p class="aviso-foto premium">
+                Adicione apenas as cidades onde você realmente consegue atender.
+              </p>
+            </div>
+          </div>
+
+          <div class="grupo-form-premium">
+            <h3>Contato</h3>
+
+            <div class="form-grid-2">
+              <div>
+                <label>WhatsApp</label>
+                <input 
+                  type="text" 
+                  id="whatsapp" 
+                  placeholder="Ex: 5563999999999" 
+                  required
+                >
+              </div>
+
+              <div>
+                <label>Instagram</label>
+                <input 
+                  type="text" 
+                  id="instagram" 
+                  placeholder="Ex: @seuinstagram"
+                >
+              </div>
+            </div>
+
+            <div class="form-grid-2 senha-cadastro-grid">
+              <div>
+                <label>Criar senha de acesso</label>
+                <input 
+                  type="password" 
+                  id="senhaCadastro" 
+                  placeholder="Mínimo 6 caracteres" 
+                  minlength="6"
+                  required
+                >
+              </div>
+
+              <div>
+                <label>Confirmar senha</label>
+                <input 
+                  type="password" 
+                  id="confirmarSenhaCadastro" 
+                  placeholder="Digite a senha novamente" 
+                  minlength="6"
+                  required
+                >
+              </div>
+            </div>
+
+            <p class="aviso-foto premium">
+              Essa senha será usada para o profissional entrar na própria conta e editar o perfil depois.
+            </p>
+          </div>
+
+          <div class="grupo-form-premium">
+            <h3>Apresentação do serviço</h3>
+
+            <label>Descrição do trabalho</label>
+            <textarea 
+              id="descricao" 
+              rows="5" 
+              placeholder="Conte um pouco sobre seu trabalho, experiência e os serviços que oferece."
+              required
+            ></textarea>
+          </div>
+
+          <div class="grupo-form-premium">
+            <h3>Imagens do perfil</h3>
+
+            <div class="form-grid-2">
+              <div>
+                <label>Foto do profissional</label>
+                <input 
+                  type="file" 
+                  id="fotoPerfil" 
+                  accept="image/*"
+                >
+              </div>
+
+              <div>
+                <label>Fotos dos trabalhos</label>
+                <input 
+                  type="file" 
+                  id="fotosTrabalhos" 
+                  accept="image/*" 
+                  multiple
+                >
+              </div>
+            </div>
+
+            <p class="aviso-foto premium">
+              Envie fotos reais do profissional ou dos serviços realizados. Isso aumenta a confiança do cliente.
+            </p>
+          </div>
+
+          <button type="submit" class="botao-cadastro-premium">
+            Enviar cadastro para análise
+          </button>
+        </form>
+
+        <p id="mensagemCadastro"></p>
+      </section>
+
+    </section>
+
+  </main>
+
+  <footer class="rodape-minimo">
+    <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

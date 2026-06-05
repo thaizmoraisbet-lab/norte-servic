@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Área do Profissional - Norte Servic</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="mini-loading" id="miniLoading">
+    <div class="loader-bolinha"></div>
+    <p>Entrando...</p>
+  </div>
+
+  <header class="topo novo-topo">
+    <nav class="menu-esquerda">
+      <a href="index.html">Início</a>
+      <a href="cadastro.html">Cadastrar serviço</a>
+    </nav>
+
+    <a href="index.html" class="logo logo-central">
+      Norte Servic
+    </a>
+
+    <nav class="menu-direita">
+      <a href="planos.html">Planos</a>
+      <a href="login.html">Área profissional</a>
+      <a href="admin.html">Admin</a>
+    </nav>
+  </header>
+
+  <main class="login-profissional-premium-page">
+    <section class="login-profissional-premium-shell">
+
+      <aside class="login-profissional-showcase">
+        <span class="login-premium-kicker">Área exclusiva</span>
+
+        <h1>Gerencie seu perfil profissional com mais controle.</h1>
+
+        <p>
+          Entre com o WhatsApp cadastrado e acompanhe seu perfil, serviços, cidades atendidas e planos de destaque.
+        </p>
+
+        <div class="login-premium-beneficios">
+          <div>
+            <strong>01</strong>
+            <span>Atualize seus dados</span>
+          </div>
+
+          <div>
+            <strong>02</strong>
+            <span>Veja seu status</span>
+          </div>
+
+          <div>
+            <strong>03</strong>
+            <span>Prepare seu destaque</span>
+          </div>
+        </div>
+
+        <div class="login-premium-nota">
+          <strong>Importante</strong>
+          <p>Se você alterar nome, profissão, categoria ou WhatsApp, o perfil poderá voltar para análise.</p>
+        </div>
+      </aside>
+
+      <section class="login-profissional-card login-profissional-card-premium">
+        <div class="login-card-topo">
+          <span class="login-badge">Login profissional</span>
+
+          <h2>Entrar no painel</h2>
+
+          <p>
+            Use o WhatsApp e a senha criados no cadastro profissional.
+          </p>
+        </div>
+
+        <form id="formLoginProfissional" class="login-profissional-form">
+          <label>WhatsApp cadastrado</label>
+          <div class="login-input-premium">
+            <span>📱</span>
+            <input
+              type="text"
+              id="loginWhatsapp"
+              placeholder="Ex: 5563999999999"
+              required
+            >
+          </div>
+
+          <label>Senha</label>
+          <div class="login-input-premium">
+            <span>🔒</span>
+            <input
+              type="password"
+              id="loginSenha"
+              placeholder="Digite sua senha"
+              required
+            >
+          </div>
+
+          <button type="submit" class="botao-login-premium">
+            Entrar no painel
+          </button>
+        </form>
+
+        <p id="mensagemLoginProfissional" class="mensagem-login-profissional"></p>
+
+        <div class="login-links-profissional login-links-profissional-premium">
+          <a href="cadastro.html">Criar cadastro profissional</a>
+          <a href="index.html">Voltar para o início</a>
+        </div>
+      </section>
+
+    </section>
+  </main>
+
+  <footer class="rodape-minimo">
+    <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

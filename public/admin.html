@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Painel Admin - Norte Servic</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="mini-loading" id="miniLoading">
+    <div class="loader-bolinha"></div>
+    <p>Carregando painel...</p>
+  </div>
+
+<header class="topo novo-topo">
+  <nav class="menu-esquerda">
+    <a href="index.html">Início</a>
+    <a href="cadastro.html">Cadastrar serviço</a>
+  </nav>
+
+  <a href="index.html" class="logo logo-central">
+    Norte Servic
+  </a>
+
+  <nav class="menu-direita">
+    <a href="planos.html">Planos</a>
+    <a href="login.html">Área profissional</a>
+      <a href="admin.html">Admin</a>
+  </nav>
+</header>
+
+  <main class="admin-ultra-page">
+
+    <section class="admin-ultra-login" id="loginAdmin">
+      <div class="admin-login-visual">
+        <span>Painel privado</span>
+
+        <h1>Gestão premium da Norte Servic.</h1>
+
+        <p>
+          Controle cadastros, aprove profissionais, acompanhe solicitações e mantenha a plataforma com aparência confiável.
+        </p>
+
+        <div class="admin-login-beneficios">
+          <p>✓ Controle de cadastros recebidos</p>
+          <p>✓ Aprovação de profissionais</p>
+          <p>✓ Organização por status</p>
+          <p>✓ Acesso rápido ao WhatsApp</p>
+        </div>
+      </div>
+
+      <div class="admin-login-box">
+        <span>Área administrativa</span>
+
+        <h2>Acessar painel</h2>
+
+        <p>Digite sua senha para entrar na área de controle da plataforma.</p>
+
+        <label>Senha do administrador</label>
+        <input type="password" id="senhaAdmin" placeholder="Digite sua senha">
+
+        <button onclick="entrarAdmin()">Entrar no painel</button>
+
+        <p id="erroSenha"></p>
+      </div>
+    </section>
+
+    <section class="admin-ultra-dashboard escondido" id="painelAdmin">
+
+      <div class="admin-ultra-header">
+        <div>
+          <span>Dashboard administrativo</span>
+
+          <h1>Painel de controle</h1>
+
+          <p>
+            Gerencie profissionais cadastrados, aprove perfis confiáveis e mantenha a vitrine da Norte Servic organizada.
+          </p>
+        </div>
+
+        <div class="admin-header-actions">
+          <a href="cadastro.html">+ Novo cadastro</a>
+          <button onclick="mostrarAdmin()">Atualizar</button>
+        </div>
+      </div>
+
+      <div class="admin-ultra-stats" id="adminStats">
+        <!-- Estatísticas pelo JavaScript -->
+      </div>
+
+      <section class="admin-ultra-toolbar">
+        <div class="admin-search-box">
+          <span>🔎</span>
+          <input 
+            type="text" 
+            id="adminBusca" 
+            placeholder="Buscar por nome, profissão, cidade ou WhatsApp..."
+            oninput="mostrarAdmin()"
+          >
+        </div>
+
+        <div class="admin-filtros">
+          <button class="ativo" onclick="filtrarAdmin('todos', this)">Todos</button>
+          <button onclick="filtrarAdmin('pendente', this)">Pendentes</button>
+          <button onclick="filtrarAdmin('aprovado', this)">Aprovados</button>
+        </div>
+      </section>
+
+      <section class="admin-ultra-content">
+        <div class="admin-section-title">
+          <div>
+            <span>Lista de profissionais</span>
+            <h2>Cadastros recebidos</h2>
+          </div>
+
+          <p>Aprove apenas perfis com informações claras, WhatsApp correto e apresentação confiável.</p>
+        </div>
+
+        <div id="listaAdmin" class="admin-ultra-lista"></div>
+      </section>
+
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Norte Servic © 2026 - Profissionais de confiança perto de você.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

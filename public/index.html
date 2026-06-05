@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Norte Servic - Profissionais de confiança perto de você</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="mini-loading" id="miniLoading">
+    <div class="loader-bolinha"></div>
+    <p>Carregando...</p>
+  </div>
+
+  <header class="topo novo-topo">
+    <nav class="menu-esquerda">
+      <a href="index.html">Início</a>
+      <a href="cadastro.html">Cadastrar serviço</a>
+    </nav>
+
+    <a href="index.html" class="logo logo-central">
+      Norte Servic
+    </a>
+
+    <nav class="menu-direita">
+      <a href="planos.html">Planos</a>
+      <a href="login.html">Área profissional</a>
+      <a href="admin.html">Admin</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h1>Encontre profissionais confiáveis na sua região.</h1>
+
+    <p>
+      Profissionais de confiança perto de você.
+    </p>
+
+    <div class="busca-box">
+      <div class="input-busca busca-inteligente-area">
+        <span class="icone-busca">🛠️</span>
+
+        <input 
+          type="text" 
+          id="campoBusca" 
+          placeholder="O que você precisa resolver hoje?"
+          autocomplete="off"
+        >
+
+        <div class="sugestoes-busca" id="sugestoesBusca"></div>
+      </div>
+
+      <button onclick="buscarProfissionais()">
+        Encontrar
+      </button>
+    </div>
+
+    <div class="categorias">
+      <button onclick="buscarCategoria('pedreiro')">Pedreiro</button>
+      <button onclick="buscarCategoria('eletricista')">Eletricista</button>
+      <button onclick="buscarCategoria('diarista')">Diarista</button>
+      <button onclick="buscarCategoria('manicure')">Manicure</button>
+      <button onclick="buscarCategoria('designer')">Designer</button>
+      <button onclick="buscarCategoria('mecânico')">Mecânico</button>
+      <button onclick="buscarCategoria('encanador')">Encanador</button>
+      <button onclick="buscarCategoria('montador')">Montador</button>
+      <button onclick="buscarCategoria('fotógrafo')">Fotógrafo</button>
+      <button onclick="buscarCategoria('ar-condicionado')">Ar-condicionado</button>
+    </div>
+  </section>
+
+  <section class="secao destaques-section">
+    <span class="badge-destaque-home">Vitrine de confiança</span>
+
+    <h2>Profissionais em destaque</h2>
+
+    <p class="texto-destaque-home">
+      Veja profissionais cadastrados, analisados e prontos para atender pelo WhatsApp.
+    </p>
+
+    <div id="listaProfissionais" class="grid"></div>
+  </section>
+
+  <section class="como-funciona">
+    <h2>Como funciona?</h2>
+
+    <div class="passos">
+      <div>
+        <h3>1. Busque</h3>
+        <p>Digite o serviço, profissão ou problema que você precisa resolver.</p>
+      </div>
+
+      <div>
+        <h3>2. Compare</h3>
+        <p>Veja profissionais, informações de confiança, localização e avaliações.</p>
+      </div>
+
+      <div>
+        <h3>3. Chame</h3>
+        <p>Fale direto pelo WhatsApp com o profissional escolhido em apenas um clique.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="por-que-premium">
+    <div class="por-que-header">
+      <span>Por que escolher a Norte Servic?</span>
+
+      <h2>Uma forma mais segura, rápida e profissional de encontrar serviços.</h2>
+
+      <p>
+        A Norte Servic conecta clientes a profissionais da região com foco em confiança,
+        praticidade e contato direto pelo WhatsApp.
+      </p>
+    </div>
+
+    <div class="por-que-grid">
+      <div class="por-que-card destaque">
+        <div class="por-que-icone">🔎</div>
+
+        <h3>Busca simples e rápida</h3>
+
+        <p>
+          O cliente procura pelo serviço ou problema que precisa resolver e encontra profissionais em poucos segundos.
+        </p>
+
+        <div class="por-que-tags">
+          <span>Busca por serviço</span>
+          <span>Categorias rápidas</span>
+        </div>
+      </div>
+
+      <div class="por-que-card">
+        <div class="por-que-icone">🛡️</div>
+
+        <h3>Mais confiança antes do contato</h3>
+
+        <p>
+          Perfis com foto, descrição, cidade, bairro, serviços realizados e informações que ajudam na decisão.
+        </p>
+
+        <div class="por-que-tags">
+          <span>Perfil analisado</span>
+          <span>WhatsApp confirmado</span>
+        </div>
+      </div>
+
+      <div class="por-que-card">
+        <div class="por-que-icone">📲</div>
+
+        <h3>Contato direto pelo WhatsApp</h3>
+
+        <p>
+          Nada de formulário complicado. O cliente visualiza o perfil e chama o profissional com apenas um clique.
+        </p>
+
+        <div class="por-que-tags">
+          <span>Chamada rápida</span>
+          <span>Sem burocracia</span>
+        </div>
+      </div>
+
+      <div class="por-que-card">
+        <div class="por-que-icone">🚀</div>
+
+        <h3>Mais visibilidade para profissionais</h3>
+
+        <p>
+          Quem trabalha pode criar um perfil profissional, mostrar seus serviços e aparecer para clientes da região.
+        </p>
+
+        <div class="por-que-tags">
+          <span>Perfil próprio</span>
+          <span>Planos de destaque</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="home-planos">
+    <div>
+      <span>Para profissionais</span>
+
+      <h2>Quer aparecer com mais destaque?</h2>
+
+      <p>
+        A Norte Servic possui planos para profissionais que querem mais visibilidade,
+        mais confiança e mais contatos pelo WhatsApp.
+      </p>
+    </div>
+
+    <a href="planos.html">Ver planos de destaque</a>
+  </section>
+
+  <section class="como-funciona">
+    <h2>Cadastre seu serviço</h2>
+
+    <p>Você é profissional, autônomo ou prestador de serviço?</p>
+
+    <p>Entre para a Norte Servic e seja encontrado por clientes da região.</p>
+
+    <br>
+
+    <a href="cadastro.html" class="botao-grande">
+      Cadastrar meu serviço
+    </a>
+  </section>
+
+  <footer class="rodape-minimo">
+    <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

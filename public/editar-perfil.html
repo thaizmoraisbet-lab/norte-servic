@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Editar Perfil - Norte Servic</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="mini-loading" id="miniLoading">
+    <div class="loader-bolinha"></div>
+    <p>Salvando alterações...</p>
+  </div>
+
+  <header class="topo novo-topo">
+    <nav class="menu-esquerda">
+      <a href="index.html">Início</a>
+      <a href="cadastro.html">Cadastrar serviço</a>
+    </nav>
+
+    <a href="index.html" class="logo logo-central">
+      Norte Servic
+    </a>
+
+    <nav class="menu-direita">
+      <a href="planos.html">Planos</a>
+      <a href="login.html">Área profissional</a>
+      <a href="admin.html">Admin</a>
+    </nav>
+  </header>
+
+  <main class="cadastro-premium-page editar-profissional-premium-page">
+    <section class="cadastro-premium-hero">
+      <span>Minha conta</span>
+      <h1>Atualize as informações do seu perfil.</h1>
+      <p>Altere seus dados, serviços, cidades atendidas e apresentação profissional.</p>
+
+      <div class="editar-mini-alerta">
+        <span>✓ Edição segura</span>
+        <span>✓ Serviços em tags</span>
+        <span>✓ Cidades inteligentes</span>
+      </div>
+    </section>
+
+    <section class="cadastro-premium-layout editar-layout">
+      <aside class="cadastro-beneficios">
+        <div class="cadastro-beneficios-topo">
+          <span>Painel do profissional</span>
+          <h2>Mantenha seu perfil sempre atualizado.</h2>
+          <p>Informações completas aumentam a confiança e melhoram sua chance de receber contatos.</p>
+        </div>
+
+        <div class="cadastro-beneficio-lista">
+          <div>
+            <strong>01</strong>
+            <h3>Dados corretos</h3>
+            <p>Confira WhatsApp, cidade, profissão e descrição.</p>
+          </div>
+
+          <div>
+            <strong>02</strong>
+            <h3>Serviços bem marcados</h3>
+            <p>Escolha as tags que representam seu trabalho.</p>
+          </div>
+
+          <div>
+            <strong>03</strong>
+            <h3>Plano de destaque</h3>
+            <p>Depois você poderá contratar destaque para aparecer melhor.</p>
+          </div>
+        </div>
+
+        <a href="painel-profissional.html" class="painel-acao voltar-painel">Voltar ao painel</a>
+      </aside>
+
+      <section class="cadastro-form-card">
+        <div class="cadastro-form-topo">
+          <span>Editar perfil</span>
+          <h2>Informações do profissional</h2>
+          <p>As alterações serão salvas no seu perfil. Dados sensíveis podem voltar para análise.</p>
+        </div>
+
+        <form id="formEditarPerfil">
+
+          <div class="grupo-form-premium">
+            <h3>Informações principais</h3>
+
+            <div class="form-grid-2">
+              <div>
+                <label>Nome completo</label>
+                <input type="text" id="nome" required>
+              </div>
+
+              <div>
+                <label>Tipo de profissional</label>
+                <select id="tipoProfissional" required>
+                  <option value="">Selecione</option>
+                  <option value="Autônomo">Autônomo</option>
+                  <option value="MEI">MEI</option>
+                  <option value="Empresa / CNPJ">Empresa / CNPJ</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="grupo-form-premium">
+            <h3>Categoria e profissão</h3>
+
+            <div class="form-grid-2">
+              <div>
+                <label>Categoria</label>
+                <select id="categoria" required>
+                  <option value="">Selecione uma categoria</option>
+                </select>
+              </div>
+
+              <div>
+                <label>Profissão principal</label>
+                <select id="profissao" required>
+                  <option value="">Selecione primeiro uma categoria</option>
+                </select>
+              </div>
+            </div>
+
+            <label>Serviços que realiza</label>
+
+            <div class="servicos-tags-box" id="servicosTagsBox">
+              <p class="servicos-placeholder">Selecione uma profissão para ver os serviços disponíveis.</p>
+            </div>
+
+            <input type="hidden" id="servicos" required>
+
+            <div class="servicos-selecionados" id="servicosSelecionados"></div>
+
+            <div class="servico-extra-box">
+              <label>Outro serviço que realiza</label>
+
+              <div class="servico-extra-linha">
+                <input type="text" id="servicoExtra" placeholder="Ex: assentamento de porcelanato">
+
+                <button type="button" onclick="adicionarServicoExtra()">
+                  Adicionar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grupo-form-premium">
+            <h3>Área de atendimento</h3>
+
+            <div class="form-grid-2">
+              <div>
+                <label>Cidade principal</label>
+
+                <div class="campo-cidade-inteligente">
+                  <input type="text" id="cidade" placeholder="Digite sua cidade" autocomplete="off" required>
+                  <div class="sugestoes-cidade" id="sugestoesCidade"></div>
+                </div>
+              </div>
+
+              <div>
+                <label>Bairro</label>
+                <input type="text" id="bairro" required>
+              </div>
+            </div>
+
+            <div class="form-grid-2">
+              <div>
+                <label>Atende outras cidades?</label>
+                <select id="atendeOutrasCidades" onchange="alternarCidadesAtendidas()" required>
+                  <option value="">Selecione</option>
+                  <option value="Não">Não, somente minha cidade</option>
+                  <option value="Sim">Sim, atendo cidades próximas</option>
+                  <option value="Depende do serviço">Depende do serviço</option>
+                </select>
+              </div>
+
+              <div>
+                <label>Forma de atendimento</label>
+                <select id="formaAtendimento" required>
+                  <option value="">Selecione</option>
+                  <option value="Presencial">Presencial</option>
+                  <option value="Online">Online</option>
+                  <option value="Presencial e online">Presencial e online</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="boxCidadesAtendidas" class="box-cidades-atendidas escondido">
+              <label>Cidades que também atende</label>
+
+              <div class="campo-cidade-inteligente">
+                <input type="text" id="cidadeAtendidaInput" placeholder="Digite uma cidade e selecione" autocomplete="off">
+                <div class="sugestoes-cidade" id="sugestoesCidadeAtendida"></div>
+              </div>
+
+              <div class="cidades-selecionadas" id="cidadesSelecionadas"></div>
+            </div>
+          </div>
+
+          <div class="grupo-form-premium">
+            <h3>Contato</h3>
+
+            <div class="form-grid-2">
+              <div>
+                <label>WhatsApp</label>
+                <input type="text" id="whatsapp" required>
+              </div>
+
+              <div>
+                <label>Instagram</label>
+                <input type="text" id="instagram">
+              </div>
+            </div>
+          </div>
+
+          <div class="grupo-form-premium">
+            <h3>Apresentação do serviço</h3>
+
+            <label>Descrição do trabalho</label>
+            <textarea id="descricao" rows="5" required></textarea>
+          </div>
+
+          <div class="grupo-form-premium">
+            <h3>Atualizar senha</h3>
+
+            <div class="form-grid-2">
+              <div>
+                <label>Nova senha</label>
+                <input type="password" id="novaSenhaPerfil" placeholder="Deixe vazio para manter">
+              </div>
+
+              <div>
+                <label>Confirmar nova senha</label>
+                <input type="password" id="confirmarNovaSenhaPerfil" placeholder="Repita a nova senha">
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="botao-cadastro-premium">
+            Salvar alterações
+          </button>
+        </form>
+
+        <p id="mensagemEditarPerfil"></p>
+      </section>
+    </section>
+  </main>
+
+  <footer class="rodape-minimo">
+    <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
