@@ -200,13 +200,79 @@ function criarLinkWhatsApp(numero) {
   return `https://wa.me/${telefone}?text=${mensagem}`;
 }
 
-function converterImagemParaBase64(arquivo) {
+function canvasParaDataURL(canvas, qualidade = 0.78) {
+  return canvas.toDataURL("image/jpeg", qualidade);
+}
+
+function carregarImagemArquivo(arquivo) {
   return new Promise((resolve, reject) => {
-    if (!arquivo) return resolve("");
-    const leitor = new FileReader();
-    leitor.onload = () => resolve(leitor.result);
-    leitor.onerror = () => reject(new Error("Erro ao carregar imagem."));
-    leitor.readAsDataURL(arquivo);
+    if (!arquivo) return resolve(null);
+
+    const url = URL.createObjectURL(arquivo);
+    const img = new Image();
+
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Não foi possível carregar a imagem."));
+    };
+
+    img.src = url;
+  });
+}
+
+async function otimizarImagemParaBase64(arquivo, opcoes = {}) {
+  if (!arquivo) return "";
+
+  const {
+    largura = 900,
+    altura = 900,
+    quadrada = false,
+    qualidade = 0.76,
+    cortarCentro = false
+  } = opcoes;
+
+  const img = await carregarImagemArquivo(arquivo);
+  if (!img) return "";
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d", { alpha: false });
+
+  if (quadrada) {
+    const tamanho = Math.min(img.naturalWidth, img.naturalHeight);
+    const sx = Math.max(0, Math.floor((img.naturalWidth - tamanho) / 2));
+    const sy = Math.max(0, Math.floor((img.naturalHeight - tamanho) / 2));
+
+    canvas.width = largura;
+    canvas.height = largura;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, sx, sy, tamanho, tamanho, 0, 0, largura, largura);
+    return canvasParaDataURL(canvas, qualidade);
+  }
+
+  const proporcao = Math.min(largura / img.naturalWidth, altura / img.naturalHeight, 1);
+  const destinoLargura = Math.max(1, Math.round(img.naturalWidth * proporcao));
+  const destinoAltura = Math.max(1, Math.round(img.naturalHeight * proporcao));
+
+  canvas.width = destinoLargura;
+  canvas.height = destinoAltura;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0, destinoLargura, destinoAltura);
+
+  return canvasParaDataURL(canvas, qualidade);
+}
+
+function converterImagemParaBase64(arquivo) {
+  return otimizarImagemParaBase64(arquivo, {
+    largura: 1100,
+    altura: 1100,
+    qualidade: 0.72
   });
 }
 
@@ -234,15 +300,47 @@ function carregarDimensoesImagem(arquivo) {
 
 async function validarFotoPerfil1000(arquivo, obrigatoria = false) {
   if (!arquivo) {
-    if (obrigatoria) throw new Error("Envie uma foto de perfil quadrada, exatamente 1000x1000 px.");
+    if (obrigatoria) throw new Error("Envie uma foto de perfil quadrada.");
     return;
   }
 
   const dimensoes = await carregarDimensoesImagem(arquivo);
+  if (!dimensoes) throw new Error("Não foi possível validar a foto de perfil.");
 
-  if (!dimensoes || dimensoes.largura !== 1000 || dimensoes.altura !== 1000) {
-    throw new Error(`A foto de perfil precisa ser quadrada e ter exatamente 1000x1000 px. A imagem enviada tem ${dimensoes?.largura || 0}x${dimensoes?.altura || 0} px.`);
+  const diferenca = Math.abs(dimensoes.largura - dimensoes.altura);
+  const tolerancia = Math.max(6, Math.round(Math.max(dimensoes.largura, dimensoes.altura) * 0.015));
+
+  if (diferenca > tolerancia) {
+    throw new Error(`A foto de perfil precisa ser quadrada. A imagem enviada tem ${dimensoes.largura}x${dimensoes.altura} px.`);
   }
+}
+
+async function converterFotoPerfilOtimizada(arquivo) {
+  return otimizarImagemParaBase64(arquivo, {
+    largura: 700,
+    altura: 700,
+    quadrada: true,
+    qualidade: 0.76
+  });
+}
+
+async function converterFotoTrabalhoOtimizada(arquivo) {
+  return otimizarImagemParaBase64(arquivo, {
+    largura: 1200,
+    altura: 1200,
+    qualidade: 0.70
+  });
+}
+
+async function converterVariasImagensParaBase64(arquivos) {
+  const listaArquivos = Array.from(arquivos || []);
+  const imagens = [];
+
+  for (const arquivo of listaArquivos) {
+    imagens.push(await converterFotoTrabalhoOtimizada(arquivo));
+  }
+
+  return imagens;
 }
 
 function limiteFotosPorPlano(profissional = {}) {
@@ -491,7 +589,7 @@ function selecionarSugestaoBusca(valor) {
 function cardProfissionalHTML(p, index = 0) {
   const linkWhatsApp = criarLinkWhatsApp(p.whatsapp);
   const inicial = p.nome ? p.nome.charAt(0).toUpperCase() : "?";
-  const fotoCard = p.fotoPerfil ? `<img src="${p.fotoPerfil}" alt="Foto de ${p.nome}">` : `<span>${inicial}</span>`;
+  const fotoCard = p.fotoPerfil ? `<img src="${p.fotoPerfil}" alt="Foto de ${p.nome}" loading="lazy" decoding="async">` : `<span>${inicial}</span>`;
   const temFotosTrabalhos = Array.isArray(p.fotosTrabalhos) && p.fotosTrabalhos.length > 0;
   const cidadesTexto = formatarCidadesAtendidas(p);
   const temPlano = profissionalTemPlanoPago(p);
@@ -920,7 +1018,7 @@ function iniciarCadastroBackend() {
       await validarFotoPerfil1000(arquivoFotoPerfil, true);
 
       const dados = dadosFormularioProfissional(true);
-      dados.fotoPerfil = await converterImagemParaBase64(arquivoFotoPerfil);
+      dados.fotoPerfil = await converterFotoPerfilOtimizada(arquivoFotoPerfil);
       dados.fotosTrabalhos = (await converterVariasImagensParaBase64(arquivosTrabalhos)).slice(0, 3);
 
       await apiFetch("/api/cadastro", {
@@ -970,7 +1068,7 @@ async function carregarPerfilProfissional() {
     const profissional = await carregarProfissionalPorId(id);
     const linkWhatsApp = criarLinkWhatsApp(profissional.whatsapp);
     const inicial = profissional.nome ? profissional.nome.charAt(0).toUpperCase() : "?";
-    const fotoPerfil = profissional.fotoPerfil ? `<img src="${profissional.fotoPerfil}" alt="Foto de ${profissional.nome}">` : inicial;
+    const fotoPerfil = profissional.fotoPerfil ? `<img src="${profissional.fotoPerfil}" alt="Foto de ${profissional.nome}" loading="lazy" decoding="async">` : inicial;
     const servicosArray = (profissional.servicos || "").split(",").map(s => s.trim()).filter(Boolean);
     const cidadesTexto = formatarCidadesAtendidas(profissional);
 
@@ -1175,7 +1273,7 @@ async function carregarPainelProfissional() {
     const planoStatus = profissional.planoStatus || "ativo";
     const forcaPerfil = calcularForcaPerfil(profissional);
     const totalServicos = (profissional.servicos || "").split(",").map(s => s.trim()).filter(Boolean).length;
-    const foto = profissional.fotoPerfil ? `<img src="${profissional.fotoPerfil}" alt="Foto de ${profissional.nome}">` : `<span>${profissional.nome ? profissional.nome.charAt(0).toUpperCase() : "?"}</span>`;
+    const foto = profissional.fotoPerfil ? `<img src="${profissional.fotoPerfil}" alt="Foto de ${profissional.nome}" loading="lazy" decoding="async">` : `<span>${profissional.nome ? profissional.nome.charAt(0).toUpperCase() : "?"}</span>`;
 
     header.innerHTML = `<span>Painel do profissional</span><h1>Olá, ${profissional.nome}.</h1><p>Gerencie seu perfil, acompanhe sua publicação e mantenha seus dados prontos para receber clientes.</p>`;
 
@@ -1299,7 +1397,7 @@ async function preencherFormularioEdicao(profissional) {
     const fotos = Array.isArray(profissional.fotosTrabalhos) ? profissional.fotosTrabalhos : [];
     preview.innerHTML = `
       <div class="preview-foto-atual">
-        ${profissional.fotoPerfil ? `<img src="${profissional.fotoPerfil}" alt="Foto atual do perfil">` : `<span>Sem foto de perfil</span>`}
+        ${profissional.fotoPerfil ? `<img src="${profissional.fotoPerfil}" alt="Foto atual do perfil" loading="lazy" decoding="async">` : `<span>Sem foto de perfil</span>`}
       </div>
       <div class="preview-trabalhos-atual">
         ${fotos.slice(0, limiteFotosPorPlano(profissional)).map(foto => `<img src="${foto}" alt="Foto de serviço atual">`).join("") || `<span>Nenhuma foto de serviço adicionada.</span>`}
@@ -1375,7 +1473,7 @@ function iniciarEditarPerfil() {
       await validarFotoPerfil1000(arquivoFotoPerfil, false);
 
       dados.fotoPerfil = arquivoFotoPerfil
-        ? await converterImagemParaBase64(arquivoFotoPerfil)
+        ? await converterFotoPerfilOtimizada(arquivoFotoPerfil)
         : (profissionalAtual?.fotoPerfil || "");
 
       const novasFotosTrabalho = await converterVariasImagensParaBase64(arquivosTrabalhos);
@@ -1486,7 +1584,7 @@ async function mostrarAdmin() {
 
     container.innerHTML = listaFiltrada.map((p, index) => {
       const inicial = p.nome ? p.nome.charAt(0).toUpperCase() : "?";
-      const fotoCard = p.fotoPerfil ? `<img src="${p.fotoPerfil}" alt="Foto de ${p.nome}">` : `<span>${inicial}</span>`;
+      const fotoCard = p.fotoPerfil ? `<img src="${p.fotoPerfil}" alt="Foto de ${p.nome}" loading="lazy" decoding="async">` : `<span>${inicial}</span>`;
       const quantidadeFotos = Array.isArray(p.fotosTrabalhos) ? p.fotosTrabalhos.length : 0;
       const statusClasse = p.status === "aprovado" ? "status-aprovado" : "status-pendente";
       const statusTexto = p.status === "aprovado" ? "Aprovado" : "Pendente";

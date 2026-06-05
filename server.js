@@ -139,7 +139,14 @@ app.get('/api/profissionais', async (req, res) => {
     }
 
     const sql = `
-      SELECT * FROM profissionais
+      SELECT
+        id, nome, email, tipo_profissional, categoria, profissao, servicos,
+        palavras_chave, cidade, bairro, atende_outras_cidades, cidades_atendidas,
+        forma_atendimento, whatsapp, instagram, descricao, foto_perfil,
+        '[]'::jsonb AS fotos_trabalhos,
+        avaliacao, avaliacoes, verificado, status, plano_atual, plano_status,
+        plano_vencimento, stripe_customer_id, stripe_subscription_id, criado_em, atualizado_em
+      FROM profissionais
       ${where}
       ORDER BY
         CASE plano_atual
