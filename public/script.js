@@ -430,27 +430,44 @@ function cardProfissionalHTML(p, index = 0) {
   const fotoCard = p.fotoPerfil ? `<img src="${p.fotoPerfil}" alt="Foto de ${p.nome}">` : `<span>${inicial}</span>`;
   const temFotosTrabalhos = Array.isArray(p.fotosTrabalhos) && p.fotosTrabalhos.length > 0;
   const cidadesTexto = formatarCidadesAtendidas(p);
+  const temPlano = profissionalTemPlanoPago(p);
+  const planoTexto = seloPlanoTexto(p);
 
-  const classePlano = profissionalTemPlanoPago(p) ? ` plano-ativo plano-${seloPlanoTexto(p).toLowerCase()}` : "";
+  const classePlano = temPlano ? ` plano-ativo plano-${planoTexto.toLowerCase()}` : "";
+  const statusPlano = temPlano
+    ? `<p class="plano-status-card ativo">✓ Plano ${p.planoAtual || planoTexto} ativo</p>`
+    : (p.verificado ? `<p class="plano-status-card verificado">✓ Profissional verificado</p>` : "");
+
   return `
     <div class="card${classePlano}" style="animation-delay: ${index * 0.08}s">
       <div class="foto-card">${fotoCard}</div>
-      <h3 class="nome-profissional-linha"><span>${p.nome}</span>${seloVerificadoPlanoHTML(p, "card")}</h3>
-      <p class="profissao">${p.profissao || "Profissional"}</p>
-      <p>${p.descricao || "Profissional cadastrado na Norte Servic."}</p>
-      <p><strong>Atende:</strong> ${cidadesTexto}</p>
-      <p><strong>Atendimento:</strong> ${p.formaAtendimento || "Não informado"}</p>
-      <p>⭐ ${p.avaliacao || "Novo"} | ${p.avaliacoes || 0} avaliações</p>
-      <p>⚡ Responde pelo WhatsApp</p>
-      <div class="selos">
-        ${profissionalTemPlanoPago(p) ? `<p class="selo-pago-card">✓ Plano ${p.planoAtual} ativo</p>` : ""}
-        <p>✓ WhatsApp confirmado</p>
-        <p>${temFotosTrabalhos ? "✓ Fotos reais disponíveis" : "✓ Fotos reais em análise"}</p>
-        <p>${p.verificado ? "✓ Profissional verificado" : "• Aguardando verificação"}</p>
-      </div>
-      <div class="acoes-card">
-        <a href="perfil.html?id=${p.id}">Ver detalhes</a>
-        <a class="whatsapp" href="${linkWhatsApp}" target="_blank">Chamar no WhatsApp</a>
+
+      <div class="card-conteudo-mobile">
+        <h3 class="nome-profissional-linha">
+          <span>${p.nome}</span>
+          ${seloVerificadoPlanoHTML(p, "card")}
+        </h3>
+
+        <p class="profissao">${p.profissao || "Profissional"}</p>
+        ${statusPlano}
+
+        <p class="descricao-card">${p.descricao || "Profissional cadastrado na Norte Servic."}</p>
+        <p class="atende-card"><strong>Atende:</strong> ${cidadesTexto}</p>
+        <p class="atendimento-card"><strong>Atendimento:</strong> ${p.formaAtendimento || "Não informado"}</p>
+        <p class="avaliacao-card">⭐ ${p.avaliacao || "Novo"} | ${p.avaliacoes || 0} avaliações</p>
+        <p class="whatsapp-card">⚡ Responde pelo WhatsApp</p>
+
+        <div class="selos">
+          ${temPlano ? `<p class="selo-pago-card">✓ Plano ${p.planoAtual || planoTexto} ativo</p>` : ""}
+          <p>✓ WhatsApp confirmado</p>
+          <p>${temFotosTrabalhos ? "✓ Fotos reais disponíveis" : "✓ Fotos reais em análise"}</p>
+          <p>${p.verificado ? "✓ Profissional verificado" : "• Aguardando verificação"}</p>
+        </div>
+
+        <div class="acoes-card">
+          <a href="perfil.html?id=${p.id}">Ver detalhes</a>
+          <a class="whatsapp" href="${linkWhatsApp}" target="_blank">Chamar no WhatsApp</a>
+        </div>
       </div>
     </div>
   `;
