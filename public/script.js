@@ -223,6 +223,51 @@ function esconderLoading() {
   if (loading) loading.classList.remove("ativo");
 }
 
+function aguardarPinturaTela(ms = 80) {
+  return new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, ms)));
+}
+
+function iniciarCarregamentoNorteServic() {
+  if (document.querySelector(".ns-page-loader")) return;
+
+  const loader = document.createElement("div");
+  loader.className = "ns-page-loader ativo";
+  loader.innerHTML = `
+    <div class="ns-loader-card">
+      <div class="ns-loader-logo"><span>✓</span></div>
+      <strong>Norte Servic</strong>
+      <p>Carregando informações...</p>
+      <div class="ns-loader-bar"><span></span></div>
+    </div>
+  `;
+
+  document.body.appendChild(loader);
+
+  window.addEventListener("load", () => {
+    setTimeout(() => {
+      loader.classList.add("saindo");
+      setTimeout(() => loader.remove(), 420);
+    }, 450);
+  });
+}
+
+function ativarEstadoCarregandoBotao(botao, texto = "Enviando...") {
+  if (!botao) return "";
+  const textoOriginal = botao.innerText;
+  botao.disabled = true;
+  botao.classList.add("botao-carregando");
+  botao.innerHTML = `<span class="spinner-botao"></span><span>${texto}</span>`;
+  return textoOriginal;
+}
+
+function restaurarEstadoBotao(botao, textoOriginal = "Enviar") {
+  if (!botao) return;
+  botao.disabled = false;
+  botao.classList.remove("botao-carregando");
+  botao.innerText = textoOriginal;
+}
+
+
 function criarLinkWhatsApp(numero) {
   const telefone = limparNumero(numero);
   const mensagem = encodeURIComponent("Olá! Encontrei seu perfil no Norte Servic e gostaria de solicitar um orçamento.");
@@ -971,11 +1016,9 @@ function iniciarCadastroBackend() {
     }
 
     try {
-      if (botao) {
-        botao.innerText = "Enviando cadastro...";
-        botao.disabled = true;
-      }
-      mostrarLoading("Enviando cadastro...");
+      const textoBotaoLoading = ativarEstadoCarregandoBotao(botao, "Enviando cadastro...");
+      mostrarLoading("Otimizando fotos e enviando cadastro...");
+      await aguardarPinturaTela(120);
 
       const arquivoFotoPerfil = document.getElementById("fotoPerfil")?.files[0];
       const arquivosTrabalhos = document.getElementById("fotosTrabalhos")?.files;
@@ -1010,10 +1053,7 @@ function iniciarCadastroBackend() {
       if (mensagemCadastro) mensagemCadastro.innerText = error.message;
     } finally {
       esconderLoading();
-      if (botao) {
-        botao.innerText = textoOriginal;
-        botao.disabled = false;
-      }
+      restaurarEstadoBotao(botao, typeof textoBotaoLoading !== "undefined" ? textoBotaoLoading : textoOriginal);
     }
   });
 }
@@ -2119,6 +2159,7 @@ function solicitarPlanoProfissional(plano, valor) {
 /* ================================================= */
 
 document.addEventListener("DOMContentLoaded", function() {
+  iniciarCarregamentoNorteServic();
   ativarTransicoesDeClique();
   ativarBuscaComEnter();
   iniciarBuscaInteligente();

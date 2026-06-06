@@ -94,12 +94,51 @@ async function excluirArquivoStorage(url) {
   }
 }
 
+const FONTE_BLOCO_NORTE_SERVIC = {
+  N: ['1001', '1101', '1011', '1001', '1001'],
+  O: ['111', '101', '101', '101', '111'],
+  R: ['1110', '1001', '1110', '1010', '1001'],
+  T: ['11111', '00100', '00100', '00100', '00100'],
+  E: ['1111', '1000', '1110', '1000', '1111'],
+  S: ['1111', '1000', '1110', '0001', '1110'],
+  V: ['1001', '1001', '1001', '0101', '0010'],
+  I: ['111', '010', '010', '010', '111'],
+  C: ['1111', '1000', '1000', '1000', '1111'],
+  ' ': ['0', '0', '0', '0', '0']
+};
+
+function textoBlocoSvgNorteServic(texto, x, y, escala, opcoes = {}) {
+  const fill = opcoes.fill || '#ffffff';
+  const opacity = opcoes.opacity ?? 0.36;
+  const stroke = opcoes.stroke || 'rgba(17,24,39,0.28)';
+  const strokeWidth = opcoes.strokeWidth ?? 0.35;
+  const radius = Math.max(0.6, escala * 0.18);
+  let cursorX = x;
+  let saida = '';
+
+  String(texto || '').toUpperCase().split('').forEach((letra) => {
+    const matriz = FONTE_BLOCO_NORTE_SERVIC[letra] || FONTE_BLOCO_NORTE_SERVIC[' '];
+    const larguraLetra = Math.max(...matriz.map((linha) => linha.length));
+
+    matriz.forEach((linha, linhaIndex) => {
+      linha.split('').forEach((pixel, colunaIndex) => {
+        if (pixel !== '1') return;
+        saida += `<rect x="${(cursorX + colunaIndex * escala).toFixed(2)}" y="${(y + linhaIndex * escala).toFixed(2)}" width="${(escala * 0.86).toFixed(2)}" height="${(escala * 0.86).toFixed(2)}" rx="${radius.toFixed(2)}" fill="${fill}" fill-opacity="${opacity}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`;
+      });
+    });
+
+    cursorX += (larguraLetra + 1.15) * escala;
+  });
+
+  return saida;
+}
+
 async function processarImagemNorteServic(buffer, opcoes = {}) {
   const {
     marcaDagua = false,
     largura = 800,
     altura = 800,
-    qualidade = 84
+    qualidade = 82
   } = opcoes;
 
   let imagem = sharp(buffer)
@@ -110,44 +149,41 @@ async function processarImagemNorteServic(buffer, opcoes = {}) {
     });
 
   if (marcaDagua) {
-    const fonte = Math.max(32, Math.round(largura * 0.06));
-    const fonteSelo = Math.max(18, Math.round(largura * 0.032));
+    const blocoGrande = Math.max(7, Math.round(largura * 0.012));
+    const blocoMedio = Math.max(6, Math.round(largura * 0.010));
+    const blocoSelo = Math.max(3.2, largura * 0.0052);
+
+    const marcaDiagonal = [
+      `<g transform="translate(${largura * 0.02}, ${altura * 0.16}) rotate(-35)">${textoBlocoSvgNorteServic('NORTE SERVIC', 0, 0, blocoGrande, { opacity: 0.34, fill: '#ffffff' })}</g>`,
+      `<g transform="translate(${largura * 0.30}, ${altura * 0.34}) rotate(-35)">${textoBlocoSvgNorteServic('NORTE SERVIC', 0, 0, blocoMedio, { opacity: 0.30, fill: '#ffffff' })}</g>`,
+      `<g transform="translate(${largura * 0.05}, ${altura * 0.58}) rotate(-35)">${textoBlocoSvgNorteServic('NORTE SERVIC', 0, 0, blocoGrande, { opacity: 0.32, fill: '#ffffff' })}</g>`,
+      `<g transform="translate(${largura * 0.34}, ${altura * 0.78}) rotate(-35)">${textoBlocoSvgNorteServic('NORTE SERVIC', 0, 0, blocoMedio, { opacity: 0.28, fill: '#ffffff' })}</g>`
+    ].join('');
+
+    const seloX = largura * 0.54;
+    const seloY = altura * 0.875;
+    const seloW = largura * 0.40;
+    const seloH = altura * 0.065;
+    const seloTexto = textoBlocoSvgNorteServic('NORTE SERVIC', seloX + largura * 0.035, seloY + altura * 0.022, blocoSelo, {
+      opacity: 0.95,
+      fill: '#ffffff',
+      stroke: 'rgba(255,255,255,0)',
+      strokeWidth: 0
+    });
+
     const marca = `
-      <svg width="${largura}" height="${altura}" xmlns="http://www.w3.org/2000/svg">
+      <svg width="${largura}" height="${altura}" viewBox="0 0 ${largura} ${altura}" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <filter id="sombra" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.35"/>
+          <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.45"/>
           </filter>
         </defs>
-        <style>
-          .marca {
-            fill: rgba(255,255,255,0.30);
-            stroke: rgba(17,24,39,0.26);
-            stroke-width: 1.2;
-            font-size: ${fonte}px;
-            font-family: Arial, sans-serif;
-            font-weight: 900;
-            letter-spacing: 2px;
-          }
-          .seloTexto {
-            fill: #FFFFFF;
-            font-size: ${fonteSelo}px;
-            font-family: Arial, sans-serif;
-            font-weight: 900;
-            letter-spacing: 1px;
-          }
-        </style>
-
-        <g transform="rotate(-35 ${largura / 2} ${altura / 2})" filter="url(#sombra)">
-          <text class="marca" x="${largura * 0.02}" y="${altura * 0.12}">NORTE SERVIC</text>
-          <text class="marca" x="${largura * 0.28}" y="${altura * 0.28}">NORTE SERVIC</text>
-          <text class="marca" x="${largura * 0.02}" y="${altura * 0.46}">NORTE SERVIC</text>
-          <text class="marca" x="${largura * 0.30}" y="${altura * 0.64}">NORTE SERVIC</text>
-          <text class="marca" x="${largura * 0.08}" y="${altura * 0.82}">NORTE SERVIC</text>
+        <g filter="url(#shadow)">
+          ${marcaDiagonal}
         </g>
-
-        <rect x="${largura - largura * 0.40}" y="${altura - altura * 0.10}" width="${largura * 0.36}" height="${altura * 0.06}" rx="${altura * 0.03}" fill="rgba(17,24,39,0.62)"/>
-        <text class="seloTexto" x="${largura - largura * 0.37}" y="${altura - altura * 0.058}">NORTE SERVIC</text>
+        <rect x="${seloX}" y="${seloY}" width="${seloW}" height="${seloH}" rx="${seloH / 2}" fill="#0f172a" fill-opacity="0.72"/>
+        <rect x="${seloX + 2}" y="${seloY + 2}" width="${seloW - 4}" height="${seloH - 4}" rx="${(seloH - 4) / 2}" fill="#2563eb" fill-opacity="0.34"/>
+        ${seloTexto}
       </svg>
     `;
 
@@ -238,9 +274,9 @@ async function processarImagensProfissional(dados, pasta, imagensAnteriores = {}
     if (typeof foto === 'string' && foto.startsWith('data:')) {
       fotosTrabalhos.push(await enviarImagemStorage(foto, `${pasta}/trabalhos`, `servico-${i + 1}`, {
         marcaDagua: true,
-        largura: 900,
-        altura: 900,
-        qualidade: 84
+        largura: 850,
+        altura: 850,
+        qualidade: 80
       }));
     } else {
       fotosTrabalhos.push(foto);
