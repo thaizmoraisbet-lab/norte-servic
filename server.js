@@ -226,6 +226,66 @@ function autenticar(req, res, next) {
   }
 }
 
+
+async function garantirTabelaAvaliacoes() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS avaliacoes (
+      id BIGSERIAL PRIMARY KEY,
+      profissional_id BIGINT REFERENCES profissionais(id) ON DELETE CASCADE,
+      nome_cliente TEXT NOT NULL,
+      nota INTEGER NOT NULL CHECK (nota BETWEEN 1 AND 5),
+      comentario TEXT,
+      status TEXT DEFAULT 'pendente' CHECK (status IN ('pendente', 'aprovado', 'recusado')),
+      criado_em TIMESTAMPTZ DEFAULT NOW(),
+      atualizado_em TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_avaliacoes_profissional ON avaliacoes(profissional_id)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_avaliacoes_status ON avaliacoes(status)`);
+}
+
+async function recalcularMediaProfissional(profissionalId) {
+  const media = await pool.query(
+    `SELECT COUNT(*)::int AS total, ROUND(AVG(nota)::numeric, 1) AS media
+     FROM avaliacoes
+     WHERE profissional_id=$1 AND status='aprovado'`,
+    [profissionalId]
+  );
+
+  const total = Number(media.rows[0]?.total || 0);
+  const valor = media.rows[0]?.media;
+  const avaliacaoTexto = total > 0 ? String(valor).replace('.', ',') : 'Novo';
+
+  await pool.query(
+    `UPDATE profissionais SET avaliacao=$1, avaliacoes=$2 WHERE id=$3`,
+    [avaliacaoTexto, total, profissionalId]
+  );
+}
+
+function avaliacaoParaFrontend(row) {
+  if (!row) return null;
+
+  return {
+    id: Number(row.id),
+    profissionalId: Number(row.profissional_id),
+    nomeCliente: row.nome_cliente,
+    nota: Number(row.nota),
+    comentario: row.comentario || '',
+    status: row.status || 'pendente',
+    criadoEm: row.criado_em,
+    atualizadoEm: row.atualizado_em,
+    profissionalNome: row.profissional_nome || '',
+    profissionalProfissao: row.profissional_profissao || '',
+    profissionalCidade: row.profissional_cidade || ''
+  };
+}
+
+garantirTabelaAvaliacoes().catch((error) => {
+  console.error('Erro ao garantir tabela de avaliações:', error.message);
+});
+
+
 function autenticarAdmin(req, res, next) {
   const senha = req.headers['x-admin-password'];
 
@@ -301,6 +361,71 @@ app.get('/api/profissionais/:id', async (req, res) => {
     res.status(500).json({ erro: 'Erro ao carregar perfil.', detalhe: error.message });
   }
 });
+
+
+app.get('/api/profissionais/:id/avaliacoes', async (req, res) => {
+  try {
+    await garantirTabelaAvaliacoes();
+
+    const result = await pool.query(
+      `SELECT * FROM avaliacoes
+       WHERE profissional_id=$1 AND status='aprovado'
+       ORDER BY criado_em DESC
+       LIMIT 20`,
+      [req.params.id]
+    );
+
+    res.json(result.rows.map(avaliacaoParaFrontend));
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao carregar avaliações.', detalhe: error.message });
+  }
+});
+
+app.post('/api/profissionais/:id/avaliacoes', async (req, res) => {
+  try {
+    await garantirTabelaAvaliacoes();
+
+    const profissional = await pool.query(
+      "SELECT id FROM profissionais WHERE id=$1 AND status='aprovado'",
+      [req.params.id]
+    );
+
+    if (profissional.rowCount === 0) {
+      return res.status(404).json({ erro: 'Profissional não encontrado para avaliação.' });
+    }
+
+    const nomeCliente = String(req.body.nomeCliente || req.body.nome_cliente || '').trim();
+    const nota = Number(req.body.nota);
+    const comentario = String(req.body.comentario || '').trim();
+
+    if (!nomeCliente || nomeCliente.length < 2) {
+      return res.status(400).json({ erro: 'Informe seu nome para enviar a avaliação.' });
+    }
+
+    if (!Number.isInteger(nota) || nota < 1 || nota > 5) {
+      return res.status(400).json({ erro: 'Escolha uma nota de 1 a 5 estrelas.' });
+    }
+
+    if (!comentario || comentario.length < 8) {
+      return res.status(400).json({ erro: 'Escreva um comentário curto sobre o atendimento.' });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO avaliacoes (profissional_id, nome_cliente, nota, comentario, status)
+       VALUES ($1, $2, $3, $4, 'pendente')
+       RETURNING *`,
+      [req.params.id, nomeCliente, nota, comentario]
+    );
+
+    res.status(201).json({
+      mensagem: 'Avaliação enviada para análise. Ela aparecerá no perfil após aprovação.',
+      avaliacao: avaliacaoParaFrontend(result.rows[0])
+    });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao enviar avaliação.', detalhe: error.message });
+  }
+});
+
 
 app.post('/api/cadastro', async (req, res) => {
   try {
@@ -469,6 +594,101 @@ app.put('/api/me', autenticar, async (req, res) => {
     res.status(500).json({ erro: 'Erro ao atualizar perfil.', detalhe: error.message });
   }
 });
+
+
+app.get('/api/admin/avaliacoes', autenticarAdmin, async (req, res) => {
+  try {
+    await garantirTabelaAvaliacoes();
+
+    const { status = 'pendente' } = req.query;
+    const params = [];
+    let where = '';
+
+    if (status && status !== 'todos') {
+      params.push(status);
+      where = `WHERE a.status=$${params.length}`;
+    }
+
+    const result = await pool.query(
+      `SELECT
+         a.*,
+         p.nome AS profissional_nome,
+         p.profissao AS profissional_profissao,
+         p.cidade AS profissional_cidade
+       FROM avaliacoes a
+       LEFT JOIN profissionais p ON p.id = a.profissional_id
+       ${where}
+       ORDER BY a.criado_em DESC
+       LIMIT 100`,
+      params
+    );
+
+    res.json(result.rows.map(avaliacaoParaFrontend));
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao carregar avaliações.', detalhe: error.message });
+  }
+});
+
+app.patch('/api/admin/avaliacoes/:id/aprovar', autenticarAdmin, async (req, res) => {
+  try {
+    await garantirTabelaAvaliacoes();
+
+    const result = await pool.query(
+      `UPDATE avaliacoes SET status='aprovado', atualizado_em=NOW() WHERE id=$1 RETURNING *`,
+      [req.params.id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ erro: 'Avaliação não encontrada.' });
+    }
+
+    await recalcularMediaProfissional(result.rows[0].profissional_id);
+
+    res.json({ mensagem: 'Avaliação aprovada.', avaliacao: avaliacaoParaFrontend(result.rows[0]) });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao aprovar avaliação.', detalhe: error.message });
+  }
+});
+
+app.patch('/api/admin/avaliacoes/:id/recusar', autenticarAdmin, async (req, res) => {
+  try {
+    await garantirTabelaAvaliacoes();
+
+    const result = await pool.query(
+      `UPDATE avaliacoes SET status='recusado', atualizado_em=NOW() WHERE id=$1 RETURNING *`,
+      [req.params.id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ erro: 'Avaliação não encontrada.' });
+    }
+
+    await recalcularMediaProfissional(result.rows[0].profissional_id);
+
+    res.json({ mensagem: 'Avaliação recusada.', avaliacao: avaliacaoParaFrontend(result.rows[0]) });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao recusar avaliação.', detalhe: error.message });
+  }
+});
+
+app.delete('/api/admin/avaliacoes/:id', autenticarAdmin, async (req, res) => {
+  try {
+    await garantirTabelaAvaliacoes();
+
+    const result = await pool.query(`DELETE FROM avaliacoes WHERE id=$1 RETURNING profissional_id`, [req.params.id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ erro: 'Avaliação não encontrada.' });
+    }
+
+    await recalcularMediaProfissional(result.rows[0].profissional_id);
+
+    res.json({ mensagem: 'Avaliação excluída.' });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao excluir avaliação.', detalhe: error.message });
+  }
+});
+
 
 app.get('/api/admin/profissionais', autenticarAdmin, async (_req, res) => {
   try {

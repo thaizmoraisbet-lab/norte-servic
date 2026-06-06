@@ -10843,3 +10843,342 @@ footer:not(.rodape-minimo) .rodape-admin-link {
     font-size: 11px !important;
   }
 }
+
+/* ================================================= */
+/* SISTEMA DE AVALIAÇÕES - NORTE SERVIC */
+/* ================================================= */
+
+.perfil-avaliacoes-section {
+  display: grid;
+  gap: 20px;
+}
+
+.avaliacoes-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.avaliacoes-header span,
+.form-avaliacao-topo span {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #DBEAFE;
+  color: #1D4ED8;
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.avaliacoes-header h2 {
+  font-size: 26px;
+  letter-spacing: -0.8px;
+  margin-bottom: 4px;
+}
+
+.avaliacoes-header p {
+  color: #6B7280;
+  font-weight: 700;
+}
+
+.avaliacoes-vazio {
+  padding: 20px;
+  border: 1px dashed #D1D5DB;
+  border-radius: 18px;
+  background: #F9FAFB;
+}
+
+.avaliacoes-vazio strong {
+  display: block;
+  color: #111827;
+  margin-bottom: 6px;
+}
+
+.avaliacoes-lista {
+  display: grid;
+  gap: 12px;
+}
+
+.avaliacao-card-publica {
+  padding: 18px;
+  border: 1px solid #E5E7EB;
+  border-radius: 18px;
+  background: #FFFFFF;
+  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.06);
+}
+
+.avaliacao-card-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.avaliacao-card-topo strong {
+  font-size: 15px;
+  color: #111827;
+}
+
+.avaliacao-card-topo span {
+  color: #F59E0B;
+  font-weight: 900;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.avaliacao-card-publica p {
+  color: #374151;
+  font-size: 15px;
+  line-height: 1.55;
+  margin-bottom: 8px;
+}
+
+.avaliacao-card-publica small {
+  color: #6B7280;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.form-avaliacao {
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top right, rgba(37, 99, 235, 0.10), transparent 34%),
+    #F9FAFB;
+  border: 1px solid #E5E7EB;
+}
+
+.form-avaliacao-topo h3 {
+  font-size: 23px;
+  letter-spacing: -0.6px;
+  margin-bottom: 4px;
+}
+
+.form-avaliacao-topo p {
+  color: #6B7280;
+  font-size: 14px;
+}
+
+.form-avaliacao-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-avaliacao label {
+  display: block;
+  font-weight: 900;
+  font-size: 13px;
+  color: #111827;
+  margin-bottom: 7px;
+}
+
+.form-avaliacao input,
+.form-avaliacao textarea {
+  width: 100%;
+  border: 1px solid #D1D5DB;
+  background: #FFFFFF;
+  border-radius: 14px;
+  padding: 13px 14px;
+  color: #111827;
+  font-size: 15px;
+  outline: none;
+}
+
+.form-avaliacao input:focus,
+.form-avaliacao textarea:focus {
+  border-color: #2563EB;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.avaliacao-estrelas {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  background: #FFFFFF;
+  border: 1px solid #D1D5DB;
+  border-radius: 14px;
+  padding: 9px 10px;
+  min-height: 50px;
+}
+
+.avaliacao-estrelas button {
+  border: none;
+  background: transparent;
+  color: #D1D5DB;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.avaliacao-estrelas button.ativo {
+  color: #F59E0B;
+}
+
+.form-avaliacao button[type="submit"] {
+  width: 100%;
+  border: none;
+  border-radius: 16px;
+  background: #111827;
+  color: #FFFFFF;
+  font-weight: 900;
+  padding: 15px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+#mensagemAvaliacao {
+  color: #1D4ED8;
+  font-weight: 800;
+  font-size: 14px;
+  text-align: center;
+}
+
+.admin-avaliacoes-content {
+  margin-top: 28px;
+}
+
+.admin-avaliacoes-lista {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-avaliacao-card {
+  padding: 20px;
+  border-radius: 22px;
+  border: 1px solid #E5E7EB;
+  background: #FFFFFF;
+  box-shadow: 0 12px 30px rgba(17, 24, 39, 0.08);
+}
+
+.admin-avaliacao-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.admin-avaliacao-topo span {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #DBEAFE;
+  color: #1D4ED8;
+  font-weight: 900;
+  font-size: 12px;
+  margin-bottom: 7px;
+}
+
+.admin-avaliacao-topo h3 {
+  font-size: 20px;
+  color: #111827;
+  letter-spacing: -0.4px;
+}
+
+.admin-avaliacao-topo strong {
+  color: #F59E0B;
+  white-space: nowrap;
+  letter-spacing: 1px;
+}
+
+.admin-avaliacao-card p {
+  color: #374151;
+  line-height: 1.55;
+  margin-bottom: 9px;
+}
+
+.admin-avaliacao-card small {
+  display: block;
+  color: #6B7280;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.admin-avaliacao-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-avaliacao-acoes button {
+  border: none;
+  border-radius: 12px;
+  padding: 11px 14px;
+  cursor: pointer;
+  font-weight: 900;
+  background: #F3F4F6;
+  color: #111827;
+}
+
+.admin-avaliacao-acoes .aprovar {
+  background: #2563EB;
+  color: #FFFFFF;
+}
+
+.admin-avaliacao-acoes .remover {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.admin-vazio-menor {
+  padding: 22px !important;
+}
+
+@media (max-width: 820px) {
+  .avaliacoes-header {
+    display: grid;
+  }
+
+  .avaliacoes-header h2 {
+    font-size: 22px;
+  }
+
+  .form-avaliacao {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .form-avaliacao-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .avaliacao-estrelas {
+    justify-content: center;
+  }
+
+  .avaliacao-estrelas button {
+    font-size: 28px;
+  }
+
+  .avaliacao-card-publica {
+    padding: 16px;
+  }
+
+  .admin-avaliacao-card {
+    padding: 17px;
+    border-radius: 18px;
+  }
+
+  .admin-avaliacao-topo {
+    display: grid;
+  }
+
+  .admin-avaliacao-acoes {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-avaliacao-acoes button {
+    width: 100%;
+    min-height: 46px;
+  }
+}

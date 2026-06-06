@@ -165,6 +165,34 @@ function getTokenProfissional() {
   return localStorage.getItem(PROF_TOKEN_STORAGE) || "";
 }
 
+
+function estrelasHTML(nota = 0) {
+  const valor = Number(nota || 0);
+  return Array.from({ length: 5 }, (_, index) => index < valor ? "★" : "☆").join("");
+}
+
+function formatarDataCurta(data) {
+  if (!data) return "";
+  try {
+    return new Date(data).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  } catch (_) {
+    return "";
+  }
+}
+
+async function carregarAvaliacoesProfissional(profissionalId) {
+  if (!profissionalId) return [];
+  return apiFetch(`/api/profissionais/${profissionalId}/avaliacoes`);
+}
+
+async function enviarAvaliacaoProfissional(profissionalId, dados) {
+  return apiFetch(`/api/profissionais/${profissionalId}/avaliacoes`, {
+    method: "POST",
+    body: JSON.stringify(dados)
+  });
+}
+
+
 function setTokenProfissional(token) {
   localStorage.setItem(PROF_TOKEN_STORAGE, token);
 }
@@ -989,6 +1017,125 @@ function iniciarCadastroBackend() {
 /* PERFIL PÚBLICO */
 /* ================================================= */
 
+
+function avaliacoesPerfilHTML(avaliacoes = []) {
+  if (!avaliacoes || avaliacoes.length === 0) {
+    return `
+      <div class="avaliacoes-vazio">
+        <strong>Nenhuma avaliação publicada ainda.</strong>
+        <p>Se você já contratou este profissional, envie sua avaliação. Ela será analisada antes de aparecer no perfil.</p>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="avaliacoes-lista">
+      ${avaliacoes.map(item => `
+        <article class="avaliacao-card-publica">
+          <div class="avaliacao-card-topo">
+            <strong>${item.nomeCliente}</strong>
+            <span>${estrelasHTML(item.nota)}</span>
+          </div>
+          <p>${item.comentario}</p>
+          <small>${formatarDataCurta(item.criadoEm)}</small>
+        </article>
+      `).join("")}
+    </div>
+  `;
+}
+
+function formularioAvaliacaoHTML(profissionalId) {
+  return `
+    <form class="form-avaliacao" id="formAvaliacaoProfissional" data-profissional-id="${profissionalId}">
+      <div class="form-avaliacao-topo">
+        <span>Avaliação controlada</span>
+        <h3>Avaliar este profissional</h3>
+        <p>Sua avaliação passa por análise antes de ser publicada.</p>
+      </div>
+
+      <div class="form-avaliacao-grid">
+        <div>
+          <label>Seu nome</label>
+          <input type="text" id="avaliacaoNomeCliente" placeholder="Ex: Ana Silva" required>
+        </div>
+
+        <div>
+          <label>Nota</label>
+          <div class="avaliacao-estrelas" id="avaliacaoEstrelas">
+            ${[1,2,3,4,5].map(nota => `<button type="button" data-nota="${nota}" aria-label="${nota} estrelas">★</button>`).join("")}
+          </div>
+          <input type="hidden" id="avaliacaoNota" value="5">
+        </div>
+      </div>
+
+      <label>Comentário</label>
+      <textarea id="avaliacaoComentario" rows="4" placeholder="Conte de forma breve como foi o atendimento." required></textarea>
+
+      <button type="submit">Enviar avaliação para análise</button>
+      <p id="mensagemAvaliacao"></p>
+    </form>
+  `;
+}
+
+function iniciarFormularioAvaliacao(profissionalId) {
+  const form = document.getElementById("formAvaliacaoProfissional");
+  const estrelas = document.getElementById("avaliacaoEstrelas");
+  const notaInput = document.getElementById("avaliacaoNota");
+  if (!form || !estrelas || !notaInput) return;
+
+  function pintarEstrelas(nota) {
+    estrelas.querySelectorAll("button").forEach(botao => {
+      botao.classList.toggle("ativo", Number(botao.dataset.nota) <= nota);
+    });
+  }
+
+  pintarEstrelas(Number(notaInput.value || 5));
+
+  estrelas.querySelectorAll("button").forEach(botao => {
+    botao.addEventListener("click", () => {
+      const nota = Number(botao.dataset.nota || 5);
+      notaInput.value = String(nota);
+      pintarEstrelas(nota);
+    });
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const mensagem = document.getElementById("mensagemAvaliacao");
+    const botao = form.querySelector("button[type='submit']");
+    const textoOriginal = botao ? botao.innerText : "";
+
+    const dados = {
+      nomeCliente: document.getElementById("avaliacaoNomeCliente")?.value.trim() || "",
+      nota: Number(notaInput.value || 5),
+      comentario: document.getElementById("avaliacaoComentario")?.value.trim() || ""
+    };
+
+    try {
+      if (botao) {
+        botao.disabled = true;
+        botao.innerText = "Enviando...";
+      }
+
+      await enviarAvaliacaoProfissional(profissionalId, dados);
+
+      if (mensagem) mensagem.innerText = "Avaliação enviada! Ela aparecerá no perfil após aprovação da Norte Servic.";
+      form.reset();
+      notaInput.value = "5";
+      pintarEstrelas(5);
+    } catch (error) {
+      if (mensagem) mensagem.innerText = error.message;
+    } finally {
+      if (botao) {
+        botao.disabled = false;
+        botao.innerText = textoOriginal;
+      }
+    }
+  });
+}
+
+
 async function carregarPerfilProfissional() {
   const container = document.getElementById("perfilProfissional");
   if (!container) return;
@@ -998,6 +1145,7 @@ async function carregarPerfilProfissional() {
 
   try {
     const profissional = await carregarProfissionalPorId(id);
+    const avaliacoesPublicas = await carregarAvaliacoesProfissional(id);
     const linkWhatsApp = criarLinkWhatsApp(profissional.whatsapp);
     const inicial = profissional.nome ? profissional.nome.charAt(0).toUpperCase() : "?";
     const fotoPerfil = profissional.fotoPerfil ? `<img src="${profissional.fotoPerfil}" alt="Foto de ${profissional.nome}">` : inicial;
@@ -1060,10 +1208,22 @@ async function carregarPerfilProfissional() {
             <p><strong>Categoria:</strong> ${profissional.categoria || "Não informada"}</p>
             <p><strong>Instagram:</strong> ${instagramHTML(profissional.instagram, "perfil-instagram")}</p>
           </div>
+          <div class="perfil-section-clean perfil-avaliacoes-section">
+            <div class="avaliacoes-header">
+              <div>
+                <span>Opinião de clientes</span>
+                <h2>Avaliações do profissional</h2>
+                <p>⭐ ${profissional.avaliacao || "Novo"} | ${profissional.avaliacoes || 0} avaliações aprovadas</p>
+              </div>
+            </div>
+            ${avaliacoesPerfilHTML(avaliacoesPublicas)}
+            ${formularioAvaliacaoHTML(profissional.id)}
+          </div>
         </section>
       </div>
     `;
     iniciarCarrosseisFotos();
+    iniciarFormularioAvaliacao(profissional.id);
   } catch (error) {
     container.innerHTML = `
       <a class="botao-voltar-perfil" href="index.html">← Voltar para a busca</a>
@@ -1505,6 +1665,94 @@ async function buscarAdminProfissionais() {
   });
 }
 
+
+async function buscarAdminAvaliacoes(status = "pendente") {
+  return apiFetch(`/api/admin/avaliacoes?status=${encodeURIComponent(status)}`, {
+    headers: { "x-admin-password": getAdminPassword() }
+  });
+}
+
+async function mostrarAdminAvaliacoes() {
+  const container = document.getElementById("listaAdminAvaliacoes");
+  const contador = document.getElementById("contadorAvaliacoesPendentes");
+  if (!container) return;
+
+  try {
+    const avaliacoes = await buscarAdminAvaliacoes("pendente");
+    if (contador) contador.innerText = `${avaliacoes.length} pendente(s)`;
+
+    if (!avaliacoes || avaliacoes.length === 0) {
+      container.innerHTML = `<div class="admin-vazio admin-vazio-menor"><h3>Nenhuma avaliação pendente</h3><p>Quando clientes enviarem avaliações, elas aparecerão aqui para aprovação.</p></div>`;
+      return;
+    }
+
+    container.innerHTML = avaliacoes.map(item => `
+      <article class="admin-avaliacao-card">
+        <div class="admin-avaliacao-topo">
+          <div>
+            <span>${item.profissionalNome || "Profissional"}</span>
+            <h3>${item.nomeCliente}</h3>
+          </div>
+          <strong>${estrelasHTML(item.nota)}</strong>
+        </div>
+        <p>${item.comentario}</p>
+        <small>${item.profissionalProfissao || ""} ${item.profissionalCidade ? "• " + item.profissionalCidade : ""} ${item.criadoEm ? "• " + formatarDataCurta(item.criadoEm) : ""}</small>
+        <div class="admin-avaliacao-acoes">
+          <button class="aprovar" onclick="aprovarAvaliacao(${item.id})">Aprovar</button>
+          <button onclick="recusarAvaliacao(${item.id})">Recusar</button>
+          <button class="remover" onclick="excluirAvaliacao(${item.id})">Excluir</button>
+        </div>
+      </article>
+    `).join("");
+  } catch (error) {
+    container.innerHTML = `<div class="admin-vazio"><h3>Erro nas avaliações</h3><p>${error.message}</p></div>`;
+  }
+}
+
+async function aprovarAvaliacao(id) {
+  try {
+    await apiFetch(`/api/admin/avaliacoes/${id}/aprovar`, {
+      method: "PATCH",
+      headers: { "x-admin-password": getAdminPassword() }
+    });
+    alert("Avaliação aprovada.");
+    mostrarAdminAvaliacoes();
+    mostrarAdmin();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function recusarAvaliacao(id) {
+  try {
+    await apiFetch(`/api/admin/avaliacoes/${id}/recusar`, {
+      method: "PATCH",
+      headers: { "x-admin-password": getAdminPassword() }
+    });
+    alert("Avaliação recusada.");
+    mostrarAdminAvaliacoes();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function excluirAvaliacao(id) {
+  if (!confirm("Excluir esta avaliação?")) return;
+
+  try {
+    await apiFetch(`/api/admin/avaliacoes/${id}`, {
+      method: "DELETE",
+      headers: { "x-admin-password": getAdminPassword() }
+    });
+    alert("Avaliação excluída.");
+    mostrarAdminAvaliacoes();
+    mostrarAdmin();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+
 async function mostrarAdmin() {
   const container = document.getElementById("listaAdmin");
   const stats = document.getElementById("adminStats");
@@ -1514,6 +1762,7 @@ async function mostrarAdmin() {
   try {
     mostrarLoading("Carregando painel...");
     const salvos = await buscarAdminProfissionais();
+    mostrarAdminAvaliacoes();
 
     const pendentes = salvos.filter(p => p.status === "pendente").length;
     const aprovados = salvos.filter(p => p.status === "aprovado").length;

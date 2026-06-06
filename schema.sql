@@ -8,6 +8,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 -- Remove tabelas antigas somente se você quiser reiniciar tudo.
 -- Para primeira instalação, pode deixar assim.
 DROP TABLE IF EXISTS pagamentos CASCADE;
+DROP TABLE IF EXISTS avaliacoes CASCADE;
 DROP TABLE IF EXISTS profissionais CASCADE;
 
 CREATE TABLE profissionais (
@@ -52,6 +53,18 @@ CREATE TABLE profissionais (
   atualizado_em TIMESTAMPTZ DEFAULT NOW()
 );
 
+
+CREATE TABLE avaliacoes (
+  id BIGSERIAL PRIMARY KEY,
+  profissional_id BIGINT REFERENCES profissionais(id) ON DELETE CASCADE,
+  nome_cliente TEXT NOT NULL,
+  nota INTEGER NOT NULL CHECK (nota BETWEEN 1 AND 5),
+  comentario TEXT,
+  status TEXT DEFAULT 'pendente' CHECK (status IN ('pendente', 'aprovado', 'recusado')),
+  criado_em TIMESTAMPTZ DEFAULT NOW(),
+  atualizado_em TIMESTAMPTZ DEFAULT NOW()
+);
+
 CREATE TABLE pagamentos (
   id BIGSERIAL PRIMARY KEY,
   profissional_id BIGINT REFERENCES profissionais(id) ON DELETE SET NULL,
@@ -71,6 +84,8 @@ CREATE INDEX idx_profissionais_categoria ON profissionais(categoria);
 CREATE INDEX idx_profissionais_profissao ON profissionais(profissao);
 CREATE INDEX idx_profissionais_cidade ON profissionais(cidade);
 CREATE INDEX idx_profissionais_plano ON profissionais(plano_atual, plano_status);
+CREATE INDEX idx_avaliacoes_profissional ON avaliacoes(profissional_id);
+CREATE INDEX idx_avaliacoes_status ON avaliacoes(status);
 
 CREATE OR REPLACE FUNCTION atualizar_updated_at()
 RETURNS TRIGGER AS $$
@@ -87,6 +102,11 @@ EXECUTE FUNCTION atualizar_updated_at();
 
 CREATE TRIGGER trg_pagamentos_updated_at
 BEFORE UPDATE ON pagamentos
+FOR EACH ROW
+EXECUTE FUNCTION atualizar_updated_at();
+
+CREATE TRIGGER trg_avaliacoes_updated_at
+BEFORE UPDATE ON avaliacoes
 FOR EACH ROW
 EXECUTE FUNCTION atualizar_updated_at();
 
