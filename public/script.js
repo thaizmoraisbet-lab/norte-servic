@@ -1667,9 +1667,31 @@ async function buscarAdminProfissionais() {
 
 
 async function buscarAdminAvaliacoes(status = "pendente") {
-  return apiFetch(`/api/admin/avaliacoes?status=${encodeURIComponent(status)}`, {
-    headers: { "x-admin-password": getAdminPassword() }
-  });
+  const senhaAdmin = getAdminPassword();
+  const urlPrincipal = `/api/admin/avaliacoes?status=${encodeURIComponent(status)}&_=${Date.now()}`;
+
+  try {
+    const dados = await apiFetch(urlPrincipal, {
+      headers: { "x-admin-password": senhaAdmin }
+    });
+
+    if (Array.isArray(dados)) return dados;
+    return [];
+  } catch (erroPrincipal) {
+    // Compatibilidade com deploys intermediários/rotas antigas.
+    if (status === "pendente") {
+      try {
+        const dadosFallback = await apiFetch(`/api/admin/avaliacoes/pendentes?_=${Date.now()}`, {
+          headers: { "x-admin-password": senhaAdmin }
+        });
+        return Array.isArray(dadosFallback) ? dadosFallback : [];
+      } catch (_) {
+        throw erroPrincipal;
+      }
+    }
+
+    throw erroPrincipal;
+  }
 }
 
 async function mostrarAdminAvaliacoes() {
@@ -1679,7 +1701,9 @@ async function mostrarAdminAvaliacoes() {
 
   try {
     const avaliacoes = await buscarAdminAvaliacoes("pendente");
-    const validas = (avaliacoes || []).filter(item => item && item.id);
+    const validas = (avaliacoes || [])
+      .filter(item => item && item.id)
+      .filter(item => String(item.status || "pendente").trim().toLowerCase() === "pendente");
 
     if (contador) contador.innerText = `${validas.length} pendente(s)`;
 

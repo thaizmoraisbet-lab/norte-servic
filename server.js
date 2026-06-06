@@ -597,11 +597,11 @@ app.put('/api/me', autenticar, async (req, res) => {
 
 
 
-app.get('/api/admin/avaliacoes', autenticarAdmin, async (req, res) => {
+async function listarAvaliacoesAdmin(req, res) {
   try {
     await garantirTabelaAvaliacoes();
 
-    const { status = 'pendente' } = req.query;
+    const statusSolicitado = String(req.query.status || 'pendente').trim().toLowerCase();
     const params = [];
     const filtros = [
       'a.id IS NOT NULL',
@@ -610,9 +610,9 @@ app.get('/api/admin/avaliacoes', autenticarAdmin, async (req, res) => {
       'a.nota IS NOT NULL'
     ];
 
-    if (status && status !== 'todos') {
-      params.push(status);
-      filtros.push(`a.status=$${params.length}`);
+    if (statusSolicitado && statusSolicitado !== 'todos') {
+      params.push(statusSolicitado);
+      filtros.push(`LOWER(TRIM(COALESCE(a.status, 'pendente')))=$${params.length}`);
     }
 
     const where = filtros.length ? `WHERE ${filtros.join(' AND ')}` : '';
@@ -624,12 +624,12 @@ app.get('/api/admin/avaliacoes', autenticarAdmin, async (req, res) => {
          a.nome_cliente,
          a.nota,
          a.comentario,
-         a.status,
+         LOWER(TRIM(COALESCE(a.status, 'pendente'))) AS status,
          a.criado_em,
          a.atualizado_em,
-         p.nome AS profissional_nome,
-         p.profissao AS profissional_profissao,
-         p.cidade AS profissional_cidade
+         COALESCE(p.nome, 'Profissional removido') AS profissional_nome,
+         COALESCE(p.profissao, '') AS profissional_profissao,
+         COALESCE(p.cidade, '') AS profissional_cidade
        FROM avaliacoes a
        LEFT JOIN profissionais p ON p.id = a.profissional_id
        ${where}
@@ -642,6 +642,14 @@ app.get('/api/admin/avaliacoes', autenticarAdmin, async (req, res) => {
   } catch (error) {
     res.status(500).json({ erro: 'Erro ao carregar avaliações.', detalhe: error.message });
   }
+}
+
+app.get('/api/admin/avaliacoes', autenticarAdmin, listarAvaliacoesAdmin);
+
+// Rota alternativa para compatibilidade com versões anteriores do script.
+app.get('/api/admin/avaliacoes/pendentes', autenticarAdmin, (req, res) => {
+  req.query.status = 'pendente';
+  return listarAvaliacoesAdmin(req, res);
 });
 
 async function atualizarStatusAvaliacao(req, res, novoStatus) {
@@ -659,7 +667,7 @@ async function atualizarStatusAvaliacao(req, res, novoStatus) {
        SET status=$1, atualizado_em=NOW()
        WHERE id=$2
        RETURNING *`,
-      [novoStatus, id]
+      [String(novoStatus).trim().toLowerCase(), id]
     );
 
     if (result.rowCount === 0) {
