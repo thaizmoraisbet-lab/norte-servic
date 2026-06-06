@@ -11182,3 +11182,388 @@ footer:not(.rodape-minimo) .rodape-admin-link {
     min-height: 46px;
   }
 }
+
+/* ================================================= */
+/* HOME PREMIUM + CARDS MOBILE COMPLETOS - 06/06 */
+/* ================================================= */
+
+.hero-acoes-premium {
+  margin: 18px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hero-cta-principal,
+.hero-cta-secundario {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 13px 20px;
+  font-weight: 950;
+  font-size: 14px;
+  text-decoration: none !important;
+}
+
+.hero-cta-principal {
+  color: #FFFFFF !important;
+  background: linear-gradient(135deg, #2563EB, #1D4ED8) !important;
+  box-shadow: 0 16px 34px rgba(37, 99, 235, 0.32);
+}
+
+.hero-cta-secundario {
+  color: #111827 !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.08);
+}
+
+.profissoes-carousel {
+  width: min(1040px, 92%);
+  margin: 20px auto 0;
+  overflow: hidden;
+  border-radius: 999px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(209, 213, 219, 0.9);
+  box-shadow: 0 12px 30px rgba(17, 24, 39, 0.08);
+}
+
+.profissoes-track {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  animation: profissoesAuto 28s linear infinite;
+}
+
+.profissoes-track:hover {
+  animation-play-state: paused;
+}
+
+.profissoes-track button {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: #111827;
+  color: #FFFFFF;
+  font-weight: 900;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+@keyframes profissoesAuto {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Cabeçalho premium mais leve */
+.ns-header {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(37, 99, 235, 0.22), transparent 28%),
+    rgba(17, 24, 39, 0.98) !important;
+}
+
+.ns-nav a:first-child,
+.ns-nav a[href="cadastro.html"] {
+  background: rgba(37, 99, 235, 0.20) !important;
+  border-color: rgba(37, 99, 235, 0.28) !important;
+}
+
+/* Banners com aparência mais comercial */
+.home-banners-servicos {
+  background: linear-gradient(180deg, #F9FAFB 0%, #FFFFFF 100%);
+}
+
+.home-banner-card.destaque {
+  background:
+    radial-gradient(circle at right top, rgba(37, 99, 235, 0.24), transparent 42%),
+    #111827 !important;
+  color: #FFFFFF !important;
+}
+
+.home-banner-card.destaque p,
+.home-banner-card.escuro p {
+  color: rgba(255,255,255,0.78) !important;
+}
+
+.home-banner-card a,
+.home-banner-card button {
+  min-height: 42px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+/* ================================================= */
+/* CORREÇÃO DEFINITIVA DOS CARDS MOBILE */
+/* Mostra informações como no desktop, sem cortar antes dos botões */
+/* ================================================= */
+@media (max-width: 820px) {
+  .hero {
+    padding-top: 22px !important;
+    padding-bottom: 22px !important;
+  }
+
+  .hero h1 {
+    font-size: 27px !important;
+    line-height: 1.12 !important;
+    max-width: 360px !important;
+  }
+
+  .hero p {
+    max-width: 330px !important;
+    font-size: 13.5px !important;
+  }
+
+  .busca-box {
+    margin-top: 15px !important;
+  }
+
+  .hero-acoes-premium {
+    margin-top: 13px !important;
+    gap: 8px !important;
+  }
+
+  .hero-cta-principal,
+  .hero-cta-secundario {
+    flex: 1 1 150px !important;
+    min-height: 46px !important;
+    padding: 12px 12px !important;
+    font-size: 12.8px !important;
+  }
+
+  .profissoes-carousel {
+    width: calc(100% - 28px) !important;
+    margin-top: 14px !important;
+    padding: 7px !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+  }
+
+  .profissoes-carousel::-webkit-scrollbar { display: none !important; }
+
+  .profissoes-track {
+    animation: none !important;
+    width: max-content !important;
+  }
+
+  .profissoes-track button {
+    padding: 9px 12px !important;
+    font-size: 12px !important;
+  }
+
+  .home-banners-servicos {
+    padding-top: 30px !important;
+    padding-bottom: 26px !important;
+  }
+
+  .home-banners-topo h2 {
+    font-size: 24px !important;
+    line-height: 1.12 !important;
+  }
+
+  .home-banner-card {
+    flex-basis: 84% !important;
+    min-height: 168px !important;
+  }
+
+  .destaques-section {
+    padding-top: 40px !important;
+  }
+
+  #listaProfissionais {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+    align-items: stretch !important;
+  }
+
+  #listaProfissionais .card {
+    height: auto !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    border-radius: 18px !important;
+  }
+
+  #listaProfissionais .foto-card {
+    aspect-ratio: 1 / 0.86 !important;
+    min-height: 132px !important;
+    max-height: none !important;
+    height: auto !important;
+  }
+
+  #listaProfissionais .card-conteudo-mobile {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 12px 10px 12px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  #listaProfissionais .nome-profissional-linha,
+  #listaProfissionais .card h3.nome-profissional-linha {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    margin: 0 0 8px !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    line-height: 1.12 !important;
+  }
+
+  #listaProfissionais .nome-profissional-linha > span:first-child {
+    display: inline-block !important;
+    width: auto !important;
+    max-width: calc(100% - 42px) !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    line-height: 1.12 !important;
+  }
+
+  #listaProfissionais .card h3 {
+    font-size: 15.5px !important;
+  }
+
+  #listaProfissionais .profissao {
+    margin-bottom: 8px !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    line-height: 1.1 !important;
+  }
+
+  #listaProfissionais .plano-status-card {
+    margin-bottom: 9px !important;
+    line-height: 1.18 !important;
+    white-space: normal !important;
+  }
+
+  #listaProfissionais .descricao-card,
+  #listaProfissionais .atende-card,
+  #listaProfissionais .atendimento-card,
+  #listaProfissionais .avaliacao-card,
+  #listaProfissionais .whatsapp-card {
+    display: block !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 4px 0 !important;
+    padding: 0 !important;
+    text-align: center !important;
+    font-size: 12.4px !important;
+    line-height: 1.32 !important;
+    color: #6B7280 !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    -webkit-line-clamp: unset !important;
+    line-clamp: unset !important;
+    -webkit-box-orient: initial !important;
+  }
+
+  #listaProfissionais .descricao-card {
+    color: #6B7280 !important;
+  }
+
+  #listaProfissionais .atende-card strong,
+  #listaProfissionais .atendimento-card strong {
+    color: #6B7280 !important;
+    font-weight: 950 !important;
+  }
+
+  #listaProfissionais .avaliacao-card {
+    display: block !important;
+    color: #6B7280 !important;
+  }
+
+  #listaProfissionais .whatsapp-card {
+    color: #6B7280 !important;
+    font-weight: 800 !important;
+    margin-bottom: 10px !important;
+  }
+
+  #listaProfissionais .acoes-card {
+    margin: auto 0 0 !important;
+    padding-top: 10px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    display: grid !important;
+    gap: 8px !important;
+  }
+
+  #listaProfissionais .acoes-card a,
+  #listaProfissionais .acoes-card .whatsapp {
+    width: 100% !important;
+    min-height: 42px !important;
+    border-radius: 13px !important;
+    font-size: 12.2px !important;
+    line-height: 1.1 !important;
+    padding: 10px 8px !important;
+  }
+
+  .selo-plano-verificado.card {
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    min-width: 26px !important;
+    height: 20px !important;
+    padding: 0 7px !important;
+    font-size: 9.5px !important;
+    border-radius: 999px !important;
+    background: #2563EB !important;
+    color: #FFFFFF !important;
+    box-shadow: none !important;
+    position: static !important;
+  }
+
+  .selo-plano-verificado.card.verificado {
+    min-width: 20px !important;
+    width: 20px !important;
+    padding: 0 !important;
+  }
+
+  .ns-header {
+    box-shadow: 0 8px 18px rgba(17, 24, 39, 0.16) !important;
+  }
+}
+
+@media (max-width: 390px) {
+  #listaProfissionais {
+    gap: 11px !important;
+  }
+
+  #listaProfissionais .card-conteudo-mobile {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  #listaProfissionais .descricao-card,
+  #listaProfissionais .atende-card,
+  #listaProfissionais .atendimento-card,
+  #listaProfissionais .avaliacao-card,
+  #listaProfissionais .whatsapp-card {
+    font-size: 11.8px !important;
+  }
+
+  #listaProfissionais .acoes-card a,
+  #listaProfissionais .acoes-card .whatsapp {
+    font-size: 11.5px !important;
+  }
+}
