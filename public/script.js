@@ -1285,6 +1285,49 @@ function iniciarCarrosselBannersMobile() {
   }, { passive: true });
 }
 
+
+function iniciarAutoScrollFaixasHome() {
+  const faixas = [
+    { seletor: ".categorias", item: "button", intervalo: 2400, media: "(max-width: 820px)" },
+    { seletor: ".passos", item: "div", intervalo: 3200, media: "(max-width: 820px)" },
+    { seletor: ".por-que-grid", item: ".por-que-card", intervalo: 3600, media: "(max-width: 820px)" }
+  ];
+
+  faixas.forEach((config) => {
+    const faixa = document.querySelector(config.seletor);
+    if (!faixa || faixa.dataset.autoScrollFaixa === "true") return;
+
+    faixa.dataset.autoScrollFaixa = "true";
+    let indice = 0;
+    let timer;
+
+    const reiniciar = () => {
+      clearInterval(timer);
+      timer = setInterval(() => {
+        if (!window.matchMedia(config.media).matches) return;
+
+        const itens = Array.from(faixa.querySelectorAll(config.item));
+        if (itens.length <= 1) return;
+
+        indice = (indice + 1) % itens.length;
+        const alvo = itens[indice];
+        const margem = config.seletor === ".categorias" ? 8 : 16;
+
+        faixa.scrollTo({
+          left: Math.max(0, alvo.offsetLeft - margem),
+          behavior: "smooth"
+        });
+      }, config.intervalo);
+    };
+
+    reiniciar();
+
+    ["touchstart", "pointerdown", "wheel"].forEach((evento) => {
+      faixa.addEventListener(evento, reiniciar, { passive: true });
+    });
+  });
+}
+
 /* ================================================= */
 /* LOGIN E PAINEL PROFISSIONAL */
 /* ================================================= */
@@ -2093,6 +2136,7 @@ document.addEventListener("DOMContentLoaded", function() {
   alternarCidadesAtendidas();
   adicionarAdminNoRodape();
   iniciarCarrosselBannersMobile();
+  iniciarAutoScrollFaixasHome();
 
   const adminBusca = document.getElementById("adminBusca");
   if (adminBusca) adminBusca.addEventListener("input", mostrarAdmin);
