@@ -6,6 +6,7 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
+const sharp = require('sharp');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -93,7 +94,61 @@ async function excluirArquivoStorage(url) {
   }
 }
 
-async function enviarImagemStorage(imagem, pasta, nomeBase) {
+async function processarImagemNorteServic(buffer, opcoes = {}) {
+  const {
+    marcaDagua = false,
+    largura = 800,
+    altura = 800,
+    qualidade = 84
+  } = opcoes;
+
+  let imagem = sharp(buffer)
+    .rotate()
+    .resize(largura, altura, {
+      fit: 'cover',
+      position: 'center'
+    });
+
+  if (marcaDagua) {
+    const fonte = Math.max(28, Math.round(largura * 0.052));
+    const marca = `
+      <svg width="${largura}" height="${altura}" xmlns="http://www.w3.org/2000/svg">
+        <style>
+          text {
+            fill: rgba(255,255,255,0.16);
+            font-size: ${fonte}px;
+            font-family: Arial, sans-serif;
+            font-weight: 900;
+            letter-spacing: 2px;
+          }
+        </style>
+        <g transform="rotate(-35 ${largura / 2} ${altura / 2})">
+          <text x="${largura * 0.05}" y="${altura * 0.14}">NORTE SERVIC</text>
+          <text x="${largura * 0.34}" y="${altura * 0.30}">NORTE SERVIC</text>
+          <text x="${largura * 0.10}" y="${altura * 0.48}">NORTE SERVIC</text>
+          <text x="${largura * 0.40}" y="${altura * 0.66}">NORTE SERVIC</text>
+          <text x="${largura * 0.16}" y="${altura * 0.84}">NORTE SERVIC</text>
+        </g>
+      </svg>
+    `;
+
+    imagem = imagem.composite([
+      {
+        input: Buffer.from(marca),
+        gravity: 'center'
+      }
+    ]);
+  }
+
+  return await imagem
+    .jpeg({
+      quality: qualidade,
+      mozjpeg: true
+    })
+    .toBuffer();
+}
+
+async function enviarImagemStorage(imagem, pasta, nomeBase, opcoesImagem = {}) {
   if (!imagem) return '';
 
   // Compatibilidade com imagens antigas/salvas como URL.
@@ -106,6 +161,10 @@ async function enviarImagemStorage(imagem, pasta, nomeBase) {
     // Fallback local/teste: se o Storage ainda não foi configurado, mantém Base64.
     return imagem;
   }
+
+  arquivo.buffer = await processarImagemNorteServic(arquivo.buffer, opcoesImagem);
+  arquivo.mime = 'image/jpeg';
+  arquivo.extensao = 'jpg';
 
   const safePasta = String(pasta || 'profissionais').replace(/[^a-zA-Z0-9/_-]/g, '-');
   const safeNome = String(nomeBase || `foto-${Date.now()}`).replace(/[^a-zA-Z0-9._-]/g, '-');
@@ -137,7 +196,12 @@ async function processarImagensProfissional(dados, pasta, imagensAnteriores = {}
   let fotoPerfil = dados.fotoPerfil || dados.foto_perfil || fotoAnterior || '';
 
   if (fotoPerfil && typeof fotoPerfil === 'string' && fotoPerfil.startsWith('data:')) {
-    const novaFoto = await enviarImagemStorage(fotoPerfil, pasta, 'foto-perfil');
+    const novaFoto = await enviarImagemStorage(fotoPerfil, pasta, 'foto-perfil', {
+      marcaDagua: false,
+      largura: 700,
+      altura: 700,
+      qualidade: 86
+    });
     if (fotoAnterior && fotoAnterior !== novaFoto) await excluirArquivoStorage(fotoAnterior);
     fotoPerfil = novaFoto;
   }
@@ -153,7 +217,12 @@ async function processarImagensProfissional(dados, pasta, imagensAnteriores = {}
     if (!foto) continue;
 
     if (typeof foto === 'string' && foto.startsWith('data:')) {
-      fotosTrabalhos.push(await enviarImagemStorage(foto, `${pasta}/trabalhos`, `servico-${i + 1}`));
+      fotosTrabalhos.push(await enviarImagemStorage(foto, `${pasta}/trabalhos`, `servico-${i + 1}`, {
+        marcaDagua: true,
+        largura: 900,
+        altura: 900,
+        qualidade: 84
+      }));
     } else {
       fotosTrabalhos.push(foto);
     }
