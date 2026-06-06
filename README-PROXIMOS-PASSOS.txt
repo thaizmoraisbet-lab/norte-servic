@@ -29,3 +29,15 @@ Admin:
 
 Observação:
 - Não use mais localStorage para profissionais. O banco agora é o Supabase.
+
+SUPABASE STORAGE - FOTOS
+1. No Supabase, vá em Storage.
+2. Crie um bucket público chamado: norte-servic
+3. No Railway, adicione as variáveis:
+   SUPABASE_URL=https://SEU-PROJETO.supabase.co
+   SUPABASE_SERVICE_ROLE_KEY=sua service_role key do Supabase
+   SUPABASE_STORAGE_BUCKET=norte-servic
+4. Faça redeploy.
+5. A partir daí, as fotos novas serão salvas no Storage, e o banco guardará apenas as URLs.
+
+IMPORTANTE: a service_role key é secreta. Nunca coloque ela no front-end ou no GitHub.

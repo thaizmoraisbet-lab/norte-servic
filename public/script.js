@@ -120,6 +120,7 @@ let servicosSelecionadosCadastro = [];
 let cidadesSelecionadasCadastro = [];
 let filtroAdminAtual = "todos";
 let profissionaisCache = [];
+let fotosTrabalhosEdicaoAtuais = [];
 
 /* ================================================= */
 /* API E UTILITÁRIOS */
@@ -200,11 +201,7 @@ function criarLinkWhatsApp(numero) {
   return `https://wa.me/${telefone}?text=${mensagem}`;
 }
 
-function canvasParaDataURL(canvas, qualidade = 0.78) {
-  return canvas.toDataURL("image/jpeg", qualidade);
-}
-
-function carregarImagemArquivo(arquivo) {
+function carregarImagemDoArquivo(arquivo) {
   return new Promise((resolve, reject) => {
     if (!arquivo) return resolve(null);
 
@@ -218,84 +215,45 @@ function carregarImagemArquivo(arquivo) {
 
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error("Não foi possível carregar a imagem."));
+      reject(new Error("Não foi possível ler a imagem enviada."));
     };
 
     img.src = url;
   });
 }
 
-async function otimizarImagemParaBase64(arquivo, opcoes = {}) {
+async function converterImagemParaBase64(arquivo, opcoes = {}) {
   if (!arquivo) return "";
 
   const {
-    largura = 900,
-    altura = 900,
-    quadrada = false,
-    qualidade = 0.76,
-    cortarCentro = false
+    maxSize = 900,
+    qualidade = 0.82,
+    exigirQuadrada = false
   } = opcoes;
 
-  const img = await carregarImagemArquivo(arquivo);
+  const img = await carregarImagemDoArquivo(arquivo);
   if (!img) return "";
 
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d", { alpha: false });
+  const larguraOriginal = img.naturalWidth || img.width;
+  const alturaOriginal = img.naturalHeight || img.height;
 
-  if (quadrada) {
-    const tamanho = Math.min(img.naturalWidth, img.naturalHeight);
-    const sx = Math.max(0, Math.floor((img.naturalWidth - tamanho) / 2));
-    const sy = Math.max(0, Math.floor((img.naturalHeight - tamanho) / 2));
-
-    canvas.width = largura;
-    canvas.height = largura;
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, sx, sy, tamanho, tamanho, 0, 0, largura, largura);
-    return canvasParaDataURL(canvas, qualidade);
+  if (exigirQuadrada && larguraOriginal !== alturaOriginal) {
+    throw new Error(`A foto de perfil precisa ser quadrada. A imagem enviada tem ${larguraOriginal}x${alturaOriginal}px.`);
   }
 
-  const proporcao = Math.min(largura / img.naturalWidth, altura / img.naturalHeight, 1);
-  const destinoLargura = Math.max(1, Math.round(img.naturalWidth * proporcao));
-  const destinoAltura = Math.max(1, Math.round(img.naturalHeight * proporcao));
+  const maiorLado = Math.max(larguraOriginal, alturaOriginal);
+  const escala = maiorLado > maxSize ? maxSize / maiorLado : 1;
+  const largura = Math.round(larguraOriginal * escala);
+  const altura = Math.round(alturaOriginal * escala);
 
-  canvas.width = destinoLargura;
-  canvas.height = destinoAltura;
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(img, 0, 0, destinoLargura, destinoAltura);
+  const canvas = document.createElement("canvas");
+  canvas.width = largura;
+  canvas.height = altura;
 
-  return canvasParaDataURL(canvas, qualidade);
-}
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0, largura, altura);
 
-function converterImagemParaBase64(arquivo) {
-  return otimizarImagemParaBase64(arquivo, {
-    largura: 1100,
-    altura: 1100,
-    qualidade: 0.72
-  });
-}
-
-function carregarDimensoesImagem(arquivo) {
-  return new Promise((resolve, reject) => {
-    if (!arquivo) return resolve(null);
-
-    const url = URL.createObjectURL(arquivo);
-    const img = new Image();
-
-    img.onload = () => {
-      const dimensoes = { largura: img.naturalWidth, altura: img.naturalHeight };
-      URL.revokeObjectURL(url);
-      resolve(dimensoes);
-    };
-
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Não foi possível ler as dimensões da imagem."));
-    };
-
-    img.src = url;
-  });
+  return canvas.toDataURL("image/jpeg", qualidade);
 }
 
 async function validarFotoPerfil1000(arquivo, obrigatoria = false) {
@@ -304,43 +262,13 @@ async function validarFotoPerfil1000(arquivo, obrigatoria = false) {
     return;
   }
 
-  const dimensoes = await carregarDimensoesImagem(arquivo);
-  if (!dimensoes) throw new Error("Não foi possível validar a foto de perfil.");
+  const img = await carregarImagemDoArquivo(arquivo);
+  const largura = img.naturalWidth || img.width;
+  const altura = img.naturalHeight || img.height;
 
-  const diferenca = Math.abs(dimensoes.largura - dimensoes.altura);
-  const tolerancia = Math.max(6, Math.round(Math.max(dimensoes.largura, dimensoes.altura) * 0.015));
-
-  if (diferenca > tolerancia) {
-    throw new Error(`A foto de perfil precisa ser quadrada. A imagem enviada tem ${dimensoes.largura}x${dimensoes.altura} px.`);
+  if (largura !== altura) {
+    throw new Error(`A foto de perfil precisa ser quadrada. A imagem enviada tem ${largura}x${altura}px.`);
   }
-}
-
-async function converterFotoPerfilOtimizada(arquivo) {
-  return otimizarImagemParaBase64(arquivo, {
-    largura: 700,
-    altura: 700,
-    quadrada: true,
-    qualidade: 0.76
-  });
-}
-
-async function converterFotoTrabalhoOtimizada(arquivo) {
-  return otimizarImagemParaBase64(arquivo, {
-    largura: 1200,
-    altura: 1200,
-    qualidade: 0.70
-  });
-}
-
-async function converterVariasImagensParaBase64(arquivos) {
-  const listaArquivos = Array.from(arquivos || []);
-  const imagens = [];
-
-  for (const arquivo of listaArquivos) {
-    imagens.push(await converterFotoTrabalhoOtimizada(arquivo));
-  }
-
-  return imagens;
 }
 
 function limiteFotosPorPlano(profissional = {}) {
@@ -377,7 +305,11 @@ async function converterVariasImagensParaBase64(arquivos) {
   const imagens = [];
 
   for (const arquivo of listaArquivos) {
-    imagens.push(await converterImagemParaBase64(arquivo));
+    imagens.push(await converterImagemParaBase64(arquivo, {
+      maxSize: 1200,
+      qualidade: 0.78,
+      exigirQuadrada: false
+    }));
   }
 
   return imagens;
@@ -589,7 +521,7 @@ function selecionarSugestaoBusca(valor) {
 function cardProfissionalHTML(p, index = 0) {
   const linkWhatsApp = criarLinkWhatsApp(p.whatsapp);
   const inicial = p.nome ? p.nome.charAt(0).toUpperCase() : "?";
-  const fotoCard = p.fotoPerfil ? `<img src="${p.fotoPerfil}" alt="Foto de ${p.nome}" loading="lazy" decoding="async">` : `<span>${inicial}</span>`;
+  const fotoCard = p.fotoPerfil ? `<img src="${p.fotoPerfil}" alt="Foto de ${p.nome}">` : `<span>${inicial}</span>`;
   const temFotosTrabalhos = Array.isArray(p.fotosTrabalhos) && p.fotosTrabalhos.length > 0;
   const cidadesTexto = formatarCidadesAtendidas(p);
   const temPlano = profissionalTemPlanoPago(p);
@@ -1018,7 +950,7 @@ function iniciarCadastroBackend() {
       await validarFotoPerfil1000(arquivoFotoPerfil, true);
 
       const dados = dadosFormularioProfissional(true);
-      dados.fotoPerfil = await converterFotoPerfilOtimizada(arquivoFotoPerfil);
+      dados.fotoPerfil = await converterImagemParaBase64(arquivoFotoPerfil, { maxSize: 700, qualidade: 0.82, exigirQuadrada: true });
       dados.fotosTrabalhos = (await converterVariasImagensParaBase64(arquivosTrabalhos)).slice(0, 3);
 
       await apiFetch("/api/cadastro", {
@@ -1068,7 +1000,7 @@ async function carregarPerfilProfissional() {
     const profissional = await carregarProfissionalPorId(id);
     const linkWhatsApp = criarLinkWhatsApp(profissional.whatsapp);
     const inicial = profissional.nome ? profissional.nome.charAt(0).toUpperCase() : "?";
-    const fotoPerfil = profissional.fotoPerfil ? `<img src="${profissional.fotoPerfil}" alt="Foto de ${profissional.nome}" loading="lazy" decoding="async">` : inicial;
+    const fotoPerfil = profissional.fotoPerfil ? `<img src="${profissional.fotoPerfil}" alt="Foto de ${profissional.nome}">` : inicial;
     const servicosArray = (profissional.servicos || "").split(",").map(s => s.trim()).filter(Boolean);
     const cidadesTexto = formatarCidadesAtendidas(profissional);
 
@@ -1273,7 +1205,7 @@ async function carregarPainelProfissional() {
     const planoStatus = profissional.planoStatus || "ativo";
     const forcaPerfil = calcularForcaPerfil(profissional);
     const totalServicos = (profissional.servicos || "").split(",").map(s => s.trim()).filter(Boolean).length;
-    const foto = profissional.fotoPerfil ? `<img src="${profissional.fotoPerfil}" alt="Foto de ${profissional.nome}" loading="lazy" decoding="async">` : `<span>${profissional.nome ? profissional.nome.charAt(0).toUpperCase() : "?"}</span>`;
+    const foto = profissional.fotoPerfil ? `<img src="${profissional.fotoPerfil}" alt="Foto de ${profissional.nome}">` : `<span>${profissional.nome ? profissional.nome.charAt(0).toUpperCase() : "?"}</span>`;
 
     header.innerHTML = `<span>Painel do profissional</span><h1>Olá, ${profissional.nome}.</h1><p>Gerencie seu perfil, acompanhe sua publicação e mantenha seus dados prontos para receber clientes.</p>`;
 
@@ -1392,23 +1324,52 @@ async function preencherFormularioEdicao(profissional) {
     ? profissional.cidadesAtendidas.filter(cidade => normalizarTextoNorteServic(cidade) !== normalizarTextoNorteServic(profissional.cidade))
     : [];
 
-  const preview = document.getElementById("previewImagensEdicao");
-  if (preview) {
-    const fotos = Array.isArray(profissional.fotosTrabalhos) ? profissional.fotosTrabalhos : [];
-    preview.innerHTML = `
-      <div class="preview-foto-atual">
-        ${profissional.fotoPerfil ? `<img src="${profissional.fotoPerfil}" alt="Foto atual do perfil" loading="lazy" decoding="async">` : `<span>Sem foto de perfil</span>`}
-      </div>
-      <div class="preview-trabalhos-atual">
-        ${fotos.slice(0, limiteFotosPorPlano(profissional)).map(foto => `<img src="${foto}" alt="Foto de serviço atual">`).join("") || `<span>Nenhuma foto de serviço adicionada.</span>`}
-      </div>
-    `;
-  }
+  fotosTrabalhosEdicaoAtuais = Array.isArray(profissional.fotosTrabalhos)
+    ? profissional.fotosTrabalhos.slice(0, limiteFotosPorPlano(profissional))
+    : [];
+
+  renderizarPreviewImagensEdicao(profissional);
 
   alternarCidadesAtendidas();
   adicionarAdminNoRodape();
   atualizarCidadesSelecionadasVisual();
 }
+
+
+function renderizarPreviewImagensEdicao(profissional = {}) {
+  const preview = document.getElementById("previewImagensEdicao");
+  if (!preview) return;
+
+  const fotoPerfilHtml = profissional.fotoPerfil
+    ? `<img src="${profissional.fotoPerfil}" alt="Foto atual do perfil" loading="lazy" decoding="async">`
+    : `<span>Sem foto de perfil</span>`;
+
+  const fotos = Array.isArray(fotosTrabalhosEdicaoAtuais) ? fotosTrabalhosEdicaoAtuais : [];
+
+  preview.innerHTML = `
+    <div class="preview-foto-atual">
+      <strong>Foto atual do perfil</strong>
+      ${fotoPerfilHtml}
+    </div>
+
+    <div class="preview-trabalhos-atual">
+      <strong>Fotos atuais dos serviços</strong>
+      ${fotos.length ? fotos.map((foto, index) => `
+        <div class="foto-servico-editavel">
+          <img src="${foto}" alt="Foto de serviço atual" loading="lazy" decoding="async">
+          <button type="button" onclick="removerFotoTrabalhoEdicao(${index})">Remover</button>
+        </div>
+      `).join("") : `<span>Nenhuma foto de serviço adicionada.</span>`}
+    </div>
+  `;
+}
+
+function removerFotoTrabalhoEdicao(index) {
+  fotosTrabalhosEdicaoAtuais = fotosTrabalhosEdicaoAtuais.filter((_, i) => i !== index);
+  renderizarPreviewImagensEdicao(profissionalAtualEdicaoGlobal || {});
+}
+
+let profissionalAtualEdicaoGlobal = null;
 
 function iniciarEditarPerfil() {
   const form = document.getElementById("formEditarPerfil");
@@ -1421,6 +1382,7 @@ function iniciarEditarPerfil() {
   carregarMinhaConta()
     .then(profissional => {
       profissionalAtual = profissional;
+      profissionalAtualEdicaoGlobal = profissional;
       preencherFormularioEdicao(profissional);
     })
     .catch(() => {
@@ -1467,13 +1429,13 @@ function iniciarEditarPerfil() {
 
       const arquivoFotoPerfil = document.getElementById("fotoPerfilEditar")?.files[0];
       const arquivosTrabalhos = document.getElementById("fotosTrabalhosEditar")?.files;
-      const fotosAtuais = Array.isArray(profissionalAtual?.fotosTrabalhos) ? profissionalAtual.fotosTrabalhos : [];
+      const fotosAtuais = Array.isArray(fotosTrabalhosEdicaoAtuais) ? fotosTrabalhosEdicaoAtuais : [];
       const limiteFotos = limiteFotosPorPlano(profissionalAtual || {});
 
       await validarFotoPerfil1000(arquivoFotoPerfil, false);
 
       dados.fotoPerfil = arquivoFotoPerfil
-        ? await converterFotoPerfilOtimizada(arquivoFotoPerfil)
+        ? await converterImagemParaBase64(arquivoFotoPerfil, { maxSize: 700, qualidade: 0.82, exigirQuadrada: true })
         : (profissionalAtual?.fotoPerfil || "");
 
       const novasFotosTrabalho = await converterVariasImagensParaBase64(arquivosTrabalhos);
@@ -1584,7 +1546,7 @@ async function mostrarAdmin() {
 
     container.innerHTML = listaFiltrada.map((p, index) => {
       const inicial = p.nome ? p.nome.charAt(0).toUpperCase() : "?";
-      const fotoCard = p.fotoPerfil ? `<img src="${p.fotoPerfil}" alt="Foto de ${p.nome}" loading="lazy" decoding="async">` : `<span>${inicial}</span>`;
+      const fotoCard = p.fotoPerfil ? `<img src="${p.fotoPerfil}" alt="Foto de ${p.nome}">` : `<span>${inicial}</span>`;
       const quantidadeFotos = Array.isArray(p.fotosTrabalhos) ? p.fotosTrabalhos.length : 0;
       const statusClasse = p.status === "aprovado" ? "status-aprovado" : "status-pendente";
       const statusTexto = p.status === "aprovado" ? "Aprovado" : "Pendente";

@@ -11,6 +11,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'troque_essa_senha_em_producao';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'indica123';
+const SUPABASE_URL = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const SUPABASE_STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'norte-servic';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -40,7 +43,130 @@ function parseJsonArray(valor) {
   }
 }
 
-function profissionalParaFrontend(row) {
+
+function storageConfigurado() {
+  return Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY && SUPABASE_STORAGE_BUCKET);
+}
+
+function dataUrlParaBuffer(dataUrl) {
+  if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) return null;
+
+  const match = dataUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+  if (!match) return null;
+
+  const mime = match[1];
+  const base64 = match[2];
+  const buffer = Buffer.from(base64, 'base64');
+
+  let extensao = 'jpg';
+  if (mime.includes('png')) extensao = 'png';
+  if (mime.includes('webp')) extensao = 'webp';
+  if (mime.includes('jpeg') || mime.includes('jpg')) extensao = 'jpg';
+
+  return { buffer, mime, extensao };
+}
+
+function caminhoStorageFromUrl(url) {
+  if (!url || typeof url !== 'string' || !storageConfigurado()) return '';
+
+  const marcador = `/storage/v1/object/public/${SUPABASE_STORAGE_BUCKET}/`;
+  const index = url.indexOf(marcador);
+  if (index === -1) return '';
+
+  return decodeURIComponent(url.slice(index + marcador.length).split('?')[0]);
+}
+
+async function excluirArquivoStorage(url) {
+  const caminho = caminhoStorageFromUrl(url);
+  if (!caminho) return;
+
+  try {
+    await fetch(`${SUPABASE_URL}/storage/v1/object/${SUPABASE_STORAGE_BUCKET}/${encodeURI(caminho)}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        apikey: SUPABASE_SERVICE_ROLE_KEY
+      }
+    });
+  } catch (_) {
+    // Falha ao apagar no Storage não deve impedir o salvamento do perfil.
+  }
+}
+
+async function enviarImagemStorage(imagem, pasta, nomeBase) {
+  if (!imagem) return '';
+
+  // Compatibilidade com imagens antigas/salvas como URL.
+  if (typeof imagem === 'string' && !imagem.startsWith('data:')) return imagem;
+
+  const arquivo = dataUrlParaBuffer(imagem);
+  if (!arquivo) return '';
+
+  if (!storageConfigurado()) {
+    // Fallback local/teste: se o Storage ainda não foi configurado, mantém Base64.
+    return imagem;
+  }
+
+  const safePasta = String(pasta || 'profissionais').replace(/[^a-zA-Z0-9/_-]/g, '-');
+  const safeNome = String(nomeBase || `foto-${Date.now()}`).replace(/[^a-zA-Z0-9._-]/g, '-');
+  const caminho = `${safePasta}/${safeNome}-${Date.now()}-${Math.random().toString(36).slice(2)}.${arquivo.extensao}`;
+
+  const resposta = await fetch(`${SUPABASE_URL}/storage/v1/object/${SUPABASE_STORAGE_BUCKET}/${encodeURI(caminho)}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      apikey: SUPABASE_SERVICE_ROLE_KEY,
+      'Content-Type': arquivo.mime,
+      'x-upsert': 'true'
+    },
+    body: arquivo.buffer
+  });
+
+  if (!resposta.ok) {
+    const texto = await resposta.text().catch(() => '');
+    throw new Error(`Erro ao enviar imagem para o Supabase Storage. ${texto}`);
+  }
+
+  return `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_STORAGE_BUCKET}/${encodeURI(caminho)}`;
+}
+
+async function processarImagensProfissional(dados, pasta, imagensAnteriores = {}) {
+  const fotoAnterior = imagensAnteriores.fotoPerfil || '';
+  const fotosAnteriores = Array.isArray(imagensAnteriores.fotosTrabalhos) ? imagensAnteriores.fotosTrabalhos : [];
+
+  let fotoPerfil = dados.fotoPerfil || dados.foto_perfil || fotoAnterior || '';
+
+  if (fotoPerfil && typeof fotoPerfil === 'string' && fotoPerfil.startsWith('data:')) {
+    const novaFoto = await enviarImagemStorage(fotoPerfil, pasta, 'foto-perfil');
+    if (fotoAnterior && fotoAnterior !== novaFoto) await excluirArquivoStorage(fotoAnterior);
+    fotoPerfil = novaFoto;
+  }
+
+  const fotosRecebidas = Array.isArray(dados.fotosTrabalhos || dados.fotos_trabalhos)
+    ? (dados.fotosTrabalhos || dados.fotos_trabalhos)
+    : [];
+
+  const fotosTrabalhos = [];
+
+  for (let i = 0; i < fotosRecebidas.length; i += 1) {
+    const foto = fotosRecebidas[i];
+    if (!foto) continue;
+
+    if (typeof foto === 'string' && foto.startsWith('data:')) {
+      fotosTrabalhos.push(await enviarImagemStorage(foto, `${pasta}/trabalhos`, `servico-${i + 1}`));
+    } else {
+      fotosTrabalhos.push(foto);
+    }
+  }
+
+  const removidas = fotosAnteriores.filter((foto) => foto && !fotosTrabalhos.includes(foto));
+  await Promise.all(removidas.map(excluirArquivoStorage));
+
+  return { fotoPerfil, fotosTrabalhos };
+}
+
+function profissionalParaFrontend(row, opcoes = {}) {
+  const { incluirFotosTrabalhos = true } = opcoes;
   if (!row) return null;
 
   return {
@@ -61,7 +187,7 @@ function profissionalParaFrontend(row) {
     instagram: row.instagram || '',
     descricao: row.descricao || '',
     fotoPerfil: row.foto_perfil || '',
-    fotosTrabalhos: parseJsonArray(row.fotos_trabalhos),
+    fotosTrabalhos: incluirFotosTrabalhos ? parseJsonArray(row.fotos_trabalhos) : [],
     avaliacao: row.avaliacao || 'Novo',
     avaliacoes: Number(row.avaliacoes || 0),
     verificado: Boolean(row.verificado),
@@ -113,7 +239,7 @@ function autenticarAdmin(req, res, next) {
 app.get('/api/health', async (_req, res) => {
   try {
     const result = await pool.query('SELECT NOW() as agora');
-    res.json({ ok: true, banco: true, agora: result.rows[0].agora });
+    res.json({ ok: true, banco: true, storage: storageConfigurado(), agora: result.rows[0].agora });
   } catch (error) {
     res.status(500).json({ ok: false, banco: false, erro: error.message });
   }
@@ -139,14 +265,7 @@ app.get('/api/profissionais', async (req, res) => {
     }
 
     const sql = `
-      SELECT
-        id, nome, email, tipo_profissional, categoria, profissao, servicos,
-        palavras_chave, cidade, bairro, atende_outras_cidades, cidades_atendidas,
-        forma_atendimento, whatsapp, instagram, descricao, foto_perfil,
-        '[]'::jsonb AS fotos_trabalhos,
-        avaliacao, avaliacoes, verificado, status, plano_atual, plano_status,
-        plano_vencimento, stripe_customer_id, stripe_subscription_id, criado_em, atualizado_em
-      FROM profissionais
+      SELECT * FROM profissionais
       ${where}
       ORDER BY
         CASE plano_atual
@@ -160,7 +279,7 @@ app.get('/api/profissionais', async (req, res) => {
     `;
 
     const result = await pool.query(sql, params);
-    res.json(result.rows.map(profissionalParaFrontend));
+    res.json(result.rows.map((row) => profissionalParaFrontend(row, { incluirFotosTrabalhos: false })));
   } catch (error) {
     res.status(500).json({ erro: 'Erro ao buscar profissionais.', detalhe: error.message });
   }
@@ -204,6 +323,7 @@ app.post('/api/cadastro', async (req, res) => {
     }
 
     const senhaHash = await bcrypt.hash(senha, 10);
+    const imagens = await processarImagensProfissional(dados, `profissionais/${whatsapp}`);
 
     const result = await pool.query(
       `INSERT INTO profissionais (
@@ -232,8 +352,8 @@ app.post('/api/cadastro', async (req, res) => {
         whatsapp,
         dados.instagram || null,
         dados.descricao || null,
-        dados.fotoPerfil || dados.foto_perfil || null,
-        JSON.stringify(dados.fotosTrabalhos || dados.fotos_trabalhos || [])
+        imagens.fotoPerfil || null,
+        JSON.stringify(imagens.fotosTrabalhos || [])
       ]
     );
 
@@ -295,6 +415,10 @@ app.put('/api/me', autenticar, async (req, res) => {
 
     const anterior = atual.rows[0];
     const novoWhatsapp = limparNumero(dados.whatsapp || anterior.whatsapp);
+    const imagens = await processarImagensProfissional(dados, `profissionais/${req.user.id}`, {
+      fotoPerfil: anterior.foto_perfil || '',
+      fotosTrabalhos: parseJsonArray(anterior.fotos_trabalhos)
+    });
 
     const dadosImportantesMudaram =
       String(anterior.nome || '').toLowerCase() !== String(dados.nome || '').toLowerCase() ||
@@ -333,8 +457,8 @@ app.put('/api/me', autenticar, async (req, res) => {
         novoWhatsapp,
         dados.instagram || null,
         dados.descricao || null,
-        dados.fotoPerfil || anterior.foto_perfil || null,
-        JSON.stringify(dados.fotosTrabalhos || parseJsonArray(anterior.fotos_trabalhos)),
+        imagens.fotoPerfil || anterior.foto_perfil || null,
+        JSON.stringify(imagens.fotosTrabalhos || parseJsonArray(anterior.fotos_trabalhos)),
         dadosImportantesMudaram ? 'pendente' : anterior.status,
         req.user.id
       ]
