@@ -1066,23 +1066,29 @@ function iniciarCadastroBackend() {
 function avaliacoesPerfilHTML(avaliacoes = []) {
   if (!avaliacoes || avaliacoes.length === 0) {
     return `
-      <div class="avaliacoes-vazio">
-        <strong>Nenhuma avaliação publicada ainda.</strong>
-        <p>Se você já contratou este profissional, envie sua avaliação. Ela será analisada antes de aparecer no perfil.</p>
+      <div class="avaliacoes-vazio avaliacoes-vazio-elite">
+        <div class="avaliacoes-empty-icon">★</div>
+        <div>
+          <strong>Nenhuma avaliação publicada ainda.</strong>
+          <p>Contratou este profissional? Seja o primeiro a deixar uma avaliação analisada pela Norte Servic.</p>
+        </div>
       </div>
     `;
   }
 
   return `
-    <div class="avaliacoes-lista">
-      ${avaliacoes.map(item => `
-        <article class="avaliacao-card-publica">
+    <div class="avaliacoes-lista avaliacoes-lista-elite">
+      ${avaliacoes.slice(0, 6).map(item => `
+        <article class="avaliacao-card-publica avaliacao-card-elite">
           <div class="avaliacao-card-topo">
-            <strong>${item.nomeCliente}</strong>
-            <span>${estrelasHTML(item.nota)}</span>
+            <div class="avaliacao-avatar">${String(item.nomeCliente || "C").charAt(0).toUpperCase()}</div>
+            <div class="avaliacao-identidade">
+              <strong>${item.nomeCliente}</strong>
+              <small>${formatarDataCurta(item.criadoEm)}</small>
+            </div>
+            <span class="avaliacao-nota-badge">${estrelasHTML(item.nota)}</span>
           </div>
           <p>${item.comentario}</p>
-          <small>${formatarDataCurta(item.criadoEm)}</small>
         </article>
       `).join("")}
     </div>
@@ -1091,14 +1097,17 @@ function avaliacoesPerfilHTML(avaliacoes = []) {
 
 function formularioAvaliacaoHTML(profissionalId) {
   return `
-    <form class="form-avaliacao" id="formAvaliacaoProfissional" data-profissional-id="${profissionalId}">
-      <div class="form-avaliacao-topo">
-        <span>Avaliação controlada</span>
-        <h3>Avaliar este profissional</h3>
-        <p>Sua avaliação passa por análise antes de ser publicada.</p>
+    <form class="form-avaliacao form-avaliacao-elite" id="formAvaliacaoProfissional" data-profissional-id="${profissionalId}">
+      <div class="form-avaliacao-topo form-avaliacao-topo-elite">
+        <div>
+          <span>Avaliação segura</span>
+          <h3>Avalie este atendimento</h3>
+          <p>Sua opinião passa por análise antes de aparecer no perfil.</p>
+        </div>
+        <div class="avaliacao-mini-selo">✓ Moderado</div>
       </div>
 
-      <div class="form-avaliacao-grid">
+      <div class="form-avaliacao-grid form-avaliacao-grid-elite">
         <div>
           <label>Seu nome</label>
           <input type="text" id="avaliacaoNomeCliente" placeholder="Ex: Ana Silva" required>
@@ -1106,17 +1115,19 @@ function formularioAvaliacaoHTML(profissionalId) {
 
         <div>
           <label>Nota</label>
-          <div class="avaliacao-estrelas" id="avaliacaoEstrelas">
+          <div class="avaliacao-estrelas avaliacao-estrelas-elite" id="avaliacaoEstrelas">
             ${[1,2,3,4,5].map(nota => `<button type="button" data-nota="${nota}" aria-label="${nota} estrelas">★</button>`).join("")}
           </div>
           <input type="hidden" id="avaliacaoNota" value="5">
         </div>
       </div>
 
-      <label>Comentário</label>
-      <textarea id="avaliacaoComentario" rows="4" placeholder="Conte de forma breve como foi o atendimento." required></textarea>
+      <div class="avaliacao-comentario-linha">
+        <label>Comentário breve</label>
+        <textarea id="avaliacaoComentario" rows="3" placeholder="Como foi o atendimento? Seja direto." required></textarea>
+      </div>
 
-      <button type="submit">Enviar avaliação para análise</button>
+      <button type="submit" class="avaliacao-submit-elite">Enviar avaliação</button>
       <p id="mensagemAvaliacao"></p>
     </form>
   `;
@@ -1235,34 +1246,59 @@ async function carregarPerfilProfissional() {
           </div>
         </aside>
         <section class="perfil-conteudo">
-          <div class="perfil-hero-texto">
-            <span>Perfil profissional</span>
-            <h2>Conheça o trabalho de ${profissional.nome}</h2>
-            <p>Veja informações, serviços realizados, área de atendimento e dados de confiança antes de entrar em contato.</p>
+          <div class="perfil-hero-texto perfil-hero-compacto-premium">
+            <div>
+              <span>Perfil profissional</span>
+              <h2>${profissional.nome}</h2>
+              <p>Informações, serviços, atendimento e avaliações em um perfil verificado pela Norte Servic.</p>
+            </div>
+            <div class="perfil-hero-mini-stats">
+              <strong>${profissional.avaliacao || "Novo"}</strong>
+              <small>${profissional.avaliacoes || 0} avaliações</small>
+            </div>
           </div>
-          <div class="perfil-section-clean"><h2>Sobre o profissional</h2><p>${profissional.descricao}</p></div>
-          <div class="perfil-section-clean perfil-avaliacoes-section perfil-avaliacoes-prioridade">
-            <div class="avaliacoes-header">
+
+          <div class="perfil-info-compact-grid">
+            <div class="perfil-section-clean perfil-section-mini perfil-section-sobre">
+              <span class="perfil-mini-label">Sobre</span>
+              <h2>Sobre o profissional</h2>
+              <p>${profissional.descricao}</p>
+            </div>
+
+            <div class="perfil-section-clean perfil-section-mini perfil-section-servicos">
+              <span class="perfil-mini-label">Serviços</span>
+              <h2>Serviços que realiza</h2>
+              <div class="servicos-premium servicos-premium-compacto">${servicosArray.slice(0, 8).map(s => `<span>${s}</span>`).join("")}</div>
+            </div>
+
+            <div class="perfil-section-clean perfil-section-mini perfil-section-atendimento">
+              <span class="perfil-mini-label">Atendimento</span>
+              <h2>Área de atendimento</h2>
+              <div class="perfil-atendimento-lista">
+                <p><strong>Cidade:</strong> ${profissional.cidade}</p>
+                <p><strong>Atende:</strong> ${cidadesTexto}</p>
+                <p><strong>Formato:</strong> ${profissional.formaAtendimento || "Não informado"}</p>
+                <p><strong>Instagram:</strong> ${instagramHTML(profissional.instagram, "perfil-instagram")}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="perfil-section-clean perfil-avaliacoes-section perfil-avaliacoes-prioridade perfil-avaliacoes-elite">
+            <div class="avaliacoes-header avaliacoes-header-elite">
               <div>
-                <span>Opinião de clientes</span>
-                <h2>Avaliações do profissional</h2>
-                <p>⭐ ${profissional.avaliacao || "Novo"} | ${profissional.avaliacoes || 0} avaliações aprovadas</p>
+                <span>Confiança pública</span>
+                <h2>Avaliações verificadas</h2>
+                <p>Comentários analisados antes de aparecer no perfil.</p>
+              </div>
+              <div class="avaliacoes-score-box">
+                <strong>${profissional.avaliacao || "Novo"}</strong>
+                <small>${profissional.avaliacoes || 0} avaliações</small>
               </div>
             </div>
             ${avaliacoesPerfilHTML(avaliacoesPublicas)}
             ${formularioAvaliacaoHTML(profissional.id)}
           </div>
-          <div class="perfil-section-clean"><h2>Serviços que realiza</h2><div class="servicos-premium">${servicosArray.map(s => `<span>${s}</span>`).join("")}</div></div>
-          <div class="perfil-section-clean"><h2>Área de atendimento</h2>
-            <p><strong>Cidade principal:</strong> ${profissional.cidade}</p>
-            <p><strong>Bairro:</strong> ${profissional.bairro}</p>
-            <p><strong>Atende:</strong> ${cidadesTexto}</p>
-            <p><strong>Forma de atendimento:</strong> ${profissional.formaAtendimento || "Não informado"}</p>
-            <p><strong>Tipo:</strong> ${profissional.tipoProfissional || "Não informado"}</p>
-            <p><strong>Categoria:</strong> ${profissional.categoria || "Não informada"}</p>
-            <p><strong>Instagram:</strong> ${instagramHTML(profissional.instagram, "perfil-instagram")}</p>
-          </div>
-          <div class="perfil-section-clean"><h2>Fotos dos trabalhos</h2>${galeriaTrabalhos}</div>
+          <div class="perfil-section-clean perfil-section-mini perfil-fotos-compacto"><h2>Fotos dos trabalhos</h2>${galeriaTrabalhos}</div>
         </section>
       </div>
     `;
