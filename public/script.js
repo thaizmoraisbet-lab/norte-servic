@@ -1679,79 +1679,127 @@ async function mostrarAdminAvaliacoes() {
 
   try {
     const avaliacoes = await buscarAdminAvaliacoes("pendente");
-    if (contador) contador.innerText = `${avaliacoes.length} pendente(s)`;
+    const validas = (avaliacoes || []).filter(item => item && item.id);
 
-    if (!avaliacoes || avaliacoes.length === 0) {
+    if (contador) contador.innerText = `${validas.length} pendente(s)`;
+
+    if (!validas || validas.length === 0) {
       container.innerHTML = `<div class="admin-vazio admin-vazio-menor"><h3>Nenhuma avaliação pendente</h3><p>Quando clientes enviarem avaliações, elas aparecerão aqui para aprovação.</p></div>`;
       return;
     }
 
-    container.innerHTML = avaliacoes.map(item => `
-      <article class="admin-avaliacao-card">
-        <div class="admin-avaliacao-topo">
-          <div>
-            <span>${item.profissionalNome || "Profissional"}</span>
-            <h3>${item.nomeCliente}</h3>
+    container.innerHTML = validas.map(item => {
+      const idSeguro = String(item.id).replace(/"/g, "&quot;");
+
+      return `
+        <article class="admin-avaliacao-card" data-avaliacao-id="${idSeguro}">
+          <div class="admin-avaliacao-topo">
+            <div>
+              <span>${item.profissionalNome || "Profissional"}</span>
+              <h3>${item.nomeCliente || "Cliente"}</h3>
+            </div>
+            <strong>${estrelasHTML(item.nota)}</strong>
           </div>
-          <strong>${estrelasHTML(item.nota)}</strong>
-        </div>
-        <p>${item.comentario}</p>
-        <small>${item.profissionalProfissao || ""} ${item.profissionalCidade ? "• " + item.profissionalCidade : ""} ${item.criadoEm ? "• " + formatarDataCurta(item.criadoEm) : ""}</small>
-        <div class="admin-avaliacao-acoes">
-          <button class="aprovar" onclick="aprovarAvaliacao(${item.id})">Aprovar</button>
-          <button onclick="recusarAvaliacao(${item.id})">Recusar</button>
-          <button class="remover" onclick="excluirAvaliacao(${item.id})">Excluir</button>
-        </div>
-      </article>
-    `).join("");
+
+          <p>${item.comentario || "Sem comentário."}</p>
+
+          <small>
+            ${item.profissionalProfissao || ""}
+            ${item.profissionalCidade ? "• " + item.profissionalCidade : ""}
+            ${item.criadoEm ? "• " + formatarDataCurta(item.criadoEm) : ""}
+          </small>
+
+          <div class="admin-avaliacao-acoes">
+            <button class="aprovar" type="button" data-acao-avaliacao="aprovar" data-id="${idSeguro}">Aprovar</button>
+            <button type="button" data-acao-avaliacao="recusar" data-id="${idSeguro}">Recusar</button>
+            <button class="remover" type="button" data-acao-avaliacao="excluir" data-id="${idSeguro}">Excluir</button>
+          </div>
+        </article>
+      `;
+    }).join("");
+
+    container.querySelectorAll("[data-acao-avaliacao]").forEach(botao => {
+      botao.addEventListener("click", async () => {
+        const id = botao.getAttribute("data-id");
+        const acao = botao.getAttribute("data-acao-avaliacao");
+
+        if (acao === "aprovar") return aprovarAvaliacao(id);
+        if (acao === "recusar") return recusarAvaliacao(id);
+        if (acao === "excluir") return excluirAvaliacao(id);
+      });
+    });
   } catch (error) {
     container.innerHTML = `<div class="admin-vazio"><h3>Erro nas avaliações</h3><p>${error.message}</p></div>`;
   }
 }
 
+function normalizarIdAvaliacao(id) {
+  const idLimpo = String(id || "").trim();
+
+  if (!idLimpo || idLimpo === "undefined" || idLimpo === "null") {
+    alert("ID da avaliação inválido. Atualize o painel e tente novamente.");
+    return "";
+  }
+
+  return idLimpo;
+}
+
 async function aprovarAvaliacao(id) {
+  const idLimpo = normalizarIdAvaliacao(id);
+  if (!idLimpo) return;
+
   try {
-    await apiFetch(`/api/admin/avaliacoes/${id}/aprovar`, {
+    await apiFetch(`/api/admin/avaliacoes/${encodeURIComponent(idLimpo)}/aprovar`, {
       method: "PATCH",
       headers: { "x-admin-password": getAdminPassword() }
     });
+
     alert("Avaliação aprovada.");
-    mostrarAdminAvaliacoes();
-    mostrarAdmin();
+    await mostrarAdminAvaliacoes();
+    await mostrarAdmin();
   } catch (error) {
     alert(error.message);
+    mostrarAdminAvaliacoes();
   }
 }
 
 async function recusarAvaliacao(id) {
+  const idLimpo = normalizarIdAvaliacao(id);
+  if (!idLimpo) return;
+
   try {
-    await apiFetch(`/api/admin/avaliacoes/${id}/recusar`, {
+    await apiFetch(`/api/admin/avaliacoes/${encodeURIComponent(idLimpo)}/recusar`, {
       method: "PATCH",
       headers: { "x-admin-password": getAdminPassword() }
     });
+
     alert("Avaliação recusada.");
-    mostrarAdminAvaliacoes();
+    await mostrarAdminAvaliacoes();
   } catch (error) {
     alert(error.message);
+    mostrarAdminAvaliacoes();
   }
 }
 
 async function excluirAvaliacao(id) {
+  const idLimpo = normalizarIdAvaliacao(id);
+  if (!idLimpo) return;
   if (!confirm("Excluir esta avaliação?")) return;
 
   try {
-    await apiFetch(`/api/admin/avaliacoes/${id}`, {
+    await apiFetch(`/api/admin/avaliacoes/${encodeURIComponent(idLimpo)}`, {
       method: "DELETE",
       headers: { "x-admin-password": getAdminPassword() }
     });
+
     alert("Avaliação excluída.");
-    mostrarAdminAvaliacoes();
-    mostrarAdmin();
+    await mostrarAdminAvaliacoes();
+    await mostrarAdmin();
   } catch (error) {
     alert(error.message);
+    mostrarAdminAvaliacoes();
   }
 }
-
 
 async function mostrarAdmin() {
   const container = document.getElementById("listaAdmin");
