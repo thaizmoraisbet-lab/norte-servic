@@ -265,37 +265,42 @@ async function converterImagemParaBase64(arquivo, opcoes = {}) {
   const larguraOriginal = img.naturalWidth || img.width;
   const alturaOriginal = img.naturalHeight || img.height;
 
-  if (exigirQuadrada && larguraOriginal !== alturaOriginal) {
-    throw new Error(`A foto de perfil precisa ser quadrada. A imagem enviada tem ${larguraOriginal}x${alturaOriginal}px.`);
+  let origemX = 0;
+  let origemY = 0;
+  let origemLargura = larguraOriginal;
+  let origemAltura = alturaOriginal;
+
+  if (exigirQuadrada) {
+    const menorLado = Math.min(larguraOriginal, alturaOriginal);
+    origemX = Math.floor((larguraOriginal - menorLado) / 2);
+    origemY = Math.floor((alturaOriginal - menorLado) / 2);
+    origemLargura = menorLado;
+    origemAltura = menorLado;
   }
 
-  const maiorLado = Math.max(larguraOriginal, alturaOriginal);
+  const maiorLado = Math.max(origemLargura, origemAltura);
   const escala = maiorLado > maxSize ? maxSize / maiorLado : 1;
-  const largura = Math.round(larguraOriginal * escala);
-  const altura = Math.round(alturaOriginal * escala);
+  const largura = Math.max(1, Math.round(origemLargura * escala));
+  const altura = Math.max(1, Math.round(origemAltura * escala));
 
   const canvas = document.createElement("canvas");
   canvas.width = largura;
   canvas.height = altura;
 
   const ctx = canvas.getContext("2d");
-  ctx.drawImage(img, 0, 0, largura, altura);
+  ctx.drawImage(img, origemX, origemY, origemLargura, origemAltura, 0, 0, largura, altura);
 
   return canvas.toDataURL("image/jpeg", qualidade);
 }
 
 async function validarFotoPerfil1000(arquivo, obrigatoria = false) {
   if (!arquivo) {
-    if (obrigatoria) throw new Error("Envie uma foto de perfil quadrada.");
+    if (obrigatoria) throw new Error("Envie uma foto de perfil.");
     return;
   }
 
-  const img = await carregarImagemDoArquivo(arquivo);
-  const largura = img.naturalWidth || img.width;
-  const altura = img.naturalHeight || img.height;
-
-  if (largura !== altura) {
-    throw new Error(`A foto de perfil precisa ser quadrada. A imagem enviada tem ${largura}x${altura}px.`);
+  if (!String(arquivo.type || "").startsWith("image/")) {
+    throw new Error("Envie um arquivo de imagem válido para a foto de perfil.");
   }
 }
 
@@ -1196,19 +1201,7 @@ async function carregarPerfilProfissional() {
             <p>Veja informações, serviços realizados, área de atendimento e dados de confiança antes de entrar em contato.</p>
           </div>
           <div class="perfil-section-clean"><h2>Sobre o profissional</h2><p>${profissional.descricao}</p></div>
-          <div class="perfil-section-clean"><h2>Serviços que realiza</h2><div class="servicos-premium">${servicosArray.map(s => `<span>${s}</span>`).join("")}</div></div>
-          <div class="perfil-section-clean"><h2>Fotos dos trabalhos</h2>${galeriaTrabalhos}</div>
-          <div class="perfil-section-clean">
-            <h2>Área de atendimento</h2>
-            <p><strong>Cidade principal:</strong> ${profissional.cidade}</p>
-            <p><strong>Bairro:</strong> ${profissional.bairro}</p>
-            <p><strong>Atende:</strong> ${cidadesTexto}</p>
-            <p><strong>Forma de atendimento:</strong> ${profissional.formaAtendimento || "Não informado"}</p>
-            <p><strong>Tipo:</strong> ${profissional.tipoProfissional || "Não informado"}</p>
-            <p><strong>Categoria:</strong> ${profissional.categoria || "Não informada"}</p>
-            <p><strong>Instagram:</strong> ${instagramHTML(profissional.instagram, "perfil-instagram")}</p>
-          </div>
-          <div class="perfil-section-clean perfil-avaliacoes-section">
+          <div class="perfil-section-clean perfil-avaliacoes-section perfil-avaliacoes-prioridade">
             <div class="avaliacoes-header">
               <div>
                 <span>Opinião de clientes</span>
@@ -1219,6 +1212,17 @@ async function carregarPerfilProfissional() {
             ${avaliacoesPerfilHTML(avaliacoesPublicas)}
             ${formularioAvaliacaoHTML(profissional.id)}
           </div>
+          <div class="perfil-section-clean"><h2>Serviços que realiza</h2><div class="servicos-premium">${servicosArray.map(s => `<span>${s}</span>`).join("")}</div></div>
+          <div class="perfil-section-clean"><h2>Área de atendimento</h2>
+            <p><strong>Cidade principal:</strong> ${profissional.cidade}</p>
+            <p><strong>Bairro:</strong> ${profissional.bairro}</p>
+            <p><strong>Atende:</strong> ${cidadesTexto}</p>
+            <p><strong>Forma de atendimento:</strong> ${profissional.formaAtendimento || "Não informado"}</p>
+            <p><strong>Tipo:</strong> ${profissional.tipoProfissional || "Não informado"}</p>
+            <p><strong>Categoria:</strong> ${profissional.categoria || "Não informada"}</p>
+            <p><strong>Instagram:</strong> ${instagramHTML(profissional.instagram, "perfil-instagram")}</p>
+          </div>
+          <div class="perfil-section-clean"><h2>Fotos dos trabalhos</h2>${galeriaTrabalhos}</div>
         </section>
       </div>
     `;
@@ -1384,23 +1388,24 @@ async function carregarPainelProfissional() {
           <p><strong>Atende:</strong> ${cidadesTexto}</p>
           <p><strong>WhatsApp:</strong> ${profissional.whatsapp || "Não informado"}</p>
           <p><strong>Serviços selecionados:</strong> ${totalServicos}</p>
-          <p><strong>Plano:</strong> ${planoAtual}</p>
+          <p class="painel-linha-plano"><strong>Plano:</strong> <span class="painel-plano-chip destaque">${planoAtual}</span></p>
         </div>
         <p class="painel-descricao-preview">${profissional.descricao || "Adicione uma descrição profissional para aumentar a confiança dos clientes."}</p>
       </div>
     `;
 
     status.innerHTML = `
-      <div class="admin-stat-card"><strong>${planoAtual}</strong><span>Plano atual</span></div>
-      <div class="admin-stat-card"><strong>${planoStatus}</strong><span>Status do plano</span></div>
+      <div class="admin-stat-card admin-stat-destaque plano-card"><strong>${planoAtual}</strong><span>Plano atual</span></div>
+      <div class="admin-stat-card admin-stat-destaque status-card"><strong>${String(planoStatus).toUpperCase()}</strong><span>Status do plano</span></div>
       <div class="admin-stat-card"><strong>${perfilDisponivel ? "Sim" : "Não"}</strong><span>Perfil publicado</span></div>
       <div class="admin-stat-card"><strong>${forcaPerfil}%</strong><span>Força do perfil</span></div>
     `;
 
     if (painelPlano) {
       painelPlano.innerHTML = `
+        <span class="painel-box-badge">Plano ativo</span>
         <h3>Seu destaque na Norte Servic</h3>
-        <p>O plano atual é <strong>${planoAtual}</strong>. Perfis com plano de destaque podem aparecer melhor na vitrine.</p>
+        <p>Seu plano atual é <strong>${planoAtual}</strong> e está <strong>${planoStatus}</strong>. Perfis com mais destaque tendem a chamar mais atenção na vitrine.</p>
         <div class="painel-forca-perfil"><div style="width: ${forcaPerfil}%"></div></div>
         <p style="margin-top: 10px;">Força do perfil: <strong>${forcaPerfil}%</strong>.</p>
         <a href="planos.html" class="painel-plano-cta">Ver planos de destaque</a>
@@ -1409,6 +1414,7 @@ async function carregarPainelProfissional() {
 
     if (painelDicas) {
       painelDicas.innerHTML = `
+        <span class="painel-box-badge">Ajustes rápidos</span>
         <h3>Melhore seu perfil</h3>
         <ul>
           <li>Use uma foto real e nítida.</li>

@@ -6,7 +6,7 @@
 
   <title>Painel Admin - Norte Servic</title>
 
-  <link rel="stylesheet" href="style.css?v=avaliacoes-pendentes-fix">
+  <link rel="stylesheet" href="style.css?v=mobile-ajustes-final-20260606">
 </head>
 <body>
 
@@ -31,7 +31,22 @@
 
   <main class="admin-ultra-page">
 
-    <section class="admin-ultra-login" id="loginAdmin">
+    <section class="admin-ultra-login admin-ultra-login-mobile-prioridade" id="loginAdmin">
+      <div class="admin-login-box">
+        <span>Área administrativa</span>
+
+        <h2>Acessar painel</h2>
+
+        <p>Digite sua senha para entrar na área de controle da plataforma.</p>
+
+        <label>Senha do administrador</label>
+        <input type="password" id="senhaAdmin" placeholder="Digite sua senha">
+
+        <button onclick="entrarAdmin()">Entrar no painel</button>
+
+        <p id="erroSenha"></p>
+      </div>
+
       <div class="admin-login-visual">
         <span>Painel privado</span>
 
@@ -47,21 +62,6 @@
           <p>✓ Organização por status</p>
           <p>✓ Acesso rápido ao WhatsApp</p>
         </div>
-      </div>
-
-      <div class="admin-login-box">
-        <span>Área administrativa</span>
-
-        <h2>Acessar painel</h2>
-
-        <p>Digite sua senha para entrar na área de controle da plataforma.</p>
-
-        <label>Senha do administrador</label>
-        <input type="password" id="senhaAdmin" placeholder="Digite sua senha">
-
-        <button onclick="entrarAdmin()">Entrar no painel</button>
-
-        <p id="erroSenha"></p>
       </div>
     </section>
 
@@ -140,6 +140,6 @@
     <p>Norte Servic © 2026 - Profissionais de confiança perto de você.</p>
   </footer>
 
-  <script src="script.js?v=avaliacoes-pendentes-fix"></script>
+  <script src="script.js?v=mobile-ajustes-final-20260606"></script>
 </body>
 </html>
