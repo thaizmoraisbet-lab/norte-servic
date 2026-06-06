@@ -110,25 +110,44 @@ async function processarImagemNorteServic(buffer, opcoes = {}) {
     });
 
   if (marcaDagua) {
-    const fonte = Math.max(28, Math.round(largura * 0.052));
+    const fonte = Math.max(32, Math.round(largura * 0.06));
+    const fonteSelo = Math.max(18, Math.round(largura * 0.032));
     const marca = `
       <svg width="${largura}" height="${altura}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="sombra" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.35"/>
+          </filter>
+        </defs>
         <style>
-          text {
-            fill: rgba(255,255,255,0.16);
+          .marca {
+            fill: rgba(255,255,255,0.30);
+            stroke: rgba(17,24,39,0.26);
+            stroke-width: 1.2;
             font-size: ${fonte}px;
             font-family: Arial, sans-serif;
             font-weight: 900;
             letter-spacing: 2px;
           }
+          .seloTexto {
+            fill: #FFFFFF;
+            font-size: ${fonteSelo}px;
+            font-family: Arial, sans-serif;
+            font-weight: 900;
+            letter-spacing: 1px;
+          }
         </style>
-        <g transform="rotate(-35 ${largura / 2} ${altura / 2})">
-          <text x="${largura * 0.05}" y="${altura * 0.14}">NORTE SERVIC</text>
-          <text x="${largura * 0.34}" y="${altura * 0.30}">NORTE SERVIC</text>
-          <text x="${largura * 0.10}" y="${altura * 0.48}">NORTE SERVIC</text>
-          <text x="${largura * 0.40}" y="${altura * 0.66}">NORTE SERVIC</text>
-          <text x="${largura * 0.16}" y="${altura * 0.84}">NORTE SERVIC</text>
+
+        <g transform="rotate(-35 ${largura / 2} ${altura / 2})" filter="url(#sombra)">
+          <text class="marca" x="${largura * 0.02}" y="${altura * 0.12}">NORTE SERVIC</text>
+          <text class="marca" x="${largura * 0.28}" y="${altura * 0.28}">NORTE SERVIC</text>
+          <text class="marca" x="${largura * 0.02}" y="${altura * 0.46}">NORTE SERVIC</text>
+          <text class="marca" x="${largura * 0.30}" y="${altura * 0.64}">NORTE SERVIC</text>
+          <text class="marca" x="${largura * 0.08}" y="${altura * 0.82}">NORTE SERVIC</text>
         </g>
+
+        <rect x="${largura - largura * 0.40}" y="${altura - altura * 0.10}" width="${largura * 0.36}" height="${altura * 0.06}" rx="${altura * 0.03}" fill="rgba(17,24,39,0.62)"/>
+        <text class="seloTexto" x="${largura - largura * 0.37}" y="${altura - altura * 0.058}">NORTE SERVIC</text>
       </svg>
     `;
 
