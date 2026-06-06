@@ -12275,3 +12275,179 @@ footer:not(.rodape-minimo) .rodape-admin-link {
     font-size: 10.5px !important;
   }
 }
+
+/* ================================================= */
+/* HOME MOBILE LIMPA - 2026-06-06 */
+/* Objetivo: deixar profissionais em destaque mais perto do topo */
+/* ================================================= */
+.hero-acoes-enxutas {
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.hero-acoes-enxutas .hero-cta-principal,
+.hero-acoes-enxutas .hero-cta-secundario {
+  min-height: 50px;
+  border-radius: 999px;
+}
+
+@media (max-width: 820px) {
+  .hero {
+    padding-top: 38px !important;
+    padding-bottom: 22px !important;
+    min-height: auto !important;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.15rem, 9vw, 3rem) !important;
+    line-height: 1.05 !important;
+    margin-bottom: 12px !important;
+    max-width: 92vw !important;
+  }
+
+  .hero p {
+    font-size: 1rem !important;
+    line-height: 1.45 !important;
+    max-width: 88vw !important;
+    margin-bottom: 18px !important;
+  }
+
+  .busca-box {
+    padding: 12px !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .input-busca {
+    min-height: 58px !important;
+  }
+
+  .input-busca input {
+    font-size: 1rem !important;
+  }
+
+  .busca-box button {
+    min-height: 54px !important;
+    font-size: 1rem !important;
+    border-radius: 18px !important;
+  }
+
+  .hero-acoes-enxutas {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .hero-acoes-enxutas .hero-cta-principal,
+  .hero-acoes-enxutas .hero-cta-secundario {
+    min-height: 46px !important;
+    padding: 10px 12px !important;
+    font-size: 0.92rem !important;
+    line-height: 1.15 !important;
+    border-radius: 18px !important;
+  }
+
+  .hero-acoes-enxutas .hero-cta-secundario {
+    background: rgba(255,255,255,0.14) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255,255,255,0.22) !important;
+    box-shadow: none !important;
+  }
+
+  .categorias {
+    margin-top: 10px !important;
+    padding: 0 0 4px !important;
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 8px !important;
+    scrollbar-width: none;
+  }
+  .categorias::-webkit-scrollbar { display: none; }
+
+  .categorias button {
+    flex: 0 0 auto !important;
+    min-height: 42px !important;
+    padding: 10px 16px !important;
+    font-size: 0.9rem !important;
+    border-radius: 999px !important;
+  }
+
+  .destaques-section {
+    padding-top: 34px !important;
+    margin-top: 0 !important;
+  }
+
+  .badge-destaque-home {
+    margin-bottom: 12px !important;
+  }
+
+  .destaques-section h2 {
+    font-size: clamp(2rem, 8vw, 2.8rem) !important;
+    line-height: 1.08 !important;
+    margin-bottom: 12px !important;
+  }
+
+  .texto-destaque-home {
+    font-size: 0.98rem !important;
+    line-height: 1.45 !important;
+    margin-bottom: 22px !important;
+  }
+
+  .home-banners-servicos {
+    padding-top: 32px !important;
+    padding-bottom: 22px !important;
+  }
+
+  .home-banners-topo {
+    padding: 0 18px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .home-banners-topo span {
+    padding: 9px 18px !important;
+    font-size: 0.9rem !important;
+  }
+
+  .home-banners-topo h2 {
+    font-size: clamp(1.85rem, 7vw, 2.45rem) !important;
+    line-height: 1.08 !important;
+    margin-bottom: 8px !important;
+  }
+
+  .home-banners-topo p {
+    font-size: 0.96rem !important;
+    line-height: 1.42 !important;
+  }
+
+  .home-banners-track {
+    padding: 0 18px 8px !important;
+    gap: 12px !important;
+  }
+
+  .home-banner-card {
+    min-height: 205px !important;
+    padding: 22px 18px !important;
+    border-radius: 26px !important;
+  }
+
+  .home-banner-card strong {
+    font-size: 1.2rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .home-banner-card p {
+    font-size: 0.94rem !important;
+    line-height: 1.42 !important;
+    margin: 12px 0 18px !important;
+  }
+
+  .home-banner-card a,
+  .home-banner-card button {
+    min-height: 44px !important;
+    padding: 10px 16px !important;
+    font-size: 0.92rem !important;
+  }
+}

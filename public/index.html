@@ -6,7 +6,7 @@
 
   <title>Norte Servic - Profissionais de confiança perto de você</title>
 
-  <link rel="stylesheet" href="style.css?v=admin-grid-compacto-20260606">
+  <link rel="stylesheet" href="style.css?v=home-mobile-limpa-20260606">
 </head>
 <body>
 
@@ -33,7 +33,7 @@
     <h1>Encontre profissionais confiáveis na sua região.</h1>
 
     <p>
-      Encontre serviços locais, compare perfis verificados e chame direto no WhatsApp.
+      Compare perfis verificados e fale direto pelo WhatsApp.
     </p>
 
     <div class="busca-box">
@@ -43,7 +43,7 @@
         <input 
           type="text" 
           id="campoBusca" 
-          placeholder="O que você precisa resolver hoje?"
+          placeholder="Qual serviço você procura?"
           autocomplete="off"
         >
 
@@ -51,13 +51,13 @@
       </div>
 
       <button onclick="buscarProfissionais()">
-        Encontrar
+        Encontrar profissionais
       </button>
     </div>
 
-    <div class="hero-acoes-premium">
+    <div class="hero-acoes-premium hero-acoes-enxutas">
       <a class="hero-cta-principal" href="cadastro.html">Cadastrar meu serviço</a>
-      <a class="hero-cta-secundario" href="planos.html">Quero destacar meu perfil</a>
+      <a class="hero-cta-secundario" href="planos.html">Planos de destaque</a>
     </div>
 
     <div class="categorias">
@@ -73,12 +73,25 @@
       <button onclick="buscarCategoria('ar-condicionado')">Ar-condicionado</button>
     </div>
   </section>
+  <section class="secao destaques-section">
+    <span class="badge-destaque-home">Vitrine de confiança</span>
+
+    <h2>Profissionais em destaque</h2>
+
+    <p class="texto-destaque-home">
+      Veja profissionais cadastrados, analisados e prontos para atender pelo WhatsApp.
+    </p>
+
+    <div id="listaProfissionais" class="grid"></div>
+  </section>
+
+
 
   <section class="home-banners-servicos" aria-label="Chamadas da Norte Servic">
     <div class="home-banners-topo">
       <span>Oportunidades na região</span>
-      <h2>Para quem procura e para quem trabalha.</h2>
-      <p>A Norte Servic aproxima clientes de profissionais locais com contato direto pelo WhatsApp.</p>
+      <h2>Para clientes e profissionais locais.</h2>
+      <p>Busca simples para clientes. Mais visibilidade para quem trabalha.</p>
     </div>
 
     <div class="home-banners-track">
@@ -133,17 +146,6 @@
   </section>
 
 
-  <section class="secao destaques-section">
-    <span class="badge-destaque-home">Vitrine de confiança</span>
-
-    <h2>Profissionais em destaque</h2>
-
-    <p class="texto-destaque-home">
-      Veja profissionais cadastrados, analisados e prontos para atender pelo WhatsApp.
-    </p>
-
-    <div id="listaProfissionais" class="grid"></div>
-  </section>
 
   <section class="como-funciona">
     <h2>Como funciona?</h2>
@@ -274,6 +276,6 @@
     <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
   </footer>
 
-  <script src="script.js?v=admin-grid-compacto-20260606"></script>
+  <script src="script.js?v=home-mobile-limpa-20260606"></script>
 </body>
 </html>
