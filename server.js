@@ -31,6 +31,7 @@ const EFI_SCOPE = process.env.EFI_SCOPE || 'cob.write cob.read pix.read webhook.
 const EFI_BASE_URL = EFI_AMBIENTE === 'producao'
   ? 'https://pix.api.efipay.com.br'
   : 'https://pix-h.api.efipay.com.br';
+const BONUS_DIAS_PLANO = Number(process.env.BONUS_DIAS_PLANO || 5);
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -251,7 +252,7 @@ async function ativarPlanoPorPagamento(pagamento, raw = {}) {
   if (!plano) throw new Error('Plano do pagamento não encontrado.');
 
   const vencimento = new Date();
-  vencimento.setDate(vencimento.getDate() + Number(plano.dias || 30));
+  vencimento.setDate(vencimento.getDate() + Number(plano.dias || 30) + BONUS_DIAS_PLANO);
 
   await pool.query('BEGIN');
   try {
@@ -1208,7 +1209,7 @@ app.get('/api/admin/pagamentos', autenticarAdmin, async (_req, res) => {
        FROM pagamentos pg
        LEFT JOIN profissionais p ON p.id = pg.profissional_id
        ORDER BY pg.criado_em DESC
-       LIMIT 100`
+       LIMIT 500`
     );
     res.json(result.rows);
   } catch (error) {

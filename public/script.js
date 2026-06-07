@@ -119,6 +119,8 @@ const cidadesNorteServic = [
 let servicosSelecionadosCadastro = [];
 let cidadesSelecionadasCadastro = [];
 let filtroAdminAtual = "todos";
+let filtroPagamentosAdminAtual = "todos";
+let pagamentosAdminCache = [];
 let profissionaisCache = [];
 let fotosTrabalhosEdicaoAtuais = [];
 
@@ -191,6 +193,81 @@ function formatarDataCurta(data) {
   } catch (_) {
     return "";
   }
+}
+
+function formatarDataHoraCurta(data) {
+  if (!data) return "";
+  try {
+    return new Date(data).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
+  } catch (_) {
+    return "";
+  }
+}
+
+function formatarMoedaBR(valor) {
+  const numero = Number(valor || 0);
+  return numero.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function valorPagamentoNumero(pagamento) {
+  if (!pagamento) return 0;
+  const valor = Number(pagamento.valor || 0);
+  if (valor > 0) return valor;
+  const centavos = Number(pagamento.valor_centavos || pagamento.valorCentavos || 0);
+  return centavos > 0 ? centavos / 100 : 0;
+}
+
+function taxaEfiEstimada(valor) {
+  // Baseada no primeiro teste real: R$ 19,90 virou R$ 19,66 na Efí.
+  const percentual = 0.0120603015;
+  return Number(valor || 0) * percentual;
+}
+
+function valorLiquidoEstimado(pagamento) {
+  const valorBanco = Number(pagamento?.valor_liquido || pagamento?.valor_liquido_estimado || 0);
+  if (valorBanco > 0) return valorBanco;
+  const bruto = valorPagamentoNumero(pagamento);
+  return Math.max(0, bruto - taxaEfiEstimada(bruto));
+}
+
+function statusPagamentoAdmin(pagamento) {
+  const status = String(pagamento?.status || pagamento?.efi_status || "").trim().toLowerCase();
+  if (status === "pago" || status === "concluida" || status === "concluído") return "pago";
+  if (status === "expirado" || status === "expirada" || status === "cancelado" || status === "cancelada") return "expirado";
+
+  const criado = pagamento?.criado_em || pagamento?.criadoEm;
+  const expira = pagamento?.expira_em || pagamento?.expiraEm;
+  const dataExpira = expira ? new Date(expira) : (criado ? new Date(new Date(criado).getTime() + (Number(pagamento?.expiracao || 3600) * 1000)) : null);
+  if (dataExpira && !Number.isNaN(dataExpira.getTime()) && dataExpira.getTime() < Date.now()) return "expirado";
+
+  if (status === "erro") return "erro";
+  return "aguardando";
+}
+
+function labelStatusPagamentoAdmin(status) {
+  const mapa = {
+    pago: "Pago",
+    aguardando: "Aguardando",
+    expirado: "Expirado",
+    erro: "Erro"
+  };
+  return mapa[status] || "Aguardando";
+}
+
+function mensagemWhatsAppPagamentoExpirado(pagamento) {
+  const nome = pagamento?.profissional_nome || pagamento?.profissionalNome || "";
+  const plano = pagamento?.plano_nome || pagamento?.planoNome || pagamento?.plano_key || "plano de destaque";
+  return encodeURIComponent(`Olá${nome ? " " + nome : ""}! Vi que você iniciou a assinatura do ${plano} da Norte Servic, mas não concluiu o pagamento.
+
+Seu perfil pode perder benefícios como destaque, selo e mais visibilidade para clientes da região.
+
+Quer que eu te ajude a concluir a assinatura?`);
+}
+
+function linkWhatsappNumeroMensagem(numero, mensagem) {
+  const limpo = limparNumero(numero || "");
+  if (!limpo) return "#";
+  return `https://wa.me/55${limpo.length <= 11 ? limpo : limpo.replace(/^55/, "")}?text=${mensagem}`;
 }
 
 async function carregarAvaliacoesProfissional(profissionalId) {
@@ -1813,6 +1890,152 @@ async function buscarAdminProfissionais() {
   });
 }
 
+async function buscarAdminPagamentos() {
+  return apiFetch("/api/admin/pagamentos", {
+    headers: { "x-admin-password": getAdminPassword() }
+  });
+}
+
+function filtrarPagamentosAdmin(status, botao = null) {
+  filtroPagamentosAdminAtual = status;
+  document.querySelectorAll(".admin-filtros-pagamentos button").forEach(btn => btn.classList.remove("ativo"));
+  if (botao) botao.classList.add("ativo");
+  renderizarAdminPagamentos(pagamentosAdminCache);
+}
+
+function calcularResumoFinanceiroAdmin(pagamentos = [], profissionais = []) {
+  const pagos = pagamentos.filter(p => statusPagamentoAdmin(p) === "pago");
+  const aguardando = pagamentos.filter(p => statusPagamentoAdmin(p) === "aguardando");
+  const expirados = pagamentos.filter(p => statusPagamentoAdmin(p) === "expirado");
+  const bruto = pagos.reduce((total, p) => total + valorPagamentoNumero(p), 0);
+  const liquido = pagos.reduce((total, p) => total + valorLiquidoEstimado(p), 0);
+  const taxa = Math.max(0, bruto - liquido);
+
+  const aprovados = profissionais.filter(p => p.status === "aprovado");
+  const assinantes = aprovados.filter(p => {
+    const plano = String(p.planoAtual || p.plano_atual || "Gratuito").toLowerCase();
+    const status = String(p.planoStatus || p.plano_status || "ativo").toLowerCase();
+    return plano && plano !== "gratuito" && plano !== "free" && status === "ativo";
+  });
+  const gratuitos = aprovados.filter(p => !assinantes.includes(p));
+
+  return { pagos, aguardando, expirados, bruto, liquido, taxa, assinantes, gratuitos };
+}
+
+function renderizarResumoFinanceiroAdmin(pagamentos = [], profissionais = []) {
+  const resumo = calcularResumoFinanceiroAdmin(pagamentos, profissionais);
+  const box = document.getElementById("adminFinanceiroResumo");
+  if (box) {
+    box.innerHTML = `
+      <article class="finance-card destaque"><span>Faturamento bruto</span><strong>${formatarMoedaBR(resumo.bruto)}</strong><small>Total de planos pagos</small></article>
+      <article class="finance-card"><span>Saldo estimado Efí</span><strong>${formatarMoedaBR(resumo.liquido)}</strong><small>Descontando taxa estimada</small></article>
+      <article class="finance-card"><span>Taxas estimadas</span><strong>${formatarMoedaBR(resumo.taxa)}</strong><small>Aprox. 1,21% pelo primeiro pagamento</small></article>
+      <article class="finance-card"><span>Assinaturas pagas</span><strong>${resumo.pagos.length}</strong><small>Pagamentos confirmados</small></article>
+      <article class="finance-card"><span>Aguardando</span><strong>${resumo.aguardando.length}</strong><small>Pix gerados e não pagos</small></article>
+      <article class="finance-card"><span>Expirados</span><strong>${resumo.expirados.length}</strong><small>Pix vencidos ou não concluídos</small></article>
+      <article class="finance-card"><span>Assinantes ativos</span><strong>${resumo.assinantes.length}</strong><small>Profissionais com plano</small></article>
+      <article class="finance-card"><span>Gratuitos</span><strong>${resumo.gratuitos.length}</strong><small>Perfis aprovados sem plano</small></article>
+    `;
+  }
+
+  renderizarGraficoFaturamentoAdmin(resumo.pagos);
+}
+
+function renderizarGraficoFaturamentoAdmin(pagos = []) {
+  const grafico = document.getElementById("adminGraficoFaturamento");
+  if (!grafico) return;
+
+  const dias = Array.from({ length: 7 }, (_, i) => {
+    const data = new Date();
+    data.setDate(data.getDate() - (6 - i));
+    return {
+      chave: data.toISOString().slice(0, 10),
+      label: data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+      total: 0
+    };
+  });
+
+  pagos.forEach(p => {
+    const data = new Date(p.pago_em || p.atualizado_em || p.criado_em || Date.now()).toISOString().slice(0, 10);
+    const dia = dias.find(d => d.chave === data);
+    if (dia) dia.total += valorPagamentoNumero(p);
+  });
+
+  const max = Math.max(...dias.map(d => d.total), 1);
+  grafico.innerHTML = dias.map(d => {
+    const altura = Math.max(8, Math.round((d.total / max) * 100));
+    return `<div class="grafico-dia"><div class="grafico-barra" style="height:${altura}%"><span>${d.total > 0 ? formatarMoedaBR(d.total) : ""}</span></div><small>${d.label}</small></div>`;
+  }).join("");
+}
+
+function renderizarAdminPagamentos(pagamentos = []) {
+  const container = document.getElementById("listaAdminPagamentos");
+  const contador = document.getElementById("contadorPagamentosAdmin");
+  if (!container) return;
+
+  const filtrados = pagamentos.filter(p => filtroPagamentosAdminAtual === "todos" || statusPagamentoAdmin(p) === filtroPagamentosAdminAtual);
+  if (contador) contador.innerText = `${filtrados.length} pagamento(s)`;
+
+  if (!filtrados.length) {
+    container.innerHTML = `<div class="admin-vazio admin-vazio-menor"><h3>Nenhum pagamento encontrado</h3><p>Quando profissionais gerarem Pix, eles aparecerão aqui.</p></div>`;
+    return;
+  }
+
+  container.innerHTML = filtrados.map(p => {
+    const status = statusPagamentoAdmin(p);
+    const bruto = valorPagamentoNumero(p);
+    const liquido = valorLiquidoEstimado(p);
+    const taxa = Math.max(0, bruto - liquido);
+    const nome = p.profissional_nome || p.profissionalNome || "Profissional";
+    const whatsapp = p.profissional_whatsapp || p.profissionalWhatsapp || "";
+    const plano = p.plano_nome || p.planoNome || p.plano_key || p.plano || "Plano";
+    const txid = p.efi_txid || p.txid || "";
+    const dataCriacao = formatarDataHoraCurta(p.criado_em || p.criadoEm);
+    const dataPago = formatarDataHoraCurta(p.pago_em || p.pagoEm);
+    const vencimentoPlano = formatarDataCurta(p.plano_vencimento || p.planoVencimento || "");
+    const mensagemExpirado = mensagemWhatsAppPagamentoExpirado(p);
+    const linkExpirado = linkWhatsappNumeroMensagem(whatsapp, mensagemExpirado);
+
+    return `
+      <article class="admin-pagamento-card status-${status}">
+        <div class="pagamento-card-topo">
+          <div>
+            <span class="pagamento-status ${status}">${labelStatusPagamentoAdmin(status)}</span>
+            <h3>${nome}</h3>
+            <p>${plano}</p>
+          </div>
+          <strong>${formatarMoedaBR(bruto)}</strong>
+        </div>
+        <div class="pagamento-metricas">
+          <p><span>Líquido estimado</span><strong>${formatarMoedaBR(liquido)}</strong></p>
+          <p><span>Taxa estimada</span><strong>${formatarMoedaBR(taxa)}</strong></p>
+          <p><span>WhatsApp</span><strong>${whatsapp || "Não informado"}</strong></p>
+          <p><span>Criado</span><strong>${dataCriacao || "-"}</strong></p>
+          <p><span>Pago em</span><strong>${dataPago || "-"}</strong></p>
+          <p><span>Vencimento do plano</span><strong>${vencimentoPlano || "Após ativação + 35 dias"}</strong></p>
+        </div>
+        <small class="pagamento-txid">TXID: ${txid || "não informado"}</small>
+        <div class="pagamento-acoes">
+          ${whatsapp ? `<a href="${criarLinkWhatsApp(whatsapp)}" target="_blank">WhatsApp</a>` : ""}
+          ${status === "expirado" && whatsapp ? `<a class="alerta" href="${linkExpirado}" target="_blank">Cobrar assinatura</a>` : ""}
+          ${p.profissional_id ? `<a href="perfil.html?id=${p.profissional_id}" target="_blank">Ver perfil</a>` : ""}
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+async function mostrarAdminPagamentos(profissionais = []) {
+  try {
+    pagamentosAdminCache = await buscarAdminPagamentos();
+    renderizarResumoFinanceiroAdmin(pagamentosAdminCache, profissionais);
+    renderizarAdminPagamentos(pagamentosAdminCache);
+  } catch (error) {
+    const container = document.getElementById("listaAdminPagamentos");
+    if (container) container.innerHTML = `<div class="admin-vazio"><h3>Erro nos pagamentos</h3><p>${error.message}</p></div>`;
+  }
+}
+
 
 async function buscarAdminAvaliacoes(status = "pendente") {
   const senhaAdmin = getAdminPassword();
@@ -1983,6 +2206,7 @@ async function mostrarAdmin() {
     mostrarLoading("Carregando painel...");
     const salvos = await buscarAdminProfissionais();
     mostrarAdminAvaliacoes();
+    mostrarAdminPagamentos(salvos);
 
     const pendentes = salvos.filter(p => p.status === "pendente").length;
     const aprovados = salvos.filter(p => p.status === "aprovado").length;

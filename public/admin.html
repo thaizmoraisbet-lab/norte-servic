@@ -6,7 +6,7 @@
 
   <title>Painel Admin - Norte Servic</title>
 
-  <link rel="stylesheet" href="style.css?v=ja-paguei-header-profile-20260607">
+  <link rel="stylesheet" href="style.css?v=admin-financeiro-pagamentos-20260607">
 </head>
 <body>
 
@@ -88,6 +88,31 @@
         <!-- Estatísticas pelo JavaScript -->
       </div>
 
+      <section class="admin-financeiro-dashboard" id="adminFinanceiroDashboard">
+        <div class="admin-section-title admin-section-title-financeiro">
+          <div>
+            <span>Gestão financeira</span>
+            <h2>Faturamento e assinaturas</h2>
+          </div>
+          <p>Resumo dos planos pagos, estimativa de taxa da Efí, gratuitos e assinantes.</p>
+        </div>
+
+        <div class="admin-financeiro-grid" id="adminFinanceiroResumo">
+          <!-- Resumo financeiro pelo JavaScript -->
+        </div>
+
+        <div class="admin-grafico-box">
+          <div class="admin-grafico-topo">
+            <div>
+              <span>Últimos 7 dias</span>
+              <h3>Faturamento por dia</h3>
+            </div>
+            <small>Valores brutos dos pagamentos confirmados</small>
+          </div>
+          <div class="admin-grafico-barras" id="adminGraficoFaturamento"></div>
+        </div>
+      </section>
+
       <section class="admin-ultra-toolbar">
         <div class="admin-search-box">
           <span>🔎</span>
@@ -119,6 +144,25 @@
         <div id="listaAdmin" class="admin-ultra-lista"></div>
       </section>
 
+      <section class="admin-ultra-content admin-pagamentos-content">
+        <div class="admin-section-title">
+          <div>
+            <span>Pagamentos dos planos</span>
+            <h2>Controle de assinaturas</h2>
+          </div>
+          <p id="contadorPagamentosAdmin">0 pagamento(s)</p>
+        </div>
+
+        <div class="admin-filtros admin-filtros-pagamentos">
+          <button class="ativo" onclick="filtrarPagamentosAdmin('todos', this)">Todos</button>
+          <button onclick="filtrarPagamentosAdmin('pago', this)">Pagos</button>
+          <button onclick="filtrarPagamentosAdmin('aguardando', this)">Aguardando pagamento</button>
+          <button onclick="filtrarPagamentosAdmin('expirado', this)">Expirados</button>
+        </div>
+
+        <div id="listaAdminPagamentos" class="admin-pagamentos-lista"></div>
+      </section>
+
       <section class="admin-ultra-content admin-avaliacoes-content">
         <div class="admin-section-title">
           <div>
@@ -140,6 +184,6 @@
     <p>Norte Servic © 2026 - Profissionais de confiança perto de você.</p>
   </footer>
 
-  <script src="script.js?v=ja-paguei-header-profile-20260607"></script>
+  <script src="script.js?v=admin-financeiro-pagamentos-20260607"></script>
 </body>
 </html>

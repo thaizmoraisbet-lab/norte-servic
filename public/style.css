@@ -13833,3 +13833,339 @@ footer:not(.rodape-minimo) .rodape-admin-link {
     max-width: calc(100vw - 164px) !important;
   }
 }
+
+
+/* ================================================= */
+/* ADMIN FINANCEIRO + PAGAMENTOS - NORTE SERVIC */
+/* ================================================= */
+.admin-financeiro-dashboard {
+  margin-top: 24px;
+  padding: 26px;
+  border-radius: 30px;
+  background: linear-gradient(135deg, #0f172a, #172554 55%, #1d4ed8);
+  color: #fff;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+  overflow: hidden;
+  position: relative;
+}
+
+.admin-financeiro-dashboard::after {
+  content: "";
+  position: absolute;
+  right: -90px;
+  top: -120px;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(255,255,255,0.18), transparent 70%);
+}
+
+.admin-section-title-financeiro {
+  color: #fff;
+  position: relative;
+  z-index: 1;
+}
+
+.admin-section-title-financeiro h2,
+.admin-section-title-financeiro p,
+.admin-section-title-financeiro span {
+  color: #fff !important;
+}
+
+.admin-financeiro-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+  position: relative;
+  z-index: 1;
+}
+
+.finance-card {
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(255,255,255,0.11);
+  border: 1px solid rgba(255,255,255,0.18);
+  backdrop-filter: blur(10px);
+}
+
+.finance-card.destaque {
+  background: linear-gradient(135deg, rgba(255,255,255,0.22), rgba(37,99,235,0.22));
+}
+
+.finance-card span {
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: rgba(255,255,255,0.78);
+}
+
+.finance-card strong {
+  display: block;
+  margin-top: 8px;
+  font-size: clamp(22px, 3vw, 34px);
+  line-height: 1;
+  color: #fff;
+}
+
+.finance-card small {
+  display: block;
+  margin-top: 8px;
+  color: rgba(255,255,255,0.72);
+  line-height: 1.35;
+}
+
+.admin-grafico-box {
+  margin-top: 18px;
+  padding: 20px;
+  border-radius: 24px;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.16);
+  position: relative;
+  z-index: 1;
+}
+
+.admin-grafico-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.admin-grafico-topo span {
+  color: rgba(255,255,255,0.72);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-grafico-topo h3 {
+  color: #fff;
+  margin-top: 4px;
+  font-size: 22px;
+}
+
+.admin-grafico-topo small {
+  color: rgba(255,255,255,0.68);
+}
+
+.admin-grafico-barras {
+  height: 180px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  align-items: end;
+}
+
+.grafico-dia {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  text-align: center;
+}
+
+.grafico-barra {
+  min-height: 8px;
+  border-radius: 14px 14px 6px 6px;
+  background: linear-gradient(180deg, #60a5fa, #22c55e);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 6px;
+  box-shadow: 0 14px 24px rgba(0,0,0,0.18);
+}
+
+.grafico-barra span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 10px;
+  font-weight: 900;
+  color: #fff;
+  opacity: .95;
+}
+
+.grafico-dia small {
+  color: rgba(255,255,255,0.72);
+  font-weight: 800;
+  font-size: 11px;
+}
+
+.admin-pagamentos-content {
+  margin-top: 26px;
+}
+
+.admin-filtros-pagamentos {
+  margin: 0 0 18px;
+  justify-content: flex-start;
+}
+
+.admin-pagamentos-lista {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.admin-pagamento-card {
+  padding: 18px;
+  border-radius: 24px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 14px 34px rgba(17, 24, 39, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-pagamento-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 5px;
+  background: #f59e0b;
+}
+
+.admin-pagamento-card.status-pago::before { background: #22c55e; }
+.admin-pagamento-card.status-expirado::before { background: #ef4444; }
+.admin-pagamento-card.status-erro::before { background: #7f1d1d; }
+
+.pagamento-card-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.pagamento-card-topo h3 {
+  color: #111827;
+  font-size: 20px;
+  line-height: 1.12;
+  margin: 8px 0 4px;
+}
+
+.pagamento-card-topo p {
+  color: #6b7280;
+  font-weight: 800;
+  margin: 0;
+}
+
+.pagamento-card-topo strong {
+  color: #111827;
+  font-size: 22px;
+  white-space: nowrap;
+}
+
+.pagamento-status {
+  display: inline-flex;
+  padding: 7px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.pagamento-status.pago { background: #dcfce7; color: #166534; }
+.pagamento-status.expirado { background: #fee2e2; color: #991b1b; }
+.pagamento-status.erro { background: #fee2e2; color: #7f1d1d; }
+
+.pagamento-metricas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.pagamento-metricas p {
+  margin: 0;
+  padding: 11px;
+  border-radius: 14px;
+  background: #f9fafb;
+  border: 1px solid #eef2f7;
+}
+
+.pagamento-metricas span {
+  display: block;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+
+.pagamento-metricas strong {
+  display: block;
+  color: #111827;
+  font-size: 13px;
+  word-break: break-word;
+}
+
+.pagamento-txid {
+  display: block;
+  margin-top: 12px;
+  color: #6b7280;
+  word-break: break-all;
+}
+
+.pagamento-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.pagamento-acoes a {
+  min-height: 38px;
+  padding: 9px 12px;
+  border-radius: 999px;
+  background: #111827;
+  color: #fff !important;
+  text-decoration: none;
+  font-weight: 900;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagamento-acoes a.alerta {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+}
+
+@media (max-width: 1100px) {
+  .admin-financeiro-grid,
+  .admin-pagamentos-lista {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .admin-financeiro-dashboard {
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .admin-financeiro-grid,
+  .admin-pagamentos-lista {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-grafico-box {
+    padding: 16px;
+  }
+
+  .admin-grafico-barras {
+    height: 150px;
+    gap: 6px;
+  }
+
+  .admin-grafico-topo {
+    flex-direction: column;
+  }
+
+  .pagamento-metricas {
+    grid-template-columns: 1fr;
+  }
+}
