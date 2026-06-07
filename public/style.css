@@ -13523,3 +13523,172 @@ footer:not(.rodape-minimo) .rodape-admin-link {
 .admin-acoes .senha:hover {
   filter: brightness(1.05);
 }
+
+
+/* ================================================= */
+/* PAGAMENTO PIX EFI - PLANOS AUTOMÁTICOS */
+/* ================================================= */
+.efi-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.efi-modal.escondido {
+  display: none !important;
+}
+
+.efi-modal-card {
+  width: min(520px, 100%);
+  max-height: 92vh;
+  overflow-y: auto;
+  position: relative;
+  border-radius: 30px;
+  padding: 28px;
+  background:
+    radial-gradient(circle at top right, rgba(37, 99, 235, 0.18), transparent 35%),
+    #ffffff;
+  border: 1px solid rgba(229, 231, 235, 0.9);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.28);
+}
+
+.efi-modal-fechar {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 999px;
+  background: #111827;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.efi-modal-badge {
+  display: inline-flex;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #DBEAFE;
+  color: #1E3A8A;
+  font-weight: 900;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.efi-modal-card h2 {
+  color: #111827;
+  font-size: 28px;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+
+.efi-modal-card p {
+  color: #6B7280;
+  line-height: 1.45;
+}
+
+.efi-qrcode-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 250px;
+  margin: 20px 0;
+  padding: 16px;
+  border-radius: 24px;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+}
+
+.efi-qrcode-box img {
+  width: min(250px, 100%);
+  height: auto;
+  border-radius: 18px;
+}
+
+.efi-copia-label {
+  display: block;
+  color: #111827;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+#efiPixCopiaCola {
+  width: 100%;
+  min-height: 100px;
+  resize: none;
+  border-radius: 18px;
+  border: 1px solid #E5E7EB;
+  padding: 14px;
+  font-size: 13px;
+  color: #111827;
+  background: #F9FAFB;
+}
+
+.efi-modal-acoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.efi-modal-acoes button {
+  min-height: 50px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #2563EB, #1D4ED8);
+  color: #fff;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.efi-modal-acoes button.secundario {
+  background: #111827;
+}
+
+.efi-status {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #EFF6FF;
+  color: #1E3A8A !important;
+  font-weight: 900;
+  text-align: center;
+}
+
+.efi-sem-qrcode {
+  color: #6B7280;
+  text-align: center;
+  font-weight: 700;
+}
+
+.plano-botao-premium {
+  border: none;
+  cursor: pointer;
+}
+
+@media (max-width: 520px) {
+  .efi-modal-card {
+    padding: 22px;
+    border-radius: 26px;
+  }
+
+  .efi-modal-card h2 {
+    font-size: 24px;
+  }
+
+  .efi-modal-acoes {
+    grid-template-columns: 1fr;
+  }
+
+  .efi-qrcode-box {
+    min-height: 220px;
+  }
+}

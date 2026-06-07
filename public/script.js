@@ -2289,6 +2289,115 @@ function iniciarRecuperacaoSenha() {
   });
 }
 
+
+let pagamentoEfiAtual = null;
+let pagamentoEfiTimer = null;
+
+function planoEfiNome(plano) {
+  const nomes = {
+    essencial: 'Essencial Destaque',
+    profissional: 'Profissional Plus',
+    top: 'Top Norte'
+  };
+  return nomes[plano] || 'Plano Norte Servic';
+}
+
+async function contratarPlanoEfi(plano) {
+  const token = getTokenProfissional();
+  if (!token) {
+    alert('Para contratar um plano automático, entre primeiro na Área Profissional. Depois volte em Planos e escolha o plano desejado.');
+    window.location.href = 'login.html?voltar=planos';
+    return;
+  }
+
+  try {
+    mostrarLoading('Gerando Pix...');
+    const resposta = await apiFetch('/api/pagamentos/efi/criar', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ plano })
+    });
+
+    abrirModalPagamentoEfi(resposta.pagamento, plano);
+  } catch (error) {
+    alert(error.message || 'Erro ao gerar Pix.');
+  } finally {
+    esconderLoading();
+  }
+}
+
+function abrirModalPagamentoEfi(pagamento, plano) {
+  pagamentoEfiAtual = pagamento;
+  const modal = document.getElementById('efiPagamentoModal');
+  const titulo = document.getElementById('efiPagamentoTitulo');
+  const descricao = document.getElementById('efiPagamentoDescricao');
+  const qrBox = document.getElementById('efiQrCodeBox');
+  const copia = document.getElementById('efiPixCopiaCola');
+  const status = document.getElementById('efiPagamentoStatus');
+
+  if (!modal || !pagamento) return;
+
+  if (titulo) titulo.innerText = planoEfiNome(plano || pagamento.plano_key);
+  if (descricao) descricao.innerText = `Valor: R$ ${Number(pagamento.valor || 0).toFixed(2).replace('.', ',')}. Pague com Pix para ativar seu plano.`;
+  if (copia) copia.value = pagamento.pix_copia_cola || '';
+  if (status) status.innerText = 'Aguardando pagamento...';
+
+  if (qrBox) {
+    qrBox.innerHTML = pagamento.qr_code_imagem
+      ? `<img src="${pagamento.qr_code_imagem}" alt="QR Code Pix">`
+      : `<div class="efi-sem-qrcode">QR Code indisponível. Use o Pix copia e cola.</div>`;
+  }
+
+  modal.classList.remove('escondido');
+  modal.setAttribute('aria-hidden', 'false');
+
+  clearInterval(pagamentoEfiTimer);
+  pagamentoEfiTimer = setInterval(consultarStatusPagamentoEfi, 7000);
+}
+
+function fecharModalPagamentoEfi() {
+  const modal = document.getElementById('efiPagamentoModal');
+  if (modal) {
+    modal.classList.add('escondido');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+  clearInterval(pagamentoEfiTimer);
+}
+
+async function copiarPixEfi() {
+  const campo = document.getElementById('efiPixCopiaCola');
+  if (!campo || !campo.value) return;
+  await navigator.clipboard.writeText(campo.value);
+  const status = document.getElementById('efiPagamentoStatus');
+  if (status) status.innerText = 'Código Pix copiado.';
+}
+
+async function consultarStatusPagamentoEfi() {
+  if (!pagamentoEfiAtual?.id) return;
+  const token = getTokenProfissional();
+  if (!token) return;
+
+  try {
+    const resposta = await apiFetch(`/api/pagamentos/${pagamentoEfiAtual.id}/status`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    pagamentoEfiAtual = resposta.pagamento || pagamentoEfiAtual;
+    const statusEl = document.getElementById('efiPagamentoStatus');
+
+    if (pagamentoEfiAtual.status === 'pago') {
+      clearInterval(pagamentoEfiTimer);
+      if (statusEl) statusEl.innerText = 'Pagamento confirmado! Seu plano foi ativado.';
+      setTimeout(() => { window.location.href = 'painel-profissional.html?v=pagamento-confirmado'; }, 1800);
+    } else if (statusEl) {
+      statusEl.innerText = 'Aguardando pagamento...';
+    }
+  } catch (error) {
+    const statusEl = document.getElementById('efiPagamentoStatus');
+    if (statusEl) statusEl.innerText = error.message || 'Erro ao consultar pagamento.';
+  }
+}
+
 /* ================================================= */
 /* INICIALIZAÇÃO */
 /* ================================================= */

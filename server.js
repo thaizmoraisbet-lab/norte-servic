@@ -7,6 +7,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 const sharp = require('sharp');
+const https = require('https');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,6 +17,19 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'indica123';
 const SUPABASE_URL = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const SUPABASE_STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'norte-servic';
+
+// Integração Pix Efí Bank
+const EFI_AMBIENTE = (process.env.EFI_AMBIENTE || 'homologacao').toLowerCase();
+const EFI_CLIENT_ID = process.env.EFI_CLIENT_ID || '';
+const EFI_CLIENT_SECRET = process.env.EFI_CLIENT_SECRET || '';
+const EFI_PIX_KEY = process.env.EFI_PIX_KEY || '';
+const EFI_CERT_BASE64 = process.env.EFI_CERT_BASE64 || '';
+const EFI_CERT_PASSWORD = process.env.EFI_CERT_PASSWORD || '';
+const EFI_WEBHOOK_SECRET = process.env.EFI_WEBHOOK_SECRET || '';
+const EFI_PIX_EXPIRACAO = Number(process.env.EFI_PIX_EXPIRACAO || 3600);
+const EFI_BASE_URL = EFI_AMBIENTE === 'producao'
+  ? 'https://pix.api.efipay.com.br'
+  : 'https://pix-h.api.efipay.com.br';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -44,6 +59,207 @@ function parseJsonArray(valor) {
   }
 }
 
+
+
+const PLANOS_EFI = {
+  essencial: {
+    nome: 'Essencial Destaque',
+    planoAtual: 'Destaque',
+    valor: 19.90,
+    dias: 30
+  },
+  profissional: {
+    nome: 'Profissional Plus',
+    planoAtual: 'Profissional',
+    valor: 29.90,
+    dias: 30
+  },
+  top: {
+    nome: 'Top Norte',
+    planoAtual: 'Top',
+    valor: 39.90,
+    dias: 30
+  }
+};
+
+let efiTokenCache = {
+  token: '',
+  expiraEm: 0
+};
+
+function efiConfigurado() {
+  return Boolean(EFI_CLIENT_ID && EFI_CLIENT_SECRET && EFI_PIX_KEY && EFI_CERT_BASE64);
+}
+
+function efiHttpsAgent() {
+  if (!EFI_CERT_BASE64) {
+    throw new Error('Certificado da Efí não configurado. Configure EFI_CERT_BASE64 no Railway.');
+  }
+
+  return new https.Agent({
+    pfx: Buffer.from(EFI_CERT_BASE64, 'base64'),
+    passphrase: EFI_CERT_PASSWORD || undefined,
+    rejectUnauthorized: true
+  });
+}
+
+function efiRequest(method, caminho, body = null, token = '') {
+  return new Promise((resolve, reject) => {
+    const url = new URL(caminho, EFI_BASE_URL);
+    const dados = body ? JSON.stringify(body) : '';
+    const headers = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json'
+    };
+
+    if (dados) headers['Content-Length'] = Buffer.byteLength(dados);
+    if (token) headers.Authorization = `Bearer ${token}`;
+    else if (caminho === '/oauth/token') {
+      const basic = Buffer.from(`${EFI_CLIENT_ID}:${EFI_CLIENT_SECRET}`).toString('base64');
+      headers.Authorization = `Basic ${basic}`;
+    }
+
+    const req = https.request({
+      method,
+      hostname: url.hostname,
+      path: `${url.pathname}${url.search}`,
+      headers,
+      agent: efiHttpsAgent()
+    }, (resposta) => {
+      let respostaTexto = '';
+      resposta.on('data', (chunk) => { respostaTexto += chunk; });
+      resposta.on('end', () => {
+        let json = null;
+        try { json = respostaTexto ? JSON.parse(respostaTexto) : {}; } catch (_) { json = { raw: respostaTexto }; }
+
+        if (resposta.statusCode < 200 || resposta.statusCode >= 300) {
+          const detalhe = json?.mensagem || json?.message || json?.erro || respostaTexto || `HTTP ${resposta.statusCode}`;
+          return reject(new Error(`Erro Efí: ${detalhe}`));
+        }
+
+        resolve(json || {});
+      });
+    });
+
+    req.on('error', reject);
+    if (dados) req.write(dados);
+    req.end();
+  });
+}
+
+async function obterTokenEfi() {
+  if (!efiConfigurado()) {
+    throw new Error('Integração Efí incompleta. Configure credenciais, chave Pix e certificado.');
+  }
+
+  const agora = Date.now();
+  if (efiTokenCache.token && efiTokenCache.expiraEm > agora + 60000) {
+    return efiTokenCache.token;
+  }
+
+  const resposta = await efiRequest('POST', '/oauth/token', { grant_type: 'client_credentials' });
+  const token = resposta.access_token;
+  const expiresIn = Number(resposta.expires_in || 300);
+
+  if (!token) throw new Error('Efí não retornou access_token.');
+
+  efiTokenCache = {
+    token,
+    expiraEm: agora + (expiresIn * 1000)
+  };
+
+  return token;
+}
+
+function gerarTxidNorteServic() {
+  return `NS${Date.now()}${crypto.randomBytes(6).toString('hex')}`.slice(0, 35);
+}
+
+function dinheiroEfi(valor) {
+  return Number(valor || 0).toFixed(2);
+}
+
+async function criarCobrancaPixEfi({ txid, plano, profissional }) {
+  const token = await obterTokenEfi();
+  const body = {
+    calendario: { expiracao: EFI_PIX_EXPIRACAO },
+    valor: { original: dinheiroEfi(plano.valor) },
+    chave: EFI_PIX_KEY,
+    solicitacaoPagador: `Norte Servic - ${plano.nome} - ${profissional.nome || 'Profissional'}`
+  };
+
+  const cobranca = await efiRequest('PUT', `/v2/cob/${encodeURIComponent(txid)}`, body, token);
+  const locId = cobranca?.loc?.id || cobranca?.loc?.idLoc || null;
+
+  let qrcode = {};
+  if (locId) {
+    qrcode = await efiRequest('GET', `/v2/loc/${encodeURIComponent(locId)}/qrcode`, null, token);
+  }
+
+  return { cobranca, qrcode, locId };
+}
+
+async function consultarCobrancaPixEfi(txid) {
+  const token = await obterTokenEfi();
+  return efiRequest('GET', `/v2/cob/${encodeURIComponent(txid)}`, null, token);
+}
+
+async function ativarPlanoPorPagamento(pagamento, raw = {}) {
+  if (!pagamento || pagamento.status === 'pago') return pagamento;
+
+  const planoKey = pagamento.plano_key || pagamento.plano;
+  const plano = PLANOS_EFI[planoKey];
+  if (!plano) throw new Error('Plano do pagamento não encontrado.');
+
+  const vencimento = new Date();
+  vencimento.setDate(vencimento.getDate() + Number(plano.dias || 30));
+
+  await pool.query('BEGIN');
+  try {
+    const pagamentoAtualizado = await pool.query(
+      `UPDATE pagamentos
+       SET status='pago', pago_em=NOW(), raw_retorno=$1, atualizado_em=NOW()
+       WHERE id=$2
+       RETURNING *`,
+      [raw, pagamento.id]
+    );
+
+    await pool.query(
+      `UPDATE profissionais
+       SET plano_atual=$1,
+           plano_status='ativo',
+           plano_vencimento=$2,
+           verificado=true
+       WHERE id=$3`,
+      [plano.planoAtual, vencimento.toISOString().slice(0, 10), pagamento.profissional_id]
+    );
+
+    await pool.query('COMMIT');
+    return pagamentoAtualizado.rows[0];
+  } catch (error) {
+    await pool.query('ROLLBACK');
+    throw error;
+  }
+}
+
+async function verificarEAtualizarPagamento(pagamento) {
+  if (!pagamento) return null;
+  if (pagamento.status === 'pago') return pagamento;
+
+  const cobranca = await consultarCobrancaPixEfi(pagamento.txid);
+  if (cobranca?.status === 'CONCLUIDA') {
+    return ativarPlanoPorPagamento(pagamento, cobranca);
+  }
+
+  await pool.query(
+    `UPDATE pagamentos
+     SET raw_retorno=$1, atualizado_em=NOW()
+     WHERE id=$2`,
+    [cobranca, pagamento.id]
+  );
+
+  return { ...pagamento, status_efi: cobranca?.status || '' };
+}
 
 function storageConfigurado() {
   return Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY && SUPABASE_STORAGE_BUCKET);
@@ -767,6 +983,151 @@ async function listarAvaliacoesAdmin(req, res) {
     res.status(500).json({ erro: 'Erro ao carregar avaliações.', detalhe: error.message });
   }
 }
+
+
+app.post('/api/pagamentos/efi/criar', autenticarProfissional, async (req, res) => {
+  try {
+    if (!efiConfigurado()) {
+      return res.status(500).json({ erro: 'Integração Efí ainda não configurada no servidor.' });
+    }
+
+    const planoKey = String(req.body.plano || '').trim().toLowerCase();
+    const plano = PLANOS_EFI[planoKey];
+
+    if (!plano) {
+      return res.status(400).json({ erro: 'Plano inválido.' });
+    }
+
+    const profissional = await pool.query('SELECT * FROM profissionais WHERE id=$1', [req.profissional.id]);
+    if (profissional.rowCount === 0) {
+      return res.status(404).json({ erro: 'Profissional não encontrado.' });
+    }
+
+    const txid = gerarTxidNorteServic();
+
+    const insertPagamento = await pool.query(
+      `INSERT INTO pagamentos
+       (profissional_id, plano_key, plano_nome, valor, status, txid)
+       VALUES ($1, $2, $3, $4, 'aguardando', $5)
+       RETURNING *`,
+      [req.profissional.id, planoKey, plano.nome, plano.valor, txid]
+    );
+
+    const pagamento = insertPagamento.rows[0];
+
+    try {
+      const efi = await criarCobrancaPixEfi({ txid, plano, profissional: profissional.rows[0] });
+      const pixCopiaCola = efi.qrcode?.qrcode || efi.cobranca?.pixCopiaECola || '';
+      const qrCodeImagem = efi.qrcode?.imagemQrcode || '';
+
+      const atualizado = await pool.query(
+        `UPDATE pagamentos
+         SET loc_id=$1,
+             pix_copia_cola=$2,
+             qr_code_imagem=$3,
+             raw_retorno=$4,
+             atualizado_em=NOW()
+         WHERE id=$5
+         RETURNING *`,
+        [efi.locId, pixCopiaCola, qrCodeImagem, { cobranca: efi.cobranca, qrcode: efi.qrcode }, pagamento.id]
+      );
+
+      return res.json({
+        mensagem: 'Cobrança Pix gerada com sucesso.',
+        pagamento: atualizado.rows[0]
+      });
+    } catch (error) {
+      await pool.query(
+        `UPDATE pagamentos SET status='erro', raw_retorno=$1, atualizado_em=NOW() WHERE id=$2`,
+        [{ erro: error.message }, pagamento.id]
+      );
+      throw error;
+    }
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao gerar cobrança Pix.', detalhe: error.message });
+  }
+});
+
+app.get('/api/pagamentos/:id/status', autenticarProfissional, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ erro: 'Pagamento inválido.' });
+    }
+
+    const result = await pool.query(
+      'SELECT * FROM pagamentos WHERE id=$1 AND profissional_id=$2',
+      [id, req.profissional.id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ erro: 'Pagamento não encontrado.' });
+    }
+
+    const pagamento = await verificarEAtualizarPagamento(result.rows[0]);
+    res.json({ pagamento });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao consultar pagamento.', detalhe: error.message });
+  }
+});
+
+app.get('/api/me/pagamentos', autenticarProfissional, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, plano_key, plano_nome, valor, status, txid, criado_em, pago_em
+       FROM pagamentos
+       WHERE profissional_id=$1
+       ORDER BY criado_em DESC
+       LIMIT 20`,
+      [req.profissional.id]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao listar pagamentos.', detalhe: error.message });
+  }
+});
+
+app.post('/api/webhooks/efi-pix', async (req, res) => {
+  try {
+    if (EFI_WEBHOOK_SECRET) {
+      const segredo = req.headers['x-webhook-secret'] || req.query.secret || '';
+      if (segredo !== EFI_WEBHOOK_SECRET) {
+        return res.status(401).json({ erro: 'Webhook não autorizado.' });
+      }
+    }
+
+    const pixRecebidos = Array.isArray(req.body?.pix) ? req.body.pix : [];
+
+    for (const pix of pixRecebidos) {
+      const txid = pix.txid || pix.txId || '';
+      if (!txid) continue;
+
+      const result = await pool.query('SELECT * FROM pagamentos WHERE txid=$1 LIMIT 1', [txid]);
+      if (result.rowCount === 0) continue;
+
+      await ativarPlanoPorPagamento(result.rows[0], { webhook: req.body, pix });
+    }
+
+    res.json({ recebido: true });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro no webhook Efí.', detalhe: error.message });
+  }
+});
+
+app.get('/api/admin/pagamentos', autenticarAdmin, async (_req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT pg.*, p.nome AS profissional_nome, p.whatsapp AS profissional_whatsapp
+       FROM pagamentos pg
+       LEFT JOIN profissionais p ON p.id = pg.profissional_id
+       ORDER BY pg.criado_em DESC
+       LIMIT 100`
+    );
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao listar pagamentos.', detalhe: error.message });
+  }
+});
 
 app.get('/api/admin/avaliacoes', autenticarAdmin, listarAvaliacoesAdmin);
 

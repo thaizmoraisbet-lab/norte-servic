@@ -6,7 +6,7 @@
 
   <title>Planos de Destaque - Norte Servic</title>
 
-  <link rel="stylesheet" href="style.css?v=admin-grid-compacto-20260606">
+  <link rel="stylesheet" href="style.css?v=efi-pix-automatico-20260607">
 </head>
 <body>
 
@@ -36,13 +36,12 @@
       <h1>Destaque seu serviço e seja visto por mais clientes.</h1>
 
       <p>
-        Escolha um plano, fale com a Norte Servic pelo WhatsApp e pague via Pix.
-        Após a confirmação, seu perfil recebe destaque manualmente no admin.
+        Escolha um plano, gere o Pix na hora e, após a confirmação, seu perfil recebe destaque automaticamente.
       </p>
 
       <div class="planos-mini-info">
         <span>✓ Pagamento via Pix</span>
-        <span>✓ Ativação manual segura</span>
+        <span>✓ Ativação automática</span>
         <span>✓ Selo no perfil</span>
       </div>
     </section>
@@ -76,15 +75,9 @@
         </ul>
 
         <div class="plano-footer">
-          <p>Ideal para começar com presença digital. Pagamento via Pix pelo WhatsApp.</p>
+          <p>Ideal para começar com presença digital. Pagamento Pix automático.</p>
 
-          <a 
-            class="plano-botao-premium"
-            href="https://wa.me/5563992229673?text=Ol%C3%A1%21%20Quero%20contratar%20o%20Plano%20Destaque%20da%20Norte%20Servic.%0A%0AValor%3A%20R%24%2019%2C90%0ANome%3A%0AProfiss%C3%A3o%3A%0ACidade%3A%0AWhatsApp%20do%20cadastro%3A%0A%0APode%20me%20enviar%20os%20dados%20para%20pagamento%20via%20Pix%3F"
-            target="_blank"
-          >
-            Contratar Essencial
-          </a>
+          <button type="button" class="plano-botao-premium" onclick="contratarPlanoEfi('essencial')">Contratar Essencial com Pix</button>
         </div>
       </article>
 
@@ -118,15 +111,9 @@
         </ul>
 
         <div class="plano-footer">
-          <p>O plano ideal para vender mais confiança. Pagamento via Pix pelo WhatsApp.</p>
+          <p>O plano ideal para vender mais confiança. Pagamento Pix automático.</p>
 
-          <a 
-            class="plano-botao-premium botao-tentador"
-            href="https://wa.me/5563992229673?text=Ol%C3%A1%21%20Quero%20contratar%20o%20Plano%20Profissional%20da%20Norte%20Servic.%0A%0AValor%3A%20R%24%2029%2C90%0ANome%3A%0AProfiss%C3%A3o%3A%0ACidade%3A%0AWhatsApp%20do%20cadastro%3A%0A%0APode%20me%20enviar%20os%20dados%20para%20pagamento%20via%20Pix%3F"
-            target="_blank"
-          >
-            Quero mais destaque
-          </a>
+          <button type="button" class="plano-botao-premium botao-tentador" onclick="contratarPlanoEfi('profissional')">Pagar Profissional com Pix</button>
         </div>
       </article>
 
@@ -159,15 +146,9 @@
         </ul>
 
         <div class="plano-footer">
-          <p>Para quem quer aparecer no topo. Pagamento via Pix pelo WhatsApp.</p>
+          <p>Para quem quer aparecer no topo. Pagamento Pix automático.</p>
 
-          <a 
-            class="plano-botao-premium"
-            href="https://wa.me/5563992229673?text=Ol%C3%A1%21%20Quero%20contratar%20o%20Plano%20Premium%20da%20Norte%20Servic.%0A%0AValor%3A%20R%24%2039%2C90%0ANome%3A%0AProfiss%C3%A3o%3A%0ACidade%3A%0AWhatsApp%20do%20cadastro%3A%0A%0APode%20me%20enviar%20os%20dados%20para%20pagamento%20via%20Pix%3F"
-            target="_blank"
-          >
-            Contratar Top Norte
-          </a>
+          <button type="button" class="plano-botao-premium" onclick="contratarPlanoEfi('top')">Pagar Top Norte com Pix</button>
         </div>
       </article>
 
@@ -175,7 +156,7 @@
 
     <section class="planos-pix-discreto">
       <strong>Como funciona o pagamento?</strong>
-      <p>Você chama no WhatsApp, recebe os dados de Pix, envia o comprovante e a equipe Norte Servic ativa o plano no seu perfil.</p>
+      <p>Você gera o Pix pelo site. Quando o pagamento é confirmado, o sistema ativa o plano automaticamente no seu perfil.</p>
     </section>
 
     <section class="planos-comparativo-premium">
@@ -218,6 +199,30 @@
     <p>Norte Servic © 2026 - Profissionais de confiança perto de você.</p>
   </footer>
 
-  <script src="script.js?v=admin-grid-compacto-20260606"></script>
+  <script src="script.js?v=efi-pix-automatico-20260607"></script>
+
+
+  <div class="efi-modal escondido" id="efiPagamentoModal" aria-hidden="true">
+    <div class="efi-modal-card">
+      <button class="efi-modal-fechar" type="button" onclick="fecharModalPagamentoEfi()">×</button>
+      <span class="efi-modal-badge">Pagamento Pix</span>
+      <h2 id="efiPagamentoTitulo">Finalize seu plano</h2>
+      <p id="efiPagamentoDescricao">Escaneie o QR Code ou copie o código Pix abaixo.</p>
+
+      <div class="efi-qrcode-box" id="efiQrCodeBox"></div>
+
+      <label class="efi-copia-label">Pix copia e cola</label>
+      <textarea id="efiPixCopiaCola" readonly></textarea>
+
+      <div class="efi-modal-acoes">
+        <button type="button" onclick="copiarPixEfi()">Copiar Pix</button>
+        <button type="button" class="secundario" onclick="consultarStatusPagamentoEfi()">Já paguei</button>
+      </div>
+
+      <p class="efi-status" id="efiPagamentoStatus">Aguardando pagamento...</p>
+      <small>Após a confirmação, o plano é ativado automaticamente no perfil.</small>
+    </div>
+  </div>
+
 </body>
 </html>
