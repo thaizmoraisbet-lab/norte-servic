@@ -155,14 +155,27 @@ async function apiFetch(url, options = {}) {
   }
 
   if (!resposta.ok) {
-    throw new Error(dados?.erro || dados?.mensagem || "Erro na requisição.");
+    const detalhe = dados?.detalhe ? ` Detalhe: ${dados.detalhe}` : "";
+    const mensagemErro = dados?.erro || dados?.mensagem || "Erro na requisição.";
+    console.error("Erro API", { url, status: resposta.status, dados });
+    throw new Error(`${mensagemErro}${detalhe}`);
   }
 
   return dados;
 }
 
 function getTokenProfissional() {
-  return localStorage.getItem(PROF_TOKEN_STORAGE) || "";
+  return (
+    localStorage.getItem(PROF_TOKEN_STORAGE) ||
+    localStorage.getItem("tokenProfissional") ||
+    localStorage.getItem("profissionalToken") ||
+    localStorage.getItem("token") ||
+    sessionStorage.getItem(PROF_TOKEN_STORAGE) ||
+    sessionStorage.getItem("tokenProfissional") ||
+    sessionStorage.getItem("profissionalToken") ||
+    sessionStorage.getItem("token") ||
+    ""
+  );
 }
 
 
@@ -195,10 +208,18 @@ async function enviarAvaliacaoProfissional(profissionalId, dados) {
 
 function setTokenProfissional(token) {
   localStorage.setItem(PROF_TOKEN_STORAGE, token);
+  localStorage.setItem("tokenProfissional", token);
 }
 
 function removerTokenProfissional() {
   localStorage.removeItem(PROF_TOKEN_STORAGE);
+  localStorage.removeItem("tokenProfissional");
+  localStorage.removeItem("profissionalToken");
+  localStorage.removeItem("token");
+  sessionStorage.removeItem(PROF_TOKEN_STORAGE);
+  sessionStorage.removeItem("tokenProfissional");
+  sessionStorage.removeItem("profissionalToken");
+  sessionStorage.removeItem("token");
 }
 
 function getAdminPassword() {
@@ -1434,7 +1455,9 @@ function iniciarLoginProfissional() {
       });
 
       setTokenProfissional(dados.token);
-      window.location.href = "painel-profissional.html";
+      const paramsLogin = new URLSearchParams(window.location.search);
+      const voltar = paramsLogin.get("voltar");
+      window.location.href = voltar === "planos" ? "planos.html?origem=login" : "painel-profissional.html";
     } catch (error) {
       if (mensagem) mensagem.innerText = error.message;
     } finally {
@@ -1527,7 +1550,7 @@ async function carregarPainelProfissional() {
         <p>Seu plano atual é <strong>${planoAtual}</strong> e está <strong>${planoStatus}</strong>. Perfis com mais destaque tendem a chamar mais atenção na vitrine.</p>
         <div class="painel-forca-perfil"><div style="width: ${forcaPerfil}%"></div></div>
         <p style="margin-top: 10px;">Força do perfil: <strong>${forcaPerfil}%</strong>.</p>
-        <a href="planos.html" class="painel-plano-cta">Ver planos de destaque</a>
+        <a href="planos.html?origem=painel" class="painel-plano-cta">Ver planos de destaque</a>
       `;
     }
 
@@ -2305,7 +2328,8 @@ function planoEfiNome(plano) {
 async function contratarPlanoEfi(plano) {
   const token = getTokenProfissional();
   if (!token) {
-    alert('Para contratar um plano automático, entre primeiro na Área Profissional. Depois volte em Planos e escolha o plano desejado.');
+    localStorage.setItem("norteServicPlanoPendente", plano);
+    alert('Para contratar um plano, entre primeiro na Área Profissional. Depois você volta automaticamente para os planos.');
     window.location.href = 'login.html?voltar=planos';
     return;
   }
@@ -2320,10 +2344,27 @@ async function contratarPlanoEfi(plano) {
 
     abrirModalPagamentoEfi(resposta.pagamento, plano);
   } catch (error) {
-    alert(error.message || 'Erro ao gerar Pix.');
+    console.error("Erro ao gerar Pix Efí", error);
+    alert(error.message || 'Erro ao gerar Pix. Confira as variáveis da Efí no Railway.');
   } finally {
     esconderLoading();
   }
+}
+
+
+function prepararPaginaPlanosEfi() {
+  if (!document.body.classList.contains("pagina-planos") && !document.querySelector(".premium-planos")) return;
+
+  const token = getTokenProfissional();
+  const hero = document.querySelector(".planos-hero-premium");
+  if (!hero || document.querySelector(".planos-login-aviso")) return;
+
+  const aviso = document.createElement("div");
+  aviso.className = token ? "planos-login-aviso conectado" : "planos-login-aviso";
+  aviso.innerHTML = token
+    ? `<strong>✓ Profissional conectado.</strong><span>O plano será vinculado ao seu perfil.</span>`
+    : `<strong>Entre na Área Profissional para contratar.</strong><span>Assim o pagamento fica vinculado ao perfil correto.</span><a href="login.html?voltar=planos">Entrar agora</a>`;
+  hero.appendChild(aviso);
 }
 
 function abrirModalPagamentoEfi(pagamento, plano) {
@@ -2423,6 +2464,7 @@ document.addEventListener("DOMContentLoaded", function() {
   adicionarAdminNoRodape();
   iniciarCarrosselBannersMobile();
   iniciarAutoScrollFaixasHome();
+  prepararPaginaPlanosEfi();
 
   const adminBusca = document.getElementById("adminBusca");
   if (adminBusca) adminBusca.addEventListener("input", mostrarAdmin);

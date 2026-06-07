@@ -20,10 +20,10 @@ const SUPABASE_STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'norte-se
 
 // Integração Pix Efí Bank
 const EFI_AMBIENTE = (process.env.EFI_AMBIENTE || 'homologacao').toLowerCase();
-const EFI_CLIENT_ID = process.env.EFI_CLIENT_ID || '';
-const EFI_CLIENT_SECRET = process.env.EFI_CLIENT_SECRET || '';
-const EFI_PIX_KEY = process.env.EFI_PIX_KEY || '';
-const EFI_CERT_BASE64 = process.env.EFI_CERT_BASE64 || '';
+const EFI_CLIENT_ID = process.env.EFI_CLIENT_ID || process.env.ID_do_cliente_EFI || process.env.ID_DO_CLIENTE_EFI || '';
+const EFI_CLIENT_SECRET = process.env.EFI_CLIENT_SECRET || process.env.SECRET_DO_CLIENTE_EFI || process.env.CLIENT_SECRET_EFI || '';
+const EFI_PIX_KEY = process.env.EFI_PIX_KEY || process.env.CHAVE_PIX_EFI || process.env.PIX_KEY_EFI || '';
+const EFI_CERT_BASE64 = process.env.EFI_CERT_BASE64 || process.env.CERTIFICADO_EFI_BASE64 || process.env.EFI_CERTIFICADO_BASE64 || '';
 const EFI_CERT_PASSWORD = process.env.EFI_CERT_PASSWORD || '';
 const EFI_WEBHOOK_SECRET = process.env.EFI_WEBHOOK_SECRET || '';
 const EFI_PIX_EXPIRACAO = Number(process.env.EFI_PIX_EXPIRACAO || 3600);
@@ -91,6 +91,18 @@ function efiConfigurado() {
   return Boolean(EFI_CLIENT_ID && EFI_CLIENT_SECRET && EFI_PIX_KEY && EFI_CERT_BASE64);
 }
 
+function diagnosticoEfiConfiguracao() {
+  return {
+    ambiente: EFI_AMBIENTE,
+    clientId: Boolean(EFI_CLIENT_ID),
+    clientSecret: Boolean(EFI_CLIENT_SECRET),
+    pixKey: Boolean(EFI_PIX_KEY),
+    certBase64: Boolean(EFI_CERT_BASE64),
+    certPassword: Boolean(EFI_CERT_PASSWORD),
+    expiracao: EFI_PIX_EXPIRACAO
+  };
+}
+
 function efiHttpsAgent() {
   if (!EFI_CERT_BASE64) {
     throw new Error('Certificado da Efí não configurado. Configure EFI_CERT_BASE64 no Railway.');
@@ -133,8 +145,8 @@ function efiRequest(method, caminho, body = null, token = '') {
         try { json = respostaTexto ? JSON.parse(respostaTexto) : {}; } catch (_) { json = { raw: respostaTexto }; }
 
         if (resposta.statusCode < 200 || resposta.statusCode >= 300) {
-          const detalhe = json?.mensagem || json?.message || json?.erro || respostaTexto || `HTTP ${resposta.statusCode}`;
-          return reject(new Error(`Erro Efí: ${detalhe}`));
+          const detalhe = json?.mensagem || json?.message || json?.erro || json?.detail || respostaTexto || `HTTP ${resposta.statusCode}`;
+          return reject(new Error(`Erro Efí HTTP ${resposta.statusCode}: ${detalhe}`));
         }
 
         resolve(json || {});
@@ -993,10 +1005,19 @@ async function listarAvaliacoesAdmin(req, res) {
 }
 
 
+app.get('/api/debug/efi', (req, res) => {
+  const senha = req.headers['x-admin-password'] || req.query.admin || '';
+  if (senha !== ADMIN_PASSWORD) return res.status(401).json({ erro: 'Acesso negado.' });
+  res.json(diagnosticoEfiConfiguracao());
+});
+
 app.post('/api/pagamentos/efi/criar', autenticarProfissional, async (req, res) => {
   try {
     if (!efiConfigurado()) {
-      return res.status(500).json({ erro: 'Integração Efí ainda não configurada no servidor.' });
+      return res.status(500).json({
+        erro: 'Integração Efí ainda não configurada no servidor.',
+        detalhe: JSON.stringify(diagnosticoEfiConfiguracao())
+      });
     }
 
     const planoKey = String(req.body.plano || '').trim().toLowerCase();
@@ -1052,6 +1073,7 @@ app.post('/api/pagamentos/efi/criar', autenticarProfissional, async (req, res) =
       throw error;
     }
   } catch (error) {
+    console.error('Erro ao gerar cobrança Pix Efí:', error.message, diagnosticoEfiConfiguracao());
     res.status(500).json({ erro: 'Erro ao gerar cobrança Pix.', detalhe: error.message });
   }
 });

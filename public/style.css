@@ -13692,3 +13692,50 @@ footer:not(.rodape-minimo) .rodape-admin-link {
     min-height: 220px;
   }
 }
+
+
+/* Aviso de sessão profissional na página de planos */
+.planos-login-aviso {
+  margin: 22px auto 0;
+  max-width: 760px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  border-radius: 20px;
+  background: rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  color: #111827;
+}
+.planos-login-aviso.conectado {
+  background: rgba(37, 99, 235, 0.10);
+  border-color: rgba(37, 99, 235, 0.18);
+  color: #12317a;
+}
+.planos-login-aviso strong { font-weight: 900; }
+.planos-login-aviso span { color: #6B7280; font-weight: 700; }
+.planos-login-aviso a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: #111827;
+  color: #fff;
+  font-weight: 900;
+  text-decoration: none;
+}
+@media (max-width: 820px) {
+  .planos-login-aviso {
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
+    padding: 14px;
+    border-radius: 18px;
+    font-size: 0.92rem;
+  }
+  .planos-login-aviso a { width: 100%; }
+}
