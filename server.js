@@ -886,6 +886,47 @@ app.patch('/api/admin/profissionais/:id/plano', autenticarAdmin, async (req, res
   }
 });
 
+
+app.patch('/api/admin/profissionais/:id/senha', autenticarAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const novaSenha = String(req.body.senha || '').trim();
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ erro: 'ID do profissional inválido.' });
+    }
+
+    if (!novaSenha || novaSenha.length < 6) {
+      return res.status(400).json({ erro: 'A nova senha precisa ter pelo menos 6 caracteres.' });
+    }
+
+    const senhaHash = await bcrypt.hash(novaSenha, 10);
+
+    const result = await pool.query(
+      `UPDATE profissionais
+       SET senha_hash=$1
+       WHERE id=$2
+       RETURNING id, nome, whatsapp`,
+      [senhaHash, id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ erro: 'Profissional não encontrado.' });
+    }
+
+    res.json({
+      mensagem: 'Senha redefinida com sucesso.',
+      profissional: {
+        id: result.rows[0].id,
+        nome: result.rows[0].nome,
+        whatsapp: result.rows[0].whatsapp
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao redefinir senha.', detalhe: error.message });
+  }
+});
+
 app.delete('/api/admin/profissionais/:id', autenticarAdmin, async (req, res) => {
   try {
     await pool.query('DELETE FROM profissionais WHERE id=$1', [req.params.id]);

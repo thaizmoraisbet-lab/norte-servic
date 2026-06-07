@@ -2026,6 +2026,7 @@ async function mostrarAdmin() {
             <button class="aprovar" onclick="aprovarProfissional(${p.id})">Aprovar</button>
             <a class="ver-whatsapp" href="${linkWhatsApp}" target="_blank">WhatsApp</a>
             <button onclick="atualizarPlanoAdmin(${p.id})">Plano</button>
+            <button class="senha" onclick="redefinirSenhaAdmin(${p.id})">Senha</button>
             <button class="remover" onclick="removerProfissional(${p.id})">Remover</button>
           </div>
         </div>
@@ -2061,6 +2062,42 @@ async function removerProfissional(id) {
     });
     alert("Cadastro removido.");
     mostrarAdmin();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+
+async function redefinirSenhaAdmin(id) {
+  const sugestao = `NS${Math.floor(100000 + Math.random() * 900000)}`;
+  const novaSenha = prompt(
+    "Digite a nova senha temporária para este profissional.\n\nDica: envie essa senha pelo WhatsApp e oriente o profissional a trocar depois no painel.",
+    sugestao
+  );
+
+  if (!novaSenha) return;
+
+  if (String(novaSenha).trim().length < 6) {
+    alert("A senha precisa ter pelo menos 6 caracteres.");
+    return;
+  }
+
+  try {
+    const resposta = await apiFetch(`/api/admin/profissionais/${id}/senha`, {
+      method: "PATCH",
+      headers: { "x-admin-password": getAdminPassword() },
+      body: JSON.stringify({ senha: String(novaSenha).trim() })
+    });
+
+    const nome = resposta?.profissional?.nome || "profissional";
+    const mensagem = `Senha redefinida com sucesso para ${nome}.\n\nSenha temporária: ${String(novaSenha).trim()}\n\nEnvie essa senha ao profissional e peça para ele alterar depois na Área Profissional.`;
+
+    try {
+      await navigator.clipboard.writeText(`Olá! Sua senha temporária da Norte Servic é: ${String(novaSenha).trim()}\n\nEntre na Área Profissional e altere sua senha depois.`);
+      alert(`${mensagem}\n\nMensagem copiada para você colar no WhatsApp.`);
+    } catch (_) {
+      alert(mensagem);
+    }
   } catch (error) {
     alert(error.message);
   }

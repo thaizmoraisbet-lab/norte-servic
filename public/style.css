@@ -13511,3 +13511,15 @@ footer:not(.rodape-minimo) .rodape-admin-link {
     border-radius: 12px !important;
   }
 }
+
+
+/* BOTÃO DE REDEFINIÇÃO DE SENHA NO ADMIN */
+.admin-acoes .senha {
+  background: linear-gradient(135deg, #0F172A, #2563EB) !important;
+  color: #FFFFFF !important;
+  border: none !important;
+}
+
+.admin-acoes .senha:hover {
+  filter: brightness(1.05);
+}
