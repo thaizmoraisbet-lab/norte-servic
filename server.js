@@ -550,6 +550,7 @@ function gerarToken(profissional) {
   );
 }
 
+
 function autenticar(req, res, next) {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
@@ -564,6 +565,13 @@ function autenticar(req, res, next) {
   } catch (_) {
     return res.status(401).json({ erro: 'Sessão expirada. Faça login novamente.' });
   }
+}
+
+function autenticarProfissional(req, res, next) {
+  autenticar(req, res, () => {
+    req.profissional = req.user;
+    next();
+  });
 }
 
 
