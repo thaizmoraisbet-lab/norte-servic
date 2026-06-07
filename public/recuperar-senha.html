@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Recuperar Senha - Norte Servic</title>
+
+  <link rel="stylesheet" href="style.css?v=recuperar-senha-20260606">
+</head>
+<body>
+
+  <div class="mini-loading" id="miniLoading">
+    <div class="loader-bolinha"></div>
+    <p>Preparando solicitação...</p>
+  </div>
+
+  <header class="ns-header">
+    <a href="index.html" class="ns-logo" aria-label="Voltar para o início">
+      <span class="ns-logo-icon">✓</span>
+      <span>Norte Servic</span>
+    </a>
+
+    <nav class="ns-nav" aria-label="Menu principal">
+      <a href="index.html">Início</a>
+      <a href="cadastro.html">Cadastrar</a>
+      <a href="planos.html">Planos</a>
+      <a href="login.html">Área profissional</a>
+    </nav>
+  </header>
+
+  <main class="recuperar-senha-page">
+    <section class="recuperar-senha-shell">
+      <aside class="recuperar-senha-visual">
+        <span>Acesso seguro</span>
+        <h1>Recupere o acesso ao seu painel profissional.</h1>
+        <p>
+          Informe os dados do cadastro. A solicitação será enviada pelo WhatsApp
+          para conferência manual da equipe Norte Servic.
+        </p>
+
+        <div class="recuperar-senha-passos">
+          <div><strong>1</strong><p>Informe seu WhatsApp cadastrado.</p></div>
+          <div><strong>2</strong><p>Envie a solicitação de recuperação.</p></div>
+          <div><strong>3</strong><p>A equipe confirma seus dados com segurança.</p></div>
+        </div>
+      </aside>
+
+      <section class="recuperar-senha-card">
+        <span class="login-badge">Esqueci minha senha</span>
+        <h2>Solicitar recuperação</h2>
+        <p>
+          Use o mesmo WhatsApp informado no cadastro profissional. Evite solicitar
+          alteração por outro número.
+        </p>
+
+        <form id="formRecuperarSenha" class="login-profissional-form recuperar-senha-form">
+          <label>WhatsApp cadastrado</label>
+          <div class="login-input-premium">
+            <span>📱</span>
+            <input type="text" id="recuperarWhatsapp" placeholder="Ex: 5563999999999" required>
+          </div>
+
+          <label>Nome profissional</label>
+          <div class="login-input-premium">
+            <span>👤</span>
+            <input type="text" id="recuperarNome" placeholder="Ex: Camilla Vitória" required>
+          </div>
+
+          <label>Cidade</label>
+          <div class="login-input-premium">
+            <span>📍</span>
+            <input type="text" id="recuperarCidade" placeholder="Ex: Muricilândia" required>
+          </div>
+
+          <button type="submit" class="botao-login-premium botao-recuperar-senha">
+            Solicitar recuperação pelo WhatsApp
+          </button>
+        </form>
+
+        <p id="mensagemRecuperarSenha" class="mensagem-login-profissional"></p>
+
+        <div class="recuperar-senha-alerta">
+          <strong>Por segurança</strong>
+          <p>A senha não é enviada automaticamente. Primeiro a equipe confirma se o pedido veio do profissional correto.</p>
+        </div>
+
+        <div class="login-links-profissional login-links-profissional-premium">
+          <a href="login.html">Voltar para o login</a>
+          <a href="cadastro.html">Criar cadastro profissional</a>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="rodape-minimo">
+    <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
+  </footer>
+
+  <script src="script.js?v=recuperar-senha-20260606"></script>
+</body>
+</html>

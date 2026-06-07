@@ -2190,6 +2190,68 @@ function solicitarPlanoProfissional(plano, valor) {
   window.open(`https://wa.me/5563992229673?text=${mensagem}`, "_blank");
 }
 
+
+function iniciarRecuperacaoSenha() {
+  const form = document.getElementById("formRecuperarSenha");
+  if (!form) return;
+
+  form.addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const mensagem = document.getElementById("mensagemRecuperarSenha");
+    const botao = form.querySelector("button[type='submit']");
+    const textoOriginal = botao ? botao.innerText : "";
+
+    const whatsapp = limparNumero(document.getElementById("recuperarWhatsapp")?.value || "");
+    const nome = (document.getElementById("recuperarNome")?.value || "").trim();
+    const cidade = (document.getElementById("recuperarCidade")?.value || "").trim();
+
+    if (!whatsapp || whatsapp.length < 10) {
+      if (mensagem) mensagem.innerText = "Informe o WhatsApp cadastrado com DDD.";
+      return;
+    }
+
+    if (!nome || !cidade) {
+      if (mensagem) mensagem.innerText = "Preencha nome profissional e cidade para continuar.";
+      return;
+    }
+
+    const texto = encodeURIComponent(
+      `Olá! Preciso recuperar minha senha da Norte Servic.
+
+` +
+      `WhatsApp cadastrado: ${whatsapp}
+` +
+      `Nome profissional: ${nome}
+` +
+      `Cidade: ${cidade}
+
+` +
+      `Confirmo que sou o responsável por este cadastro e preciso de ajuda para redefinir minha senha.`
+    );
+
+    if (botao) {
+      botao.innerText = "Abrindo WhatsApp...";
+      botao.disabled = true;
+    }
+
+    if (mensagem) {
+      mensagem.innerText = "Solicitação preparada. O WhatsApp será aberto para confirmar seus dados.";
+    }
+
+    mostrarLoading("Abrindo WhatsApp...");
+
+    setTimeout(() => {
+      window.open(`https://wa.me/5563992229673?text=${texto}`, "_blank");
+      esconderLoading();
+      if (botao) {
+        botao.innerText = textoOriginal;
+        botao.disabled = false;
+      }
+    }, 450);
+  });
+}
+
 /* ================================================= */
 /* INICIALIZAÇÃO */
 /* ================================================= */
@@ -2204,6 +2266,7 @@ document.addEventListener("DOMContentLoaded", function() {
   iniciarCidadeInteligente();
   iniciarCadastroBackend();
   iniciarLoginProfissional();
+  iniciarRecuperacaoSenha();
   ativarEnterNoAdmin();
   ativarTopoMenorAoRolar();
   mostrarProfissionais();
