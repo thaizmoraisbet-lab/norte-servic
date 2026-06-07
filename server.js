@@ -27,6 +27,7 @@ const EFI_CERT_BASE64 = process.env.EFI_CERT_BASE64 || process.env.CERTIFICADO_E
 const EFI_CERT_PASSWORD = process.env.EFI_CERT_PASSWORD || '';
 const EFI_WEBHOOK_SECRET = process.env.EFI_WEBHOOK_SECRET || '';
 const EFI_PIX_EXPIRACAO = Number(process.env.EFI_PIX_EXPIRACAO || 3600);
+const EFI_SCOPE = process.env.EFI_SCOPE || 'cob.write cob.read pix.read webhook.write webhook.read payloadlocation.write payloadlocation.read';
 const EFI_BASE_URL = EFI_AMBIENTE === 'producao'
   ? 'https://pix.api.efipay.com.br'
   : 'https://pix-h.api.efipay.com.br';
@@ -99,6 +100,7 @@ function diagnosticoEfiConfiguracao() {
     pixKey: Boolean(EFI_PIX_KEY),
     certBase64: Boolean(EFI_CERT_BASE64),
     certPassword: Boolean(EFI_CERT_PASSWORD),
+    scope: EFI_SCOPE,
     expiracao: EFI_PIX_EXPIRACAO
   };
 }
@@ -169,7 +171,10 @@ async function obterTokenEfi() {
     return efiTokenCache.token;
   }
 
-  const resposta = await efiRequest('POST', '/oauth/token', { grant_type: 'client_credentials' });
+  const resposta = await efiRequest('POST', '/oauth/token', {
+    grant_type: 'client_credentials',
+    scope: EFI_SCOPE
+  });
   const token = resposta.access_token;
   const expiresIn = Number(resposta.expires_in || 300);
 
