@@ -221,6 +221,28 @@ async function consultarCobrancaPixEfi(txid) {
   return efiRequest('GET', `/v2/cob/${encodeURIComponent(txid)}`, null, token);
 }
 
+function isoSemMilissegundos(data) {
+  return new Date(data).toISOString().replace(/\.\d{3}Z$/, 'Z');
+}
+
+async function consultarPixRecebidoPorTxidEfi(txid, criadoEm = null) {
+  const token = await obterTokenEfi();
+
+  const inicio = new Date(criadoEm || Date.now());
+  inicio.setDate(inicio.getDate() - 2);
+
+  const fim = new Date();
+  fim.setDate(fim.getDate() + 1);
+
+  const query = new URLSearchParams({
+    inicio: isoSemMilissegundos(inicio),
+    fim: isoSemMilissegundos(fim),
+    txid: String(txid || '')
+  });
+
+  return efiRequest('GET', `/v2/pix?${query.toString()}`, null, token);
+}
+
 async function ativarPlanoPorPagamento(pagamento, raw = {}) {
   if (!pagamento || pagamento.status === 'pago') return pagamento;
 
@@ -235,7 +257,7 @@ async function ativarPlanoPorPagamento(pagamento, raw = {}) {
   try {
     const pagamentoAtualizado = await pool.query(
       `UPDATE pagamentos
-       SET status='pago', pago_em=NOW(), raw_retorno=$1, atualizado_em=NOW()
+       SET status='pago', efi_status='CONCLUIDA', pago_em=NOW(), raw_retorno=$1, atualizado_em=NOW()
        WHERE id=$2
        RETURNING *`,
       [raw, pagamento.id]
@@ -264,18 +286,36 @@ async function verificarEAtualizarPagamento(pagamento) {
   if (pagamento.status === 'pago') return pagamento;
 
   const cobranca = await consultarCobrancaPixEfi(pagamento.txid);
+
   if (cobranca?.status === 'CONCLUIDA') {
-    return ativarPlanoPorPagamento(pagamento, cobranca);
+    return ativarPlanoPorPagamento(pagamento, { origem: 'cobranca', cobranca });
+  }
+
+  let pixConsulta = null;
+  try {
+    pixConsulta = await consultarPixRecebidoPorTxidEfi(pagamento.txid, pagamento.criado_em);
+    const pixRecebidos = Array.isArray(pixConsulta?.pix) ? pixConsulta.pix : [];
+    const pixConfirmado = pixRecebidos.find((pix) => String(pix.txid || pix.txId || '') === String(pagamento.txid));
+
+    if (pixConfirmado) {
+      return ativarPlanoPorPagamento(pagamento, { origem: 'consulta_pix', cobranca, pixConsulta, pixConfirmado });
+    }
+  } catch (erroPix) {
+    pixConsulta = { erro: erroPix.message };
   }
 
   await pool.query(
     `UPDATE pagamentos
      SET raw_retorno=$1, atualizado_em=NOW()
      WHERE id=$2`,
-    [cobranca, pagamento.id]
+    [{ cobranca, pixConsulta }, pagamento.id]
   );
 
-  return { ...pagamento, status_efi: cobranca?.status || '' };
+  return {
+    ...pagamento,
+    status_efi: cobranca?.status || '',
+    mensagem_status: 'Pagamento ainda não identificado pela Efí. Aguarde alguns instantes e tente novamente.'
+  };
 }
 
 function storageConfigurado() {
@@ -1041,10 +1081,20 @@ app.post('/api/pagamentos/efi/criar', autenticarProfissional, async (req, res) =
 
     const insertPagamento = await pool.query(
       `INSERT INTO pagamentos
-       (profissional_id, plano_key, plano_nome, valor, status, txid)
-       VALUES ($1, $2, $3, $4, 'aguardando', $5)
+       (profissional_id, plano, plano_key, plano_nome, valor, valor_centavos, status, txid, efi_txid, ambiente, profissional_nome, profissional_whatsapp)
+       VALUES ($1, $2, $2, $3, $4, $5, 'aguardando', $6, $6, $7, $8, $9)
        RETURNING *`,
-      [req.profissional.id, planoKey, plano.nome, plano.valor, txid]
+      [
+        req.profissional.id,
+        planoKey,
+        plano.nome,
+        plano.valor,
+        Math.round(Number(plano.valor || 0) * 100),
+        txid,
+        EFI_AMBIENTE,
+        profissional.rows[0].nome || '',
+        profissional.rows[0].whatsapp || ''
+      ]
     );
 
     const pagamento = insertPagamento.rows[0];
@@ -1057,13 +1107,15 @@ app.post('/api/pagamentos/efi/criar', autenticarProfissional, async (req, res) =
       const atualizado = await pool.query(
         `UPDATE pagamentos
          SET loc_id=$1,
+             efi_loc_id=$1,
              pix_copia_cola=$2,
              qr_code_imagem=$3,
-             raw_retorno=$4,
+             efi_status=$4,
+             raw_retorno=$5,
              atualizado_em=NOW()
-         WHERE id=$5
+         WHERE id=$6
          RETURNING *`,
-        [efi.locId, pixCopiaCola, qrCodeImagem, { cobranca: efi.cobranca, qrcode: efi.qrcode }, pagamento.id]
+        [efi.locId, pixCopiaCola, qrCodeImagem, efi.cobranca?.status || 'ATIVA', { cobranca: efi.cobranca, qrcode: efi.qrcode }, pagamento.id]
       );
 
       return res.json({

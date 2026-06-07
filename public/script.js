@@ -2416,28 +2416,100 @@ async function copiarPixEfi() {
 async function consultarStatusPagamentoEfi() {
   if (!pagamentoEfiAtual?.id) return;
   const token = getTokenProfissional();
-  if (!token) return;
+  if (!token) {
+    alert("Entre novamente na Área Profissional para confirmar o pagamento.");
+    window.location.href = "login.html?voltar=planos";
+    return;
+  }
+
+  const statusEl = document.getElementById('efiPagamentoStatus');
+  const botaoJaPaguei = document.querySelector('.efi-modal-acoes .secundario');
 
   try {
+    if (botaoJaPaguei) {
+      botaoJaPaguei.disabled = true;
+      botaoJaPaguei.dataset.textoOriginal = botaoJaPaguei.dataset.textoOriginal || botaoJaPaguei.innerText;
+      botaoJaPaguei.innerText = "Verificando...";
+    }
+
+    if (statusEl) statusEl.innerText = 'Consultando pagamento na Efí...';
+
     const resposta = await apiFetch(`/api/pagamentos/${pagamentoEfiAtual.id}/status`, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
     pagamentoEfiAtual = resposta.pagamento || pagamentoEfiAtual;
-    const statusEl = document.getElementById('efiPagamentoStatus');
 
     if (pagamentoEfiAtual.status === 'pago') {
       clearInterval(pagamentoEfiTimer);
       if (statusEl) statusEl.innerText = 'Pagamento confirmado! Seu plano foi ativado.';
-      setTimeout(() => { window.location.href = 'painel-profissional.html?v=pagamento-confirmado'; }, 1800);
-    } else if (statusEl) {
-      statusEl.innerText = 'Aguardando pagamento...';
+      setTimeout(() => { window.location.href = 'painel-profissional.html?v=pagamento-confirmado'; }, 1600);
+      return;
+    }
+
+    if (statusEl) {
+      statusEl.innerText = pagamentoEfiAtual.mensagem_status || 'Pagamento ainda não identificado. Aguarde alguns instantes e toque em “Já paguei” novamente.';
     }
   } catch (error) {
-    const statusEl = document.getElementById('efiPagamentoStatus');
     if (statusEl) statusEl.innerText = error.message || 'Erro ao consultar pagamento.';
+  } finally {
+    if (botaoJaPaguei && pagamentoEfiAtual?.status !== 'pago') {
+      botaoJaPaguei.disabled = false;
+      botaoJaPaguei.innerText = botaoJaPaguei.dataset.textoOriginal || "Já paguei";
+    }
   }
 }
+
+
+/* ================================================= */
+/* PERFIL LOGADO NO CABEÇALHO */
+/* ================================================= */
+
+function obterIniciaisProfissional(nome = "") {
+  const partes = String(nome || "NS").trim().split(/\s+/).filter(Boolean);
+  const primeira = partes[0]?.[0] || "N";
+  const segunda = partes.length > 1 ? partes[partes.length - 1][0] : "S";
+  return `${primeira}${segunda}`.toUpperCase();
+}
+
+async function inserirPerfilLogadoCabecalho() {
+  const header = document.querySelector(".ns-header");
+  const nav = document.querySelector(".ns-nav");
+  if (!header || document.querySelector(".ns-header-profile")) return;
+
+  const token = getTokenProfissional();
+  if (!token) return;
+
+  try {
+    const profissional = await apiFetch("/api/me", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (!profissional || !profissional.id) return;
+
+    const perfil = document.createElement("a");
+    perfil.className = "ns-header-profile";
+    perfil.href = "painel-profissional.html";
+    perfil.title = `Perfil logado: ${profissional.nome || "Profissional"}`;
+
+    const foto = profissional.fotoPerfil || profissional.foto_perfil || "";
+    const iniciais = obterIniciaisProfissional(profissional.nome);
+
+    perfil.innerHTML = foto
+      ? `<img src="${foto}" alt="${profissional.nome || "Profissional"}"><span>${profissional.nome || "Perfil"}</span>`
+      : `<strong>${iniciais}</strong><span>${profissional.nome || "Perfil"}</span>`;
+
+    if (nav) {
+      nav.insertAdjacentElement("afterend", perfil);
+    } else {
+      header.appendChild(perfil);
+    }
+  } catch (error) {
+    // Token antigo ou sessão expirada: não bloqueia a navegação.
+    console.warn("Não foi possível carregar perfil logado no cabeçalho.", error.message);
+  }
+}
+
 
 /* ================================================= */
 /* INICIALIZAÇÃO */
@@ -2445,6 +2517,7 @@ async function consultarStatusPagamentoEfi() {
 
 document.addEventListener("DOMContentLoaded", function() {
   iniciarCarregamentoNorteServic();
+  inserirPerfilLogadoCabecalho();
   ativarTransicoesDeClique();
   ativarBuscaComEnter();
   iniciarBuscaInteligente();
