@@ -423,22 +423,13 @@ async function processarImagemNorteServic(buffer, opcoes = {}) {
     });
 
   if (marcaDagua) {
-    const blocoGrande = Math.max(7, Math.round(largura * 0.012));
-    const blocoMedio = Math.max(6, Math.round(largura * 0.010));
     const blocoSelo = Math.max(3.2, largura * 0.0052);
 
-    const marcaDiagonal = [
-      `<g transform="translate(${largura * 0.02}, ${altura * 0.16}) rotate(-35)">${textoBlocoSvgNorteServic('NORTE SERVIC', 0, 0, blocoGrande, { opacity: 0.34, fill: '#ffffff' })}</g>`,
-      `<g transform="translate(${largura * 0.30}, ${altura * 0.34}) rotate(-35)">${textoBlocoSvgNorteServic('NORTE SERVIC', 0, 0, blocoMedio, { opacity: 0.30, fill: '#ffffff' })}</g>`,
-      `<g transform="translate(${largura * 0.05}, ${altura * 0.58}) rotate(-35)">${textoBlocoSvgNorteServic('NORTE SERVIC', 0, 0, blocoGrande, { opacity: 0.32, fill: '#ffffff' })}</g>`,
-      `<g transform="translate(${largura * 0.34}, ${altura * 0.78}) rotate(-35)">${textoBlocoSvgNorteServic('NORTE SERVIC', 0, 0, blocoMedio, { opacity: 0.28, fill: '#ffffff' })}</g>`
-    ].join('');
-
-    const seloX = largura * 0.54;
-    const seloY = altura * 0.875;
-    const seloW = largura * 0.40;
-    const seloH = altura * 0.065;
-    const seloTexto = textoBlocoSvgNorteServic('NORTE SERVIC', seloX + largura * 0.035, seloY + altura * 0.022, blocoSelo, {
+    const seloW = largura * 0.34;
+    const seloH = altura * 0.058;
+    const seloX = largura - seloW - largura * 0.035;
+    const seloY = altura * 0.035;
+    const seloTexto = textoBlocoSvgNorteServic('NORTE SERVIC', seloX + largura * 0.028, seloY + altura * 0.019, blocoSelo, {
       opacity: 0.95,
       fill: '#ffffff',
       stroke: 'rgba(255,255,255,0)',
@@ -452,9 +443,6 @@ async function processarImagemNorteServic(buffer, opcoes = {}) {
             <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.45"/>
           </filter>
         </defs>
-        <g filter="url(#shadow)">
-          ${marcaDiagonal}
-        </g>
         <rect x="${seloX}" y="${seloY}" width="${seloW}" height="${seloH}" rx="${seloH / 2}" fill="#0f172a" fill-opacity="0.72"/>
         <rect x="${seloX + 2}" y="${seloY + 2}" width="${seloW - 4}" height="${seloH - 4}" rx="${(seloH - 4) / 2}" fill="#2563eb" fill-opacity="0.34"/>
         ${seloTexto}
@@ -708,57 +696,6 @@ app.get('/api/health', async (_req, res) => {
     res.json({ ok: true, banco: true, storage: storageConfigurado(), agora: result.rows[0].agora });
   } catch (error) {
     res.status(500).json({ ok: false, banco: false, erro: error.message });
-  }
-});
-
-
-
-const CIDADES_TOCANTINS_OFICIAIS = new Set(["Abreulândia", "Aguiarnópolis", "Aliança do Tocantins", "Almas", "Alvorada", "Ananás", "Angico", "Aparecida do Rio Negro", "Aragominas", "Araguacema", "Araguanã", "Araguatins", "Araguaçu", "Araguaína", "Arapoema", "Arraias", "Augustinópolis", "Aurora do Tocantins", "Axixá do Tocantins", "Babaçulândia", "Bandeirantes do Tocantins", "Barra do Ouro", "Barrolândia", "Bernardo Sayão", "Bom Jesus do Tocantins", "Brasilândia do Tocantins", "Brejinho de Nazaré", "Buriti do Tocantins", "Cachoeirinha", "Campos Lindos", "Cariri do Tocantins", "Carmolândia", "Carrasco Bonito", "Caseara", "Centenário", "Chapada da Natividade", "Chapada de Areia", "Colinas do Tocantins", "Colméia", "Combinado", "Conceição do Tocantins", "Couto Magalhães", "Cristalândia", "Crixás do Tocantins", "Darcinópolis", "Dianópolis", "Divinópolis do Tocantins", "Dois Irmãos do Tocantins", "Dueré", "Esperantina", "Figueirópolis", "Filadélfia", "Formoso do Araguaia", "Fátima", "Goianorte", "Goiatins", "Guaraí", "Gurupi", "Ipueiras", "Itacajá", "Itaguatins", "Itapiratins", "Itaporã do Tocantins", "Jaú do Tocantins", "Juarina", "Lagoa da Confusão", "Lagoa do Tocantins", "Lajeado", "Lavandeira", "Lizarda", "Luzinópolis", "Marianópolis do Tocantins", "Mateiros", "Maurilândia do Tocantins", "Miracema do Tocantins", "Miranorte", "Monte Santo do Tocantins", "Monte do Carmo", "Muricilândia", "Natividade", "Nazaré", "Nova Olinda", "Nova Rosalândia", "Novo Acordo", "Novo Alegre", "Novo Jardim", "Oliveira de Fátima", "Palmas", "Palmeirante", "Palmeiras do Tocantins", "Palmeirópolis", "Paranã", "Paraíso do Tocantins", "Pau d'Arco", "Pedro Afonso", "Peixe", "Pequizeiro", "Pindorama do Tocantins", "Piraquê", "Pium", "Ponte Alta do Bom Jesus", "Ponte Alta do Tocantins", "Porto Alegre do Tocantins", "Porto Nacional", "Praia Norte", "Presidente Kennedy", "Pugmil", "Recursolândia", "Riachinho", "Rio Sono", "Rio da Conceição", "Rio dos Bois", "Sampaio", "Sandolândia", "Santa Fé do Araguaia", "Santa Maria do Tocantins", "Santa Rita do Tocantins", "Santa Rosa do Tocantins", "Santa Tereza do Tocantins", "Santa Terezinha do Tocantins", "Silvanópolis", "Sucupira", "São Bento do Tocantins", "São Félix do Tocantins", "São Miguel do Tocantins", "São Salvador do Tocantins", "São Sebastião do Tocantins", "São Valério", "Sítio Novo do Tocantins", "Tabocão", "Taguatinga", "Taipas do Tocantins", "Talismã", "Tocantinópolis", "Tocantínia", "Tupirama", "Tupiratins", "Wanderlândia", "Xambioá"]);
-
-function normalizarCidadeMapaTocantins(valor) {
-  return String(valor || '')
-    .replace(/\s+-\s*TO$/i, '')
-    .replace(/\s+TO$/i, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function extrairCidadesArray(valor) {
-  if (!valor) return [];
-  if (Array.isArray(valor)) return valor;
-  if (typeof valor === 'object') return Object.values(valor).flat();
-  try {
-    const parsed = JSON.parse(valor);
-    if (Array.isArray(parsed)) return parsed;
-    if (parsed && typeof parsed === 'object') return Object.values(parsed).flat();
-  } catch (_) {}
-  return String(valor).split(',').map((item) => item.trim()).filter(Boolean);
-}
-
-app.get('/api/home/tocantins-cidades-ativas', async (_req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT cidade, cidades_atendidas
-      FROM profissionais
-      WHERE status = 'aprovado'
-    `);
-
-    const cidades = new Set();
-
-    result.rows.forEach((profissional) => {
-      const todas = [profissional.cidade, ...extrairCidadesArray(profissional.cidades_atendidas)];
-
-      todas.forEach((item) => {
-        const nome = normalizarCidadeMapaTocantins(item);
-        if (!nome || /^todo o tocantins$/i.test(nome)) return;
-        if (CIDADES_TOCANTINS_OFICIAIS.has(nome)) cidades.add(nome);
-      });
-    });
-
-    res.json({ cidades: Array.from(cidades).sort((a, b) => a.localeCompare(b, 'pt-BR')) });
-  } catch (error) {
-    console.error('Erro ao buscar cidades ativas do Tocantins:', error);
-    res.status(500).json({ erro: 'Erro ao buscar cidades ativas do Tocantins.' });
   }
 });
 
