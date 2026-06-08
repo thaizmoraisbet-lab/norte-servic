@@ -751,6 +751,205 @@ app.get('/api/profissionais', async (req, res) => {
   }
 });
 
+
+app.get('/api/home/movimento', async (_req, res) => {
+  try {
+    const profissionaisResult = await pool.query(`
+      SELECT id, nome, cidade, cidades_atendidas, categoria, profissao, plano_atual, plano_status,
+             criado_em, avaliacao, avaliacoes, verificado, foto_perfil
+      FROM profissionais
+      WHERE status = 'aprovado'
+      ORDER BY criado_em DESC
+      LIMIT 1000
+    `);
+
+    let avaliacoesRows = [];
+    try {
+      const avaliacoesResult = await pool.query(`
+        SELECT id, profissional_id, nota, status, criado_em
+        FROM avaliacoes
+        WHERE status = 'aprovado'
+        ORDER BY criado_em DESC
+        LIMIT 300
+      `);
+      avaliacoesRows = avaliacoesResult.rows || [];
+    } catch (_) {
+      avaliacoesRows = [];
+    }
+
+    let pagamentosRows = [];
+    try {
+      const pagamentosResult = await pool.query(`
+        SELECT id, profissional_id, status, plano_key, plano_nome, valor_centavos, pago_em, criado_em
+        FROM pagamentos
+        ORDER BY criado_em DESC
+        LIMIT 300
+      `);
+      pagamentosRows = pagamentosResult.rows || [];
+    } catch (_) {
+      pagamentosRows = [];
+    }
+
+    const profissionais = profissionaisResult.rows || [];
+
+    function limparTexto(valor) {
+      return String(valor || '').trim();
+    }
+
+    function normalizarStatus(valor) {
+      return String(valor || '').toLowerCase().trim();
+    }
+
+    function extrairCidades(valor) {
+      if (!valor) return [];
+      if (Array.isArray(valor)) return valor.map(limparTexto).filter(Boolean);
+
+      if (typeof valor === 'object') {
+        return Object.values(valor).flat().map(limparTexto).filter(Boolean);
+      }
+
+      const texto = String(valor || '').trim();
+      if (!texto) return [];
+
+      try {
+        const parsed = JSON.parse(texto);
+        if (Array.isArray(parsed)) return parsed.map(limparTexto).filter(Boolean);
+        if (parsed && typeof parsed === 'object') return Object.values(parsed).flat().map(limparTexto).filter(Boolean);
+      } catch (_) {}
+
+      return texto.split(/[;,|]/).map(limparTexto).filter(Boolean);
+    }
+
+    function incrementarMapa(mapa, chave, incremento = 1) {
+      const nome = limparTexto(chave);
+      if (!nome || nome.toLowerCase() === 'toda a região') return;
+      mapa.set(nome, (mapa.get(nome) || 0) + incremento);
+    }
+
+    const cidades = new Map();
+    const profissoes = new Map();
+    const cidadesDetalhes = new Map();
+
+    profissionais.forEach((prof) => {
+      const cidadePrincipal = limparTexto(prof.cidade);
+      const cidadesDoProfissional = [cidadePrincipal, ...extrairCidades(prof.cidades_atendidas)]
+        .filter(Boolean)
+        .filter((cidade, index, arr) => arr.findIndex(item => item.toLowerCase() === cidade.toLowerCase()) === index);
+
+      const profissao = limparTexto(prof.profissao || prof.categoria || 'Serviço local');
+      incrementarMapa(profissoes, profissao);
+
+      cidadesDoProfissional.forEach((cidade) => {
+        incrementarMapa(cidades, cidade);
+        const chave = cidade.toLowerCase();
+        if (!cidadesDetalhes.has(chave)) {
+          cidadesDetalhes.set(chave, { cidade, total: 0, profissoes: new Map() });
+        }
+        const item = cidadesDetalhes.get(chave);
+        item.total += 1;
+        incrementarMapa(item.profissoes, profissao);
+      });
+    });
+
+    const pagamentosPagos = pagamentosRows.filter((pg) => {
+      const status = normalizarStatus(pg.status);
+      return ['pago', 'paid', 'concluido', 'concluído', 'aprovado'].includes(status) || Boolean(pg.pago_em);
+    });
+
+    const planosAtivos = profissionais.filter((prof) => {
+      const status = normalizarStatus(prof.plano_status);
+      const plano = normalizarStatus(prof.plano_atual);
+      return status === 'ativo' && plano && !['gratuito', 'gratis', 'grátis'].includes(plano);
+    }).length;
+
+    const totalAvaliacoes = avaliacoesRows.length || profissionais.reduce((soma, prof) => soma + Number(prof.avaliacoes || 0), 0);
+    const faturamentoBrutoCentavos = pagamentosPagos.reduce((soma, pg) => soma + Number(pg.valor_centavos || 0), 0);
+
+    const rankingProfissoes = Array.from(profissoes.entries())
+      .map(([nome, total]) => ({ nome, total }))
+      .sort((a, b) => b.total - a.total || a.nome.localeCompare(b.nome, 'pt-BR'))
+      .slice(0, 6);
+
+    const rankingCidades = Array.from(cidadesDetalhes.values())
+      .map((item) => ({
+        cidade: item.cidade,
+        total: item.total,
+        profissoes: Array.from(item.profissoes.entries())
+          .map(([nome, total]) => ({ nome, total }))
+          .sort((a, b) => b.total - a.total || a.nome.localeCompare(b.nome, 'pt-BR'))
+          .slice(0, 4)
+      }))
+      .sort((a, b) => b.total - a.total || a.cidade.localeCompare(b.cidade, 'pt-BR'))
+      .slice(0, 10);
+
+    const feed = [];
+
+    profissionais.slice(0, 8).forEach((prof) => {
+      feed.push({
+        tipo: 'cadastro',
+        icone: '👷',
+        titulo: 'Novo profissional na vitrine',
+        texto: `${limparTexto(prof.profissao || prof.categoria || 'Serviço local')} em ${limparTexto(prof.cidade || 'cidade atendida')}`,
+        data: prof.criado_em || new Date().toISOString()
+      });
+    });
+
+    avaliacoesRows.slice(0, 6).forEach((av) => {
+      const prof = profissionais.find((p) => Number(p.id) === Number(av.profissional_id));
+      feed.push({
+        tipo: 'avaliacao',
+        icone: '⭐',
+        titulo: 'Nova avaliação aprovada',
+        texto: prof ? `${limparTexto(prof.profissao || 'Profissional')} em ${limparTexto(prof.cidade || 'cidade atendida')}` : 'Cliente avaliou um profissional',
+        data: av.criado_em || new Date().toISOString()
+      });
+    });
+
+    pagamentosPagos.slice(0, 6).forEach((pg) => {
+      const prof = profissionais.find((p) => Number(p.id) === Number(pg.profissional_id));
+      feed.push({
+        tipo: 'plano',
+        icone: '💎',
+        titulo: 'Perfil ganhou destaque',
+        texto: `${limparTexto(pg.plano_nome || pg.plano_key || 'Plano')} ativado${prof?.cidade ? ` em ${limparTexto(prof.cidade)}` : ''}`,
+        data: pg.pago_em || pg.criado_em || new Date().toISOString()
+      });
+    });
+
+    feed.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+    const perfisAtivos = profissionais
+      .slice(0, 8)
+      .map((prof) => ({
+        id: prof.id,
+        nome: limparTexto(prof.nome || 'Profissional'),
+        profissao: limparTexto(prof.profissao || prof.categoria || 'Serviço local'),
+        cidade: limparTexto(prof.cidade || ''),
+        fotoPerfil: prof.foto_perfil || '',
+        planoAtual: prof.plano_atual || 'Gratuito',
+        verificado: Boolean(prof.verificado)
+      }));
+
+    res.json({
+      atualizadoEm: new Date().toISOString(),
+      estatisticas: {
+        profissionais: profissionais.length,
+        cidades: cidades.size,
+        avaliacoes: totalAvaliacoes,
+        planosAtivos,
+        pagamentosPagos: pagamentosPagos.length,
+        faturamentoBrutoCentavos
+      },
+      cidades: rankingCidades,
+      profissoes: rankingProfissoes,
+      feed: feed.slice(0, 10),
+      perfisAtivos
+    });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao carregar movimento da Norte Servic.', detalhe: error.message });
+  }
+});
+
 app.get('/api/profissionais/:id', async (req, res) => {
   try {
     const result = await pool.query(

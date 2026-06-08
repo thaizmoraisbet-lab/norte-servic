@@ -12,54 +12,667 @@ const PROF_TOKEN_STORAGE = "norteServicProfissionalToken";
 
 const baseProfissoesNorteServic = [
   {
-    categoria: "Construção e Reforma",
-    profissoes: ["Pedreiro", "Servente", "Pintor", "Eletricista", "Encanador", "Gesseiro", "Azulejista", "Carpinteiro", "Marceneiro", "Serralheiro", "Telhadista", "Mestre de obras", "Montador de móveis", "Vidraceiro", "Instalador de forro"],
-    palavras: ["obra", "reforma", "construção", "casa", "parede", "piso", "banheiro", "cozinha", "pintura", "reboco", "cimento", "telhado", "instalação", "calçada", "acabamento", "forro", "porta", "janela"]
+    "categoria": "Construção e Reforma",
+    "profissoes": [
+      "Pedreiro",
+      "Servente",
+      "Mestre de obras",
+      "Engenheiro civil",
+      "Arquiteto",
+      "Pintor",
+      "Eletricista",
+      "Encanador",
+      "Gesseiro",
+      "Drywall",
+      "Azulejista",
+      "Carpinteiro",
+      "Marceneiro",
+      "Serralheiro",
+      "Telhadista",
+      "Calheiro",
+      "Vidraceiro",
+      "Instalador de forro",
+      "Instalador de piso",
+      "Instalador de porcelanato",
+      "Impermeabilizador",
+      "Aplicador de textura",
+      "Aplicador de grafiato",
+      "Montador de móveis",
+      "Reformador geral",
+      "Ajudante de obra",
+      "Topógrafo",
+      "Projetista",
+      "Decorador de interiores"
+    ],
+    "palavras": [
+      "obra",
+      "reforma",
+      "construção",
+      "casa",
+      "parede",
+      "piso",
+      "banheiro",
+      "cozinha",
+      "pintura",
+      "reboco",
+      "cimento",
+      "telhado",
+      "instalação",
+      "calçada",
+      "acabamento",
+      "forro",
+      "porta",
+      "janela",
+      "porcelanato",
+      "drywall",
+      "vidro",
+      "metal",
+      "projeto",
+      "estrutura"
+    ]
   },
   {
-    categoria: "Casa e Manutenção",
-    profissoes: ["Diarista", "Faxineira", "Jardineiro", "Piscineiro", "Dedetizador", "Chaveiro", "Técnico de ar-condicionado", "Técnico de geladeira", "Técnico de máquina de lavar", "Técnico de fogão", "Técnico de eletrônicos", "Instalador de antena", "Instalador de internet"],
-    palavras: ["limpeza", "faxina", "manutenção", "conserto", "instalação", "casa", "quintal", "jardim", "ar-condicionado", "geladeira", "máquina", "fogão", "chave", "antena", "internet", "dedetização", "piscina"]
+    "categoria": "Casa e Manutenção",
+    "profissoes": [
+      "Diarista",
+      "Faxineira",
+      "Passadeira",
+      "Lavadeira",
+      "Jardineiro",
+      "Piscineiro",
+      "Dedetizador",
+      "Chaveiro",
+      "Marido de aluguel",
+      "Técnico de ar-condicionado",
+      "Técnico de geladeira",
+      "Técnico de freezer",
+      "Técnico de máquina de lavar",
+      "Técnico de fogão",
+      "Técnico de micro-ondas",
+      "Técnico de eletrônicos",
+      "Técnico de TV",
+      "Instalador de antena",
+      "Instalador de internet",
+      "Instalador de câmera",
+      "Instalador de cerca elétrica",
+      "Instalador de energia solar",
+      "Limpador de caixa d’água",
+      "Limpador de sofá",
+      "Limpador de estofados",
+      "Lavador de tapetes",
+      "Desentupidor",
+      "Montador de móveis"
+    ],
+    "palavras": [
+      "limpeza",
+      "faxina",
+      "manutenção",
+      "conserto",
+      "instalação",
+      "casa",
+      "quintal",
+      "jardim",
+      "ar-condicionado",
+      "geladeira",
+      "máquina",
+      "fogão",
+      "chave",
+      "antena",
+      "internet",
+      "dedetização",
+      "piscina",
+      "sofá",
+      "tapete",
+      "câmera",
+      "segurança",
+      "solar"
+    ]
   },
   {
-    categoria: "Beleza e Estética",
-    profissoes: ["Manicure", "Pedicure", "Cabeleireiro", "Barbeiro", "Maquiadora", "Designer de sobrancelhas", "Lash designer", "Depiladora", "Trancista", "Massoterapeuta", "Esteticista", "Nail designer"],
-    palavras: ["unha", "unhas", "cabelo", "barba", "maquiagem", "sobrancelha", "cílios", "depilação", "estética", "beleza", "massagem", "alongamento", "fibra", "gel", "escova", "corte"]
+    "categoria": "Beleza e Estética",
+    "profissoes": [
+      "Manicure",
+      "Pedicure",
+      "Nail designer",
+      "Cabeleireiro",
+      "Cabeleireira",
+      "Barbeiro",
+      "Maquiadora",
+      "Designer de sobrancelhas",
+      "Micropigmentadora",
+      "Lash designer",
+      "Depiladora",
+      "Trancista",
+      "Massoterapeuta",
+      "Esteticista",
+      "Extensionista capilar",
+      "Bronzeadora",
+      "Podóloga",
+      "Consultora de imagem",
+      "Terapeuta capilar",
+      "Aplicadora de mega hair",
+      "Designer de unhas"
+    ],
+    "palavras": [
+      "unha",
+      "unhas",
+      "cabelo",
+      "barba",
+      "maquiagem",
+      "sobrancelha",
+      "cílios",
+      "depilação",
+      "estética",
+      "beleza",
+      "massagem",
+      "alongamento",
+      "fibra",
+      "gel",
+      "escova",
+      "corte",
+      "tranças",
+      "bronze",
+      "pele"
+    ]
   },
   {
-    categoria: "Saúde e Bem-estar",
-    profissoes: ["Personal trainer", "Nutricionista", "Fisioterapeuta", "Psicólogo", "Cuidador de idosos", "Técnico de enfermagem", "Massoterapeuta", "Instrutor de pilates", "Professor de dança"],
-    palavras: ["saúde", "treino", "dieta", "fisioterapia", "terapia", "cuidado", "idoso", "enfermagem", "bem-estar", "exercício", "pilates", "dança", "massagem", "acompanhamento"]
+    "categoria": "Saúde e Bem-estar",
+    "profissoes": [
+      "Personal trainer",
+      "Nutricionista",
+      "Fisioterapeuta",
+      "Psicólogo",
+      "Cuidador de idosos",
+      "Técnico de enfermagem",
+      "Enfermeiro",
+      "Massoterapeuta",
+      "Instrutor de pilates",
+      "Professor de dança",
+      "Professor de yoga",
+      "Terapeuta ocupacional",
+      "Fonoaudiólogo",
+      "Quiropraxista",
+      "Acupunturista",
+      "Cuidador infantil",
+      "Acompanhante hospitalar"
+    ],
+    "palavras": [
+      "saúde",
+      "treino",
+      "dieta",
+      "fisioterapia",
+      "terapia",
+      "cuidado",
+      "idoso",
+      "enfermagem",
+      "bem-estar",
+      "exercício",
+      "pilates",
+      "dança",
+      "massagem",
+      "acompanhamento",
+      "consulta"
+    ]
   },
   {
-    categoria: "Automotivo",
-    profissoes: ["Mecânico", "Borracheiro", "Eletricista automotivo", "Lavador de carros", "Polidor automotivo", "Funileiro", "Pintor automotivo", "Instalador de som automotivo", "Chaveiro automotivo", "Guincho"],
-    palavras: ["carro", "moto", "pneu", "motor", "bateria", "som", "lavagem", "polimento", "funilaria", "pintura", "guincho", "óleo", "freio", "injeção", "ar automotivo"]
+    "categoria": "Automotivo e Motos",
+    "profissoes": [
+      "Mecânico",
+      "Mecânico de motos",
+      "Borracheiro",
+      "Eletricista automotivo",
+      "Autoelétrico",
+      "Lavador de carros",
+      "Lavador de motos",
+      "Polidor automotivo",
+      "Funileiro",
+      "Pintor automotivo",
+      "Instalador de som automotivo",
+      "Chaveiro automotivo",
+      "Guincho",
+      "Tapeceiro automotivo",
+      "Martelinho de ouro",
+      "Instalador de película",
+      "Alinhador",
+      "Balanceador",
+      "Troca de óleo",
+      "Mecânico diesel"
+    ],
+    "palavras": [
+      "carro",
+      "moto",
+      "pneu",
+      "motor",
+      "bateria",
+      "som",
+      "lavagem",
+      "polimento",
+      "funilaria",
+      "pintura",
+      "guincho",
+      "óleo",
+      "freio",
+      "injeção",
+      "ar automotivo",
+      "diesel",
+      "alinhamento"
+    ]
   },
   {
-    categoria: "Tecnologia e Serviços Digitais",
-    profissoes: ["Designer gráfico", "Social media", "Editor de vídeo", "Fotógrafo", "Filmaker", "Técnico de informática", "Desenvolvedor de sites", "Gestor de tráfego", "Criador de identidade visual", "Digitador", "Suporte técnico"],
-    palavras: ["arte", "logo", "logotipo", "identidade visual", "vídeo", "foto", "edição", "computador", "site", "instagram", "anúncio", "tráfego", "social media", "design", "cartão", "convite", "banner", "reels"]
+    "categoria": "Tecnologia e Serviços Digitais",
+    "profissoes": [
+      "Designer gráfico",
+      "Social media",
+      "Editor de vídeo",
+      "Fotógrafo",
+      "Filmaker",
+      "Técnico de informática",
+      "Desenvolvedor de sites",
+      "Gestor de tráfego",
+      "Criador de identidade visual",
+      "Digitador",
+      "Suporte técnico",
+      "Programador",
+      "Analista de sistemas",
+      "Designer UX/UI",
+      "Copywriter",
+      "Criador de conteúdo",
+      "Videomaker",
+      "Operador de drone",
+      "Técnico de celular",
+      "Técnico de impressora",
+      "Instalador de rede",
+      "Consultor de marketing",
+      "Gestor de e-commerce"
+    ],
+    "palavras": [
+      "arte",
+      "logo",
+      "logotipo",
+      "identidade visual",
+      "vídeo",
+      "foto",
+      "edição",
+      "computador",
+      "site",
+      "instagram",
+      "anúncio",
+      "tráfego",
+      "social media",
+      "design",
+      "cartão",
+      "convite",
+      "banner",
+      "reels",
+      "sistema",
+      "celular",
+      "drone",
+      "marketing"
+    ]
   },
   {
-    categoria: "Eventos e Festas",
-    profissoes: ["Fotógrafo", "Filmaker", "Decorador", "Cerimonialista", "Garçom", "Churrasqueiro", "Cozinheira", "Boleira", "Salgadeira", "DJ", "Locutor", "Equipe de som", "Iluminador", "Aluguel de mesas e cadeiras"],
-    palavras: ["festa", "aniversário", "casamento", "evento", "decoração", "bolo", "salgado", "churrasco", "som", "foto", "vídeo", "iluminação", "garçom", "cerimonial", "mesas", "cadeiras"]
+    "categoria": "Eventos e Festas",
+    "profissoes": [
+      "Fotógrafo",
+      "Filmaker",
+      "Decorador",
+      "Cerimonialista",
+      "Garçom",
+      "Churrasqueiro",
+      "Cozinheira",
+      "Boleira",
+      "Salgadeira",
+      "DJ",
+      "Locutor",
+      "Equipe de som",
+      "Iluminador",
+      "Aluguel de mesas e cadeiras",
+      "Buffet",
+      "Animador de festa",
+      "Recreador infantil",
+      "Bartender",
+      "Confeiteira",
+      "Mestre de cerimônia",
+      "Segurança de evento",
+      "Montador de estrutura",
+      "Aluguel de brinquedos",
+      "Painel de festa"
+    ],
+    "palavras": [
+      "festa",
+      "aniversário",
+      "casamento",
+      "evento",
+      "decoração",
+      "bolo",
+      "salgado",
+      "churrasco",
+      "som",
+      "foto",
+      "vídeo",
+      "iluminação",
+      "garçom",
+      "cerimonial",
+      "mesas",
+      "cadeiras",
+      "buffet",
+      "brinquedo"
+    ]
   },
   {
-    categoria: "Alimentação",
-    profissoes: ["Confeiteira", "Salgadeira", "Marmitaria", "Cozinheira", "Churrasqueiro", "Pizzaiolo", "Doceira", "Vendedor de comida", "Lancheiro"],
-    palavras: ["bolo", "salgado", "marmita", "comida", "almoço", "jantar", "churrasco", "doce", "lanche", "pizza", "torta", "brigadeiro", "festa", "refeição"]
+    "categoria": "Alimentação",
+    "profissoes": [
+      "Confeiteira",
+      "Salgadeira",
+      "Marmitaria",
+      "Cozinheira",
+      "Churrasqueiro",
+      "Pizzaiolo",
+      "Doceira",
+      "Vendedor de comida",
+      "Lancheiro",
+      "Padeiro",
+      "Assador",
+      "Hamburgueiro",
+      "Sushiman",
+      "Boleira",
+      "Cozinheiro",
+      "Fornecedor de marmitas",
+      "Fornecedor de salgados",
+      "Fornecedor de doces",
+      "Buffet",
+      "Sorveteiro",
+      "Açaí",
+      "Cafeteria"
+    ],
+    "palavras": [
+      "bolo",
+      "salgado",
+      "marmita",
+      "comida",
+      "almoço",
+      "jantar",
+      "churrasco",
+      "doce",
+      "lanche",
+      "pizza",
+      "torta",
+      "brigadeiro",
+      "festa",
+      "refeição",
+      "hambúrguer",
+      "açaí"
+    ]
   },
   {
-    categoria: "Serviços Rurais",
-    profissoes: ["Tratorista", "Vaqueiro", "Diarista rural", "Operador de máquina", "Roçador", "Cercador", "Trabalhador rural", "Técnico agrícola", "Aplicador de veneno", "Motorista rural"],
-    palavras: ["fazenda", "chácara", "roça", "gado", "cerca", "trator", "máquina", "pasto", "plantio", "rural", "roçagem", "veneno", "agricultura", "boi"]
+    "categoria": "Serviços Rurais",
+    "profissoes": [
+      "Tratorista",
+      "Vaqueiro",
+      "Diarista rural",
+      "Operador de máquina",
+      "Roçador",
+      "Cercador",
+      "Trabalhador rural",
+      "Técnico agrícola",
+      "Aplicador de veneno",
+      "Motorista rural",
+      "Peão",
+      "Caseiro",
+      "Ordenhador",
+      "Operador de colheitadeira",
+      "Operador de retroescavadeira",
+      "Operador de pá carregadeira",
+      "Técnico agropecuário",
+      "Agrônomo",
+      "Veterinário rural",
+      "Montador de cerca",
+      "Roçagem de terreno"
+    ],
+    "palavras": [
+      "fazenda",
+      "chácara",
+      "roça",
+      "gado",
+      "cerca",
+      "trator",
+      "máquina",
+      "pasto",
+      "plantio",
+      "rural",
+      "roçagem",
+      "veneno",
+      "agricultura",
+      "boi",
+      "colheita",
+      "retroescavadeira"
+    ]
   },
   {
-    categoria: "Serviços Empresariais",
-    profissoes: ["Contador", "Advogado", "Consultor", "Despachante", "Corretor", "Técnico de segurança do trabalho", "Auxiliar administrativo", "Vendedor", "Representante comercial"],
-    palavras: ["empresa", "documento", "contrato", "contabilidade", "imposto", "consultoria", "venda", "administração", "segurança do trabalho", "declaração", "regularização", "jurídico", "processo"]
+    "categoria": "Serviços Empresariais",
+    "profissoes": [
+      "Contador",
+      "Advogado",
+      "Consultor",
+      "Despachante",
+      "Corretor",
+      "Técnico de segurança do trabalho",
+      "Auxiliar administrativo",
+      "Vendedor",
+      "Representante comercial",
+      "Consultor financeiro",
+      "Consultor empresarial",
+      "Assistente virtual",
+      "Secretária remota",
+      "RH",
+      "Recrutador",
+      "Treinador empresarial",
+      "Auditor",
+      "Analista fiscal",
+      "Analista contábil",
+      "Consultor MEI"
+    ],
+    "palavras": [
+      "empresa",
+      "documento",
+      "contrato",
+      "contabilidade",
+      "imposto",
+      "consultoria",
+      "venda",
+      "administração",
+      "segurança do trabalho",
+      "declaração",
+      "regularização",
+      "jurídico",
+      "processo",
+      "mei",
+      "financeiro"
+    ]
+  },
+  {
+    "categoria": "Transporte e Entregas",
+    "profissoes": [
+      "Motorista particular",
+      "Mototaxista",
+      "Entregador",
+      "Freteiro",
+      "Carreteiro",
+      "Motorista de caminhão",
+      "Mudanceiro",
+      "Carregador",
+      "Transportador escolar",
+      "Motorista de van",
+      "Motorista de aplicativo",
+      "Entregador de moto",
+      "Entregador de bicicleta",
+      "Guincho",
+      "Transporte de móveis",
+      "Transporte de carga",
+      "Serviço de mudança"
+    ],
+    "palavras": [
+      "frete",
+      "entrega",
+      "mudança",
+      "transporte",
+      "carga",
+      "moto",
+      "carro",
+      "caminhão",
+      "van",
+      "motorista",
+      "carretos",
+      "móveis"
+    ]
+  },
+  {
+    "categoria": "Pets e Animais",
+    "profissoes": [
+      "Banho e tosa",
+      "Tosador",
+      "Dog walker",
+      "Pet sitter",
+      "Adestrador",
+      "Veterinário",
+      "Cuidador de pets",
+      "Hospedagem pet",
+      "Taxi dog",
+      "Tratador de animais",
+      "Ferrador",
+      "Cuidador de cavalos"
+    ],
+    "palavras": [
+      "pet",
+      "cachorro",
+      "gato",
+      "banho",
+      "tosa",
+      "veterinário",
+      "animal",
+      "passeio",
+      "adestramento",
+      "hospedagem"
+    ]
+  },
+  {
+    "categoria": "Educação e Aulas",
+    "profissoes": [
+      "Professor particular",
+      "Reforço escolar",
+      "Professor de matemática",
+      "Professor de português",
+      "Professor de inglês",
+      "Professor de informática",
+      "Professor de música",
+      "Professor de violão",
+      "Professor de teclado",
+      "Professor de redação",
+      "Professor de dança",
+      "Instrutor de autoescola",
+      "Tutor infantil",
+      "Preparador para concurso",
+      "Aulas de artesanato"
+    ],
+    "palavras": [
+      "aula",
+      "professor",
+      "reforço",
+      "escola",
+      "matemática",
+      "português",
+      "inglês",
+      "música",
+      "violão",
+      "redação",
+      "concurso",
+      "informática"
+    ]
+  },
+  {
+    "categoria": "Moda, Costura e Reparos",
+    "profissoes": [
+      "Costureira",
+      "Alfaiate",
+      "Modelista",
+      "Bordadeira",
+      "Crocheteira",
+      "Artesã",
+      "Sapateiro",
+      "Consertador de bolsas",
+      "Ajuste de roupas",
+      "Customização de roupas",
+      "Estilista",
+      "Vendedor de roupas"
+    ],
+    "palavras": [
+      "costura",
+      "roupa",
+      "ajuste",
+      "barra",
+      "vestido",
+      "calça",
+      "sapato",
+      "bolsa",
+      "bordado",
+      "crochê",
+      "artesanato"
+    ]
+  },
+  {
+    "categoria": "Segurança e Monitoramento",
+    "profissoes": [
+      "Segurança",
+      "Vigilante",
+      "Porteiro",
+      "Controlador de acesso",
+      "Instalador de câmeras",
+      "Instalador de alarme",
+      "Instalador de cerca elétrica",
+      "Monitoramento",
+      "Técnico de segurança eletrônica",
+      "Brigadista",
+      "Cuidador patrimonial"
+    ],
+    "palavras": [
+      "segurança",
+      "câmera",
+      "alarme",
+      "vigilante",
+      "portaria",
+      "monitoramento",
+      "acesso",
+      "cerca elétrica",
+      "proteção"
+    ]
+  },
+  {
+    "categoria": "Comércio e Vendas",
+    "profissoes": [
+      "Vendedor",
+      "Representante comercial",
+      "Consultor de vendas",
+      "Promotor de vendas",
+      "Atendente",
+      "Caixa",
+      "Repositor",
+      "Vendedor ambulante",
+      "Vendedor online",
+      "Sacoleira",
+      "Revendedor",
+      "Consultor de cosméticos"
+    ],
+    "palavras": [
+      "venda",
+      "loja",
+      "atendimento",
+      "comércio",
+      "cliente",
+      "produto",
+      "online",
+      "revenda",
+      "cosméticos"
+    ]
   }
 ];
 
@@ -113,7 +726,533 @@ const servicosPorProfissaoNorteServic = {
 };
 
 const cidadesNorteServic = [
-  "Muricilândia", "Santa Fé do Araguaia", "Araguaína", "Araguanã", "Carmolândia", "Wanderlândia", "Xambioá", "Riachinho", "Ananás", "Araguatins", "Tocantinópolis", "Babaçulândia", "Filadélfia", "Nova Olinda", "Colinas do Tocantins", "Toda a região"
+  "Toda a região",
+  "Todo o Tocantins",
+  "Todo o Pará",
+  "Todo o Maranhão",
+  "Atendimento online",
+  "Região Norte",
+  "Bico do Papagaio",
+  "Muricilândia",
+  "Santa Fé do Araguaia",
+  "Araguaína",
+  "Araguanã",
+  "Carmolândia",
+  "Wanderlândia",
+  "Xambioá",
+  "Riachinho",
+  "Ananás",
+  "Araguatins",
+  "Tocantinópolis",
+  "Babaçulândia",
+  "Filadélfia",
+  "Nova Olinda",
+  "Colinas do Tocantins",
+  "Palmas",
+  "Imperatriz",
+  "Marabá",
+  "Belém",
+  "São Luís",
+  "Abreulândia - TO",
+  "Aguiarnópolis - TO",
+  "Aliança do Tocantins - TO",
+  "Almas - TO",
+  "Alvorada - TO",
+  "Ananás - TO",
+  "Angico - TO",
+  "Aparecida do Rio Negro - TO",
+  "Aragominas - TO",
+  "Araguacema - TO",
+  "Araguaçu - TO",
+  "Araguaína - TO",
+  "Araguanã - TO",
+  "Araguatins - TO",
+  "Arapoema - TO",
+  "Arraias - TO",
+  "Augustinópolis - TO",
+  "Aurora do Tocantins - TO",
+  "Axixá do Tocantins - TO",
+  "Babaçulândia - TO",
+  "Bandeirantes do Tocantins - TO",
+  "Barra do Ouro - TO",
+  "Barrolândia - TO",
+  "Bernardo Sayão - TO",
+  "Bom Jesus do Tocantins - TO",
+  "Brasilândia do Tocantins - TO",
+  "Brejinho de Nazaré - TO",
+  "Buriti do Tocantins - TO",
+  "Cachoeirinha - TO",
+  "Campos Lindos - TO",
+  "Cariri do Tocantins - TO",
+  "Carmolândia - TO",
+  "Carrasco Bonito - TO",
+  "Caseara - TO",
+  "Centenário - TO",
+  "Chapada de Areia - TO",
+  "Chapada da Natividade - TO",
+  "Colinas do Tocantins - TO",
+  "Colméia - TO",
+  "Combinado - TO",
+  "Conceição do Tocantins - TO",
+  "Couto Magalhães - TO",
+  "Cristalândia - TO",
+  "Crixás do Tocantins - TO",
+  "Darcinópolis - TO",
+  "Dianópolis - TO",
+  "Divinópolis do Tocantins - TO",
+  "Dois Irmãos do Tocantins - TO",
+  "Dueré - TO",
+  "Esperantina - TO",
+  "Fátima - TO",
+  "Figueirópolis - TO",
+  "Filadélfia - TO",
+  "Formoso do Araguaia - TO",
+  "Goianorte - TO",
+  "Goiatins - TO",
+  "Guaraí - TO",
+  "Gurupi - TO",
+  "Ipueiras - TO",
+  "Itacajá - TO",
+  "Itaguatins - TO",
+  "Itapiratins - TO",
+  "Itaporã do Tocantins - TO",
+  "Jaú do Tocantins - TO",
+  "Juarina - TO",
+  "Lajeado - TO",
+  "Lagoa da Confusão - TO",
+  "Lagoa do Tocantins - TO",
+  "Lavandeira - TO",
+  "Lizarda - TO",
+  "Luzinópolis - TO",
+  "Marianópolis do Tocantins - TO",
+  "Mateiros - TO",
+  "Maurilândia do Tocantins - TO",
+  "Miracema do Tocantins - TO",
+  "Miranorte - TO",
+  "Monte do Carmo - TO",
+  "Monte Santo do Tocantins - TO",
+  "Muricilândia - TO",
+  "Natividade - TO",
+  "Nazaré - TO",
+  "Nova Olinda - TO",
+  "Nova Rosalândia - TO",
+  "Novo Acordo - TO",
+  "Novo Alegre - TO",
+  "Novo Jardim - TO",
+  "Oliveira de Fátima - TO",
+  "Palmas - TO",
+  "Palmeirante - TO",
+  "Palmeiras do Tocantins - TO",
+  "Palmeirópolis - TO",
+  "Paraíso do Tocantins - TO",
+  "Paranã - TO",
+  "Pau d'Arco - TO",
+  "Pedro Afonso - TO",
+  "Peixe - TO",
+  "Pequizeiro - TO",
+  "Pindorama do Tocantins - TO",
+  "Piraquê - TO",
+  "Pium - TO",
+  "Ponte Alta do Bom Jesus - TO",
+  "Ponte Alta do Tocantins - TO",
+  "Porto Alegre do Tocantins - TO",
+  "Porto Nacional - TO",
+  "Praia Norte - TO",
+  "Presidente Kennedy - TO",
+  "Pugmil - TO",
+  "Recursolândia - TO",
+  "Riachinho - TO",
+  "Rio da Conceição - TO",
+  "Rio dos Bois - TO",
+  "Rio Sono - TO",
+  "Sampaio - TO",
+  "Sandolândia - TO",
+  "Santa Fé do Araguaia - TO",
+  "Santa Maria do Tocantins - TO",
+  "Santa Rita do Tocantins - TO",
+  "Santa Rosa do Tocantins - TO",
+  "Santa Tereza do Tocantins - TO",
+  "Santa Terezinha do Tocantins - TO",
+  "São Bento do Tocantins - TO",
+  "São Félix do Tocantins - TO",
+  "São Miguel do Tocantins - TO",
+  "São Salvador do Tocantins - TO",
+  "São Sebastião do Tocantins - TO",
+  "São Valério - TO",
+  "Silvanópolis - TO",
+  "Sítio Novo do Tocantins - TO",
+  "Sucupira - TO",
+  "Tabocão - TO",
+  "Taguatinga - TO",
+  "Taipas do Tocantins - TO",
+  "Talismã - TO",
+  "Tocantínia - TO",
+  "Tocantinópolis - TO",
+  "Tupirama - TO",
+  "Tupiratins - TO",
+  "Wanderlândia - TO",
+  "Xambioá - TO",
+  "Abaetetuba - PA",
+  "Abel Figueiredo - PA",
+  "Acará - PA",
+  "Afuá - PA",
+  "Água Azul do Norte - PA",
+  "Alenquer - PA",
+  "Almeirim - PA",
+  "Altamira - PA",
+  "Anajás - PA",
+  "Ananindeua - PA",
+  "Anapu - PA",
+  "Augusto Corrêa - PA",
+  "Aurora do Pará - PA",
+  "Aveiro - PA",
+  "Bagre - PA",
+  "Baião - PA",
+  "Bannach - PA",
+  "Barcarena - PA",
+  "Belém - PA",
+  "Belterra - PA",
+  "Benevides - PA",
+  "Bom Jesus do Tocantins - PA",
+  "Bonito - PA",
+  "Bragança - PA",
+  "Brasil Novo - PA",
+  "Brejo Grande do Araguaia - PA",
+  "Breu Branco - PA",
+  "Breves - PA",
+  "Bujaru - PA",
+  "Cachoeira do Arari - PA",
+  "Cachoeira do Piriá - PA",
+  "Cametá - PA",
+  "Canaã dos Carajás - PA",
+  "Capanema - PA",
+  "Capitão Poço - PA",
+  "Castanhal - PA",
+  "Chaves - PA",
+  "Colares - PA",
+  "Conceição do Araguaia - PA",
+  "Concórdia do Pará - PA",
+  "Cumaru do Norte - PA",
+  "Curionópolis - PA",
+  "Curralinho - PA",
+  "Curuá - PA",
+  "Curuçá - PA",
+  "Dom Eliseu - PA",
+  "Eldorado do Carajás - PA",
+  "Faro - PA",
+  "Floresta do Araguaia - PA",
+  "Garrafão do Norte - PA",
+  "Goianésia do Pará - PA",
+  "Gurupá - PA",
+  "Igarapé-Açu - PA",
+  "Igarapé-Miri - PA",
+  "Inhangapi - PA",
+  "Ipixuna do Pará - PA",
+  "Irituia - PA",
+  "Itaituba - PA",
+  "Itupiranga - PA",
+  "Jacareacanga - PA",
+  "Jacundá - PA",
+  "Juruti - PA",
+  "Limoeiro do Ajuru - PA",
+  "Mãe do Rio - PA",
+  "Magalhães Barata - PA",
+  "Marabá - PA",
+  "Maracanã - PA",
+  "Marapanim - PA",
+  "Marituba - PA",
+  "Medicilândia - PA",
+  "Melgaço - PA",
+  "Mocajuba - PA",
+  "Moju - PA",
+  "Mojuí dos Campos - PA",
+  "Monte Alegre - PA",
+  "Muaná - PA",
+  "Nova Esperança do Piriá - PA",
+  "Nova Ipixuna - PA",
+  "Nova Timboteua - PA",
+  "Novo Progresso - PA",
+  "Novo Repartimento - PA",
+  "Óbidos - PA",
+  "Oeiras do Pará - PA",
+  "Oriximiná - PA",
+  "Ourém - PA",
+  "Ourilândia do Norte - PA",
+  "Pacajá - PA",
+  "Palestina do Pará - PA",
+  "Paragominas - PA",
+  "Parauapebas - PA",
+  "Pau d'Arco - PA",
+  "Peixe-Boi - PA",
+  "Piçarra - PA",
+  "Placas - PA",
+  "Ponta de Pedras - PA",
+  "Portel - PA",
+  "Porto de Moz - PA",
+  "Prainha - PA",
+  "Primavera - PA",
+  "Quatipuru - PA",
+  "Redenção - PA",
+  "Rio Maria - PA",
+  "Rondon do Pará - PA",
+  "Rurópolis - PA",
+  "Salinópolis - PA",
+  "Salvaterra - PA",
+  "Santa Bárbara do Pará - PA",
+  "Santa Cruz do Arari - PA",
+  "Santa Izabel do Pará - PA",
+  "Santa Luzia do Pará - PA",
+  "Santa Maria das Barreiras - PA",
+  "Santa Maria do Pará - PA",
+  "Santana do Araguaia - PA",
+  "Santarém - PA",
+  "Santarém Novo - PA",
+  "Santo Antônio do Tauá - PA",
+  "São Caetano de Odivelas - PA",
+  "São Domingos do Araguaia - PA",
+  "São Domingos do Capim - PA",
+  "São Félix do Xingu - PA",
+  "São Francisco do Pará - PA",
+  "São Geraldo do Araguaia - PA",
+  "São João da Ponta - PA",
+  "São João de Pirabas - PA",
+  "São João do Araguaia - PA",
+  "São Miguel do Guamá - PA",
+  "São Sebastião da Boa Vista - PA",
+  "Sapucaia - PA",
+  "Senador José Porfírio - PA",
+  "Soure - PA",
+  "Tailândia - PA",
+  "Terra Alta - PA",
+  "Terra Santa - PA",
+  "Tomé-Açu - PA",
+  "Tracuateua - PA",
+  "Trairão - PA",
+  "Tucumã - PA",
+  "Tucuruí - PA",
+  "Ulianópolis - PA",
+  "Uruará - PA",
+  "Vigia - PA",
+  "Vitória do Xingu - PA",
+  "Viseu - PA",
+  "Xinguara - PA",
+  "Açailândia - MA",
+  "Afonso Cunha - MA",
+  "Água Doce do Maranhão - MA",
+  "Alcântara - MA",
+  "Aldeias Altas - MA",
+  "Altamira do Maranhão - MA",
+  "Alto Alegre do Maranhão - MA",
+  "Alto Alegre do Pindaré - MA",
+  "Alto Parnaíba - MA",
+  "Amapá do Maranhão - MA",
+  "Amarante do Maranhão - MA",
+  "Anajatuba - MA",
+  "Anapurus - MA",
+  "Apicum-Açu - MA",
+  "Araguanã - MA",
+  "Araioses - MA",
+  "Arame - MA",
+  "Arari - MA",
+  "Axixá - MA",
+  "Bacabal - MA",
+  "Bacabeira - MA",
+  "Bacuri - MA",
+  "Bacurituba - MA",
+  "Balsas - MA",
+  "Barão de Grajaú - MA",
+  "Barra do Corda - MA",
+  "Barreirinhas - MA",
+  "Bela Vista do Maranhão - MA",
+  "Belágua - MA",
+  "Benedito Leite - MA",
+  "Bequimão - MA",
+  "Bernardo do Mearim - MA",
+  "Boa Vista do Gurupi - MA",
+  "Bom Jardim - MA",
+  "Bom Jesus das Selvas - MA",
+  "Bom Lugar - MA",
+  "Brejo - MA",
+  "Brejo de Areia - MA",
+  "Buriti - MA",
+  "Buriti Bravo - MA",
+  "Buriticupu - MA",
+  "Buritirana - MA",
+  "Cachoeira Grande - MA",
+  "Cajapió - MA",
+  "Cajari - MA",
+  "Campestre do Maranhão - MA",
+  "Cândido Mendes - MA",
+  "Cantanhede - MA",
+  "Capinzal do Norte - MA",
+  "Carolina - MA",
+  "Carutapera - MA",
+  "Caxias - MA",
+  "Cedral - MA",
+  "Central do Maranhão - MA",
+  "Centro do Guilherme - MA",
+  "Centro Novo do Maranhão - MA",
+  "Chapadinha - MA",
+  "Cidelândia - MA",
+  "Codó - MA",
+  "Coelho Neto - MA",
+  "Colinas - MA",
+  "Conceição do Lago-Açu - MA",
+  "Coroatá - MA",
+  "Cururupu - MA",
+  "Davinópolis - MA",
+  "Dom Pedro - MA",
+  "Duque Bacelar - MA",
+  "Esperantinópolis - MA",
+  "Estreito - MA",
+  "Feira Nova do Maranhão - MA",
+  "Fernando Falcão - MA",
+  "Formosa da Serra Negra - MA",
+  "Fortaleza dos Nogueiras - MA",
+  "Fortuna - MA",
+  "Godofredo Viana - MA",
+  "Gonçalves Dias - MA",
+  "Governador Archer - MA",
+  "Governador Eugênio Barros - MA",
+  "Governador Luiz Rocha - MA",
+  "Governador Newton Bello - MA",
+  "Governador Nunes Freire - MA",
+  "Graça Aranha - MA",
+  "Grajaú - MA",
+  "Guimarães - MA",
+  "Humberto de Campos - MA",
+  "Icatu - MA",
+  "Igarapé do Meio - MA",
+  "Igarapé Grande - MA",
+  "Imperatriz - MA",
+  "Itaipava do Grajaú - MA",
+  "Itapecuru Mirim - MA",
+  "Itinga do Maranhão - MA",
+  "Jatobá - MA",
+  "Jenipapo dos Vieiras - MA",
+  "João Lisboa - MA",
+  "Joselândia - MA",
+  "Junco do Maranhão - MA",
+  "Lago da Pedra - MA",
+  "Lago do Junco - MA",
+  "Lago dos Rodrigues - MA",
+  "Lago Verde - MA",
+  "Lagoa do Mato - MA",
+  "Lagoa Grande do Maranhão - MA",
+  "Lajeado Novo - MA",
+  "Lima Campos - MA",
+  "Loreto - MA",
+  "Luís Domingues - MA",
+  "Magalhães de Almeida - MA",
+  "Maracaçumé - MA",
+  "Marajá do Sena - MA",
+  "Maranhãozinho - MA",
+  "Mata Roma - MA",
+  "Matinha - MA",
+  "Matões - MA",
+  "Matões do Norte - MA",
+  "Milagres do Maranhão - MA",
+  "Mirador - MA",
+  "Miranda do Norte - MA",
+  "Mirinzal - MA",
+  "Monção - MA",
+  "Montes Altos - MA",
+  "Morros - MA",
+  "Nina Rodrigues - MA",
+  "Nova Colinas - MA",
+  "Nova Iorque - MA",
+  "Nova Olinda do Maranhão - MA",
+  "Olho d'Água das Cunhãs - MA",
+  "Olinda Nova do Maranhão - MA",
+  "Paço do Lumiar - MA",
+  "Palmeirândia - MA",
+  "Paraibano - MA",
+  "Parnarama - MA",
+  "Passagem Franca - MA",
+  "Pastos Bons - MA",
+  "Paulino Neves - MA",
+  "Paulo Ramos - MA",
+  "Pedreiras - MA",
+  "Pedro do Rosário - MA",
+  "Penalva - MA",
+  "Peri Mirim - MA",
+  "Peritoró - MA",
+  "Pindaré Mirim - MA",
+  "Pinheiro - MA",
+  "Pio XII - MA",
+  "Pirapemas - MA",
+  "Poção de Pedras - MA",
+  "Porto Franco - MA",
+  "Porto Rico do Maranhão - MA",
+  "Presidente Dutra - MA",
+  "Presidente Juscelino - MA",
+  "Presidente Médici - MA",
+  "Presidente Sarney - MA",
+  "Presidente Vargas - MA",
+  "Primeira Cruz - MA",
+  "Raposa - MA",
+  "Riachão - MA",
+  "Ribamar Fiquene - MA",
+  "Ribeirãozinho do Maranhão - MA",
+  "Rosário - MA",
+  "Sambaíba - MA",
+  "Santa Filomena do Maranhão - MA",
+  "Santa Helena - MA",
+  "Santa Inês - MA",
+  "Santa Luzia - MA",
+  "Santa Luzia do Paruá - MA",
+  "Santa Quitéria do Maranhão - MA",
+  "Santa Rita - MA",
+  "Santana do Maranhão - MA",
+  "Santo Amaro do Maranhão - MA",
+  "Santo Antônio dos Lopes - MA",
+  "São Benedito do Rio Preto - MA",
+  "São Bento - MA",
+  "São Bernardo - MA",
+  "São Domingos do Azeitão - MA",
+  "São Domingos do Maranhão - MA",
+  "São Félix de Balsas - MA",
+  "São Francisco do Brejão - MA",
+  "São Francisco do Maranhão - MA",
+  "São João Batista - MA",
+  "São João do Caru - MA",
+  "São João do Paraíso - MA",
+  "São João do Soter - MA",
+  "São João dos Patos - MA",
+  "São José de Ribamar - MA",
+  "São José dos Basílios - MA",
+  "São Luís - MA",
+  "São Luís Gonzaga do Maranhão - MA",
+  "São Mateus do Maranhão - MA",
+  "São Pedro da Água Branca - MA",
+  "São Pedro dos Crentes - MA",
+  "São Raimundo do Doca Bezerra - MA",
+  "São Raimundo das Mangabeiras - MA",
+  "São Roberto - MA",
+  "São Vicente Ferrer - MA",
+  "Satubinha - MA",
+  "Senador Alexandre Costa - MA",
+  "Senador La Rocque - MA",
+  "Serrano do Maranhão - MA",
+  "Sítio Novo - MA",
+  "Sucupira do Norte - MA",
+  "Sucupira do Riachão - MA",
+  "Tasso Fragoso - MA",
+  "Timbiras - MA",
+  "Timon - MA",
+  "Trizidela do Vale - MA",
+  "Tufilândia - MA",
+  "Tuntum - MA",
+  "Turiaçu - MA",
+  "Turilândia - MA",
+  "Tutóia - MA",
+  "Urbano Santos - MA",
+  "Vargem Grande - MA",
+  "Viana - MA",
+  "Vila Nova dos Martírios - MA",
+  "Vitória do Mearim - MA",
+  "Vitorino Freire - MA",
+  "Zé Doca - MA"
 ];
 
 let servicosSelecionadosCadastro = [];
@@ -607,6 +1746,217 @@ function ordenarProfissionaisPorPlano(lista = []) {
   });
 }
 
+
+/* ================================================= */
+/* HOME - MAPA, DASHBOARD E MOVIMENTO REAL */
+/* ================================================= */
+
+function nsEscaparHTML(valor) {
+  return String(valor ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function nsFormatarNumero(valor) {
+  const numero = Number(valor || 0);
+  return numero.toLocaleString("pt-BR");
+}
+
+function nsFormatarMoedaCentavos(centavos) {
+  const valor = Number(centavos || 0) / 100;
+  return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function nsPosicaoCidadeMapa(cidade, index = 0) {
+  const nome = normalizarTextoNorteServic(cidade);
+  const posicoes = {
+    "muricilandia": [58, 42],
+    "santa fe do araguaia": [56, 39],
+    "araguaina": [59, 36],
+    "palmas": [58, 54],
+    "gurupi": [57, 63],
+    "porto nacional": [57, 57],
+    "araguana": [56, 37],
+    "xambioa": [55, 34],
+    "tocantinopolis": [63, 35],
+    "imperatriz": [66, 35],
+    "belem": [63, 25],
+    "maraba": [57, 31],
+    "goiania": [50, 68],
+    "brasilia": [53, 65],
+    "sao paulo": [54, 82],
+    "rio de janeiro": [61, 80],
+    "belo horizonte": [58, 72],
+    "salvador": [70, 58],
+    "recife": [77, 45],
+    "fortaleza": [73, 35]
+  };
+
+  if (posicoes[nome]) return posicoes[nome];
+
+  let hash = 0;
+  for (const letra of nome) hash = (hash * 31 + letra.charCodeAt(0)) % 1000;
+  return [34 + ((hash + index * 17) % 44), 28 + ((hash * 3 + index * 19) % 52)];
+}
+
+function nsAnimarNumero(el, valor, sufixo = "") {
+  if (!el) return;
+  const alvo = Number(valor || 0);
+  const duracao = 850;
+  const inicio = performance.now();
+
+  function passo(agora) {
+    const progresso = Math.min((agora - inicio) / duracao, 1);
+    const suavizado = 1 - Math.pow(1 - progresso, 3);
+    el.textContent = `${nsFormatarNumero(Math.round(alvo * suavizado))}${sufixo}`;
+    if (progresso < 1) requestAnimationFrame(passo);
+  }
+
+  requestAnimationFrame(passo);
+}
+
+function nsAtualizarStatsMovimento(stats = {}) {
+  const container = document.getElementById("nsMovimentoStats");
+  if (!container) return;
+
+  container.innerHTML = `
+    <article class="ns-stat-card destaque"><small>👷</small><strong data-valor="${Number(stats.profissionais || 0)}">0</strong><span>Profissionais cadastrados</span></article>
+    <article class="ns-stat-card"><small>🏙️</small><strong data-valor="${Number(stats.cidades || 0)}">0</strong><span>Cidades atendidas</span></article>
+    <article class="ns-stat-card"><small>⭐</small><strong data-valor="${Number(stats.avaliacoes || 0)}">0</strong><span>Avaliações aprovadas</span></article>
+    <article class="ns-stat-card"><small>💎</small><strong data-valor="${Number(stats.planosAtivos || 0)}">0</strong><span>Perfis em destaque</span></article>
+  `;
+
+  container.querySelectorAll("strong[data-valor]").forEach((el) => nsAnimarNumero(el, el.dataset.valor));
+}
+
+function nsRenderMapaMovimento(cidades = []) {
+  const mapa = document.getElementById("nsMapaPontos");
+  const legenda = document.getElementById("nsMapaLegenda");
+  if (!mapa) return;
+
+  const lista = (cidades || []).slice(0, 9);
+
+  if (lista.length === 0) {
+    mapa.innerHTML = `<div class="ns-mapa-empty">Aguardando cidades ativas</div>`;
+    if (legenda) legenda.innerHTML = `<span>Cadastre profissionais para o mapa ganhar pontos reais.</span>`;
+    return;
+  }
+
+  mapa.innerHTML = lista.map((item, index) => {
+    const [x, y] = nsPosicaoCidadeMapa(item.cidade, index);
+    const pulso = Math.min(1.4, 0.75 + Number(item.total || 1) * 0.12);
+    const detalhes = (item.profissoes || []).map(p => `${nsEscaparHTML(p.nome)}: ${p.total}`).join(" • ");
+    return `
+      <button class="ns-mapa-ponto" style="left:${x}%; top:${y}%; --pulse:${pulso}; --delay:${index * 0.22}s" type="button" data-cidade="${nsEscaparHTML(item.cidade)}" data-detalhes="${nsEscaparHTML(detalhes || 'Profissionais ativos na cidade')}">
+        <span></span>
+        <strong>${Number(item.total || 0)}</strong>
+      </button>
+    `;
+  }).join("");
+
+  if (legenda) {
+    const primeira = lista[0];
+    const detalhes = (primeira.profissoes || []).map(p => `${p.nome}: ${p.total}`).join(" • ") || "Profissionais ativos";
+    legenda.innerHTML = `<span class="ativo">● ${nsEscaparHTML(primeira.cidade)} - ${primeira.total} profissionais</span><span>${nsEscaparHTML(detalhes)}</span>`;
+  }
+
+  mapa.querySelectorAll(".ns-mapa-ponto").forEach((botao) => {
+    botao.addEventListener("click", () => {
+      if (!legenda) return;
+      legenda.innerHTML = `<span class="ativo">● ${nsEscaparHTML(botao.dataset.cidade || '')}</span><span>${nsEscaparHTML(botao.dataset.detalhes || '')}</span>`;
+    });
+  });
+}
+
+function nsRenderRanking(containerId, lista = [], tipo = "profissao") {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  if (!lista || lista.length === 0) {
+    container.innerHTML = `<p class="ns-ranking-vazio">Dados aparecem conforme a plataforma cresce.</p>`;
+    return;
+  }
+
+  const maior = Math.max(...lista.map(item => Number(item.total || 0)), 1);
+  container.innerHTML = lista.slice(0, 6).map((item, index) => {
+    const porcentagem = Math.max(8, Math.round((Number(item.total || 0) / maior) * 100));
+    const subtitulo = tipo === "cidade" && item.profissoes?.length
+      ? item.profissoes.slice(0, 2).map(p => p.nome).join(" • ")
+      : `${Number(item.total || 0)} ${Number(item.total || 0) === 1 ? 'perfil' : 'perfis'}`;
+
+    return `
+      <article class="ns-ranking-item">
+        <div><strong>${index + 1}º ${nsEscaparHTML(item.nome || item.cidade)}</strong><span>${nsEscaparHTML(subtitulo)}</span></div>
+        <em>${Number(item.total || 0)}</em>
+        <i style="width:${porcentagem}%"></i>
+      </article>
+    `;
+  }).join("");
+}
+
+function nsRenderFeedMovimento(feed = []) {
+  const container = document.getElementById("nsMovimentoFeed");
+  if (!container) return;
+
+  if (!feed || feed.length === 0) {
+    container.innerHTML = `<p class="ns-feed-vazio">Os movimentos aparecem aqui conforme cadastros, avaliações e planos forem acontecendo.</p>`;
+    return;
+  }
+
+  container.innerHTML = feed.slice(0, 8).map((item, index) => `
+    <article class="ns-feed-item" style="--delay:${index * 0.08}s">
+      <div>${nsEscaparHTML(item.icone || '🔵')}</div>
+      <section><strong>${nsEscaparHTML(item.titulo || 'Movimento na plataforma')}</strong><span>${nsEscaparHTML(item.texto || '')}</span></section>
+    </article>
+  `).join("");
+}
+
+function nsRenderPerfisAtivos(perfis = []) {
+  const container = document.getElementById("nsPerfisAtivos");
+  if (!container) return;
+
+  if (!perfis || perfis.length === 0) {
+    container.innerHTML = `<p class="ns-feed-vazio">Perfis aprovados aparecerão aqui.</p>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="ns-online-avatars">
+      ${perfis.slice(0, 6).map((p) => {
+        const inicial = nsEscaparHTML(String(p.nome || '?').charAt(0).toUpperCase());
+        const foto = p.fotoPerfil ? `<img src="${nsEscaparHTML(p.fotoPerfil)}" alt="${nsEscaparHTML(p.nome)}">` : `<span>${inicial}</span>`;
+        return `<a href="perfil.html?id=${encodeURIComponent(p.id)}" class="ns-online-avatar" title="${nsEscaparHTML(p.nome)}">${foto}<i></i></a>`;
+      }).join("")}
+    </div>
+    <div class="ns-online-texto">
+      <strong>${nsFormatarNumero(perfis.length)} perfis na vitrine</strong>
+      <span>Profissionais aprovados e prontos para receber contato.</span>
+    </div>
+  `;
+}
+
+async function carregarMovimentoNorteServic() {
+  const secao = document.getElementById("norteServicMovimento");
+  if (!secao) return;
+
+  try {
+    const dados = await apiFetch(`/api/home/movimento?_=${Date.now()}`);
+    nsAtualizarStatsMovimento(dados.estatisticas || {});
+    nsRenderMapaMovimento(dados.cidades || []);
+    nsRenderRanking("nsRankingProfissoes", dados.profissoes || [], "profissao");
+    nsRenderRanking("nsRankingCidades", (dados.cidades || []).map(c => ({ ...c, nome: c.cidade })), "cidade");
+    nsRenderFeedMovimento(dados.feed || []);
+    nsRenderPerfisAtivos(dados.perfisAtivos || []);
+    secao.dataset.carregado = "true";
+  } catch (error) {
+    const feed = document.getElementById("nsMovimentoFeed");
+    if (feed) feed.innerHTML = `<p class="ns-feed-vazio">Não foi possível carregar os dados agora. ${nsEscaparHTML(error.message)}</p>`;
+  }
+}
+
 /* ================================================= */
 /* BUSCA INTELIGENTE */
 /* ================================================= */
@@ -867,7 +2217,17 @@ function carregarServicosDaProfissao() {
     return;
   }
 
-  const servicos = servicosPorProfissaoNorteServic[profissao] || pegarServicosFallbackDaCategoria();
+  const servicos = servicosPorProfissaoNorteServic[profissao] || [
+    ...pegarServicosFallbackDaCategoria(),
+    "Atendimento presencial",
+    "Atendimento a domicílio",
+    "Orçamento",
+    "Serviço completo",
+    "Manutenção",
+    "Instalação",
+    "Consultoria",
+    "Serviço urgente"
+  ].filter((item, index, arr) => arr.indexOf(item) === index);
 
   if (!servicos.length) {
     servicosBox.innerHTML = `<p class="servicos-placeholder">Nenhum serviço pré-definido encontrado. Use o campo "Outro serviço".</p>`;
@@ -938,7 +2298,14 @@ function filtrarCidadesNorteServic(termo) {
 
   return cidadesNorteServic
     .filter(cidade => normalizarTextoNorteServic(cidade).includes(termoNormalizado))
-    .slice(0, 8);
+    .sort((a, b) => {
+      const na = normalizarTextoNorteServic(a);
+      const nb = normalizarTextoNorteServic(b);
+      const aInicio = na.startsWith(termoNormalizado) ? 0 : 1;
+      const bInicio = nb.startsWith(termoNormalizado) ? 0 : 1;
+      return aInicio - bInicio || a.localeCompare(b, "pt-BR");
+    })
+    .slice(0, 12);
 }
 
 function iniciarCidadeInteligente() {
@@ -2751,6 +4118,12 @@ function iniciarAnimacoesSuavesNorteServic() {
     '.texto-destaque-home',
     '#listaProfissionais .card',
     '.home-banner-card',
+    '.ns-movimento-home',
+    '.ns-stat-card',
+    '.ns-mapa-card',
+    '.ns-feed-card',
+    '.ns-ranking-card',
+    '.ns-online-card',
     '.por-que-card',
     '.passos > div',
     '.home-planos',
@@ -2848,6 +4221,7 @@ document.addEventListener("DOMContentLoaded", function() {
   ativarEnterNoAdmin();
   ativarTopoMenorAoRolar();
   mostrarProfissionais();
+  carregarMovimentoNorteServic();
   carregarPerfilProfissional();
   carregarPainelProfissional();
   iniciarEditarPerfil();
