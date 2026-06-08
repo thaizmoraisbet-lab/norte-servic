@@ -278,6 +278,11 @@ async function garantirSistemaLegal() {
   await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS aceite_data TIMESTAMPTZ`);
   await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS aceite_ip TEXT`);
   await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS aceite_user_agent TEXT`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS indicacao_tipo_chave_pix TEXT`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS indicacao_chave_pix TEXT`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS indicacao_nome_titular TEXT`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS indicacao_cpf_cnpj_titular TEXT`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS indicacao_pix_atualizado_em TIMESTAMPTZ`);
 
   await pool.query(`ALTER TABLE saques_indicacoes ADD COLUMN IF NOT EXISTS nome_titular TEXT`);
   await pool.query(`ALTER TABLE saques_indicacoes ADD COLUMN IF NOT EXISTS cpf_cnpj_titular TEXT`);
@@ -816,6 +821,10 @@ function profissionalParaFrontend(row, opcoes = {}) {
     codigoIndicacao: row.codigo_indicacao || '',
     indicadoPorId: row.indicado_por_id || null,
     indicadoPorCodigo: row.indicado_por_codigo || '',
+    indicacaoTipoChavePix: row.indicacao_tipo_chave_pix || '',
+    indicacaoChavePix: row.indicacao_chave_pix || '',
+    indicacaoNomeTitular: row.indicacao_nome_titular || '',
+    indicacaoCpfCnpjTitular: row.indicacao_cpf_cnpj_titular || '',
     stripeCustomerId: row.stripe_customer_id || '',
     stripeSubscriptionId: row.stripe_subscription_id || '',
     criadoEm: row.criado_em,
@@ -1452,7 +1461,7 @@ app.get('/api/me/indicacoes', autenticarProfissional, async (req, res) => {
     await garantirCodigoIndicacao(req.profissional.id);
     await liberarIndicacoesVencidas(req.profissional.id);
 
-    const profissional = await pool.query('SELECT id, nome, codigo_indicacao FROM profissionais WHERE id=$1', [req.profissional.id]);
+    const profissional = await pool.query(`SELECT id, nome, codigo_indicacao, indicacao_tipo_chave_pix, indicacao_chave_pix, indicacao_nome_titular, indicacao_cpf_cnpj_titular FROM profissionais WHERE id=$1`, [req.profissional.id]);
     if (profissional.rowCount === 0) return res.status(404).json({ erro: 'Profissional não encontrado.' });
 
     const codigo = profissional.rows[0].codigo_indicacao || await garantirCodigoIndicacao(req.profissional.id);
@@ -1494,6 +1503,12 @@ app.get('/api/me/indicacoes', autenticarProfissional, async (req, res) => {
       saqueMinimo: INDICACAO_SAQUE_MINIMO,
       diasLiberacao: INDICACAO_DIAS_LIBERACAO,
       resumo,
+      dadosPix: {
+        tipoChavePix: profissional.rows[0].indicacao_tipo_chave_pix || '',
+        chavePix: profissional.rows[0].indicacao_chave_pix || '',
+        nomeTitular: profissional.rows[0].indicacao_nome_titular || '',
+        cpfCnpjTitular: profissional.rows[0].indicacao_cpf_cnpj_titular || ''
+      },
       indicacoes: indicacoes.rows.map(row => ({
         id: row.id,
         indicadoNome: row.indicado_nome || 'Profissional indicado',
@@ -1513,6 +1528,49 @@ app.get('/api/me/indicacoes', autenticarProfissional, async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ erro: 'Erro ao carregar indicações.', detalhe: error.message });
+  }
+});
+
+
+app.post('/api/me/indicacoes/dados-pix', autenticarProfissional, async (req, res) => {
+  try {
+    await garantirSistemaLegal();
+
+    const chavePix = String(req.body.chavePix || req.body.chave_pix || '').trim();
+    const tipoChavePix = String(req.body.tipoChavePix || req.body.tipo_chave_pix || '').trim();
+    const nomeTitular = String(req.body.nomeTitular || req.body.nome_titular || '').trim();
+    const cpfCnpjTitular = String(req.body.cpfCnpjTitular || req.body.cpf_cnpj_titular || '').trim();
+
+    if (!tipoChavePix || !chavePix || chavePix.length < 4 || !nomeTitular || !cpfCnpjTitular) {
+      return res.status(400).json({ erro: 'Preencha tipo de chave Pix, chave Pix, nome do titular e CPF/CNPJ do titular.' });
+    }
+
+    const result = await pool.query(
+      `UPDATE profissionais
+       SET indicacao_tipo_chave_pix=$1,
+           indicacao_chave_pix=$2,
+           indicacao_nome_titular=$3,
+           indicacao_cpf_cnpj_titular=$4,
+           indicacao_pix_atualizado_em=NOW(),
+           atualizado_em=NOW()
+       WHERE id=$5
+       RETURNING indicacao_tipo_chave_pix, indicacao_chave_pix, indicacao_nome_titular, indicacao_cpf_cnpj_titular`,
+      [tipoChavePix, chavePix, nomeTitular, cpfCnpjTitular, req.profissional.id]
+    );
+
+    if (result.rowCount === 0) return res.status(404).json({ erro: 'Profissional não encontrado.' });
+
+    res.json({
+      mensagem: 'Dados Pix salvos com sucesso.',
+      dadosPix: {
+        tipoChavePix: result.rows[0].indicacao_tipo_chave_pix || '',
+        chavePix: result.rows[0].indicacao_chave_pix || '',
+        nomeTitular: result.rows[0].indicacao_nome_titular || '',
+        cpfCnpjTitular: result.rows[0].indicacao_cpf_cnpj_titular || ''
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao salvar dados Pix.', detalhe: error.message });
   }
 });
 

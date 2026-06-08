@@ -2803,6 +2803,40 @@ async function copiarTextoNorteServic(texto) {
   }
 }
 
+
+function valorCampoSeguroIndicacao(valor = '') {
+  return String(valor || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+async function salvarDadosPixIndicacao() {
+  const chavePix = document.getElementById("indicacaoChavePix")?.value.trim() || "";
+  const tipoChavePix = document.getElementById("indicacaoTipoChavePix")?.value.trim() || "";
+  const nomeTitular = document.getElementById("indicacaoNomeTitular")?.value.trim() || "";
+  const cpfCnpjTitular = document.getElementById("indicacaoCpfCnpjTitular")?.value.trim() || "";
+
+  if (!tipoChavePix || !chavePix || !nomeTitular || !cpfCnpjTitular) {
+    alert("Preencha todos os dados Pix para salvar: tipo de chave, chave Pix, nome do titular e CPF/CNPJ.");
+    return;
+  }
+
+  try {
+    await apiFetch("/api/me/indicacoes/dados-pix", {
+      method: "POST",
+      headers: headersAuth(),
+      body: JSON.stringify({ chavePix, tipoChavePix, nomeTitular, cpfCnpjTitular })
+    });
+    alert("Dados Pix salvos com sucesso. O saque será liberado quando seu saldo disponível atingir R$ 100,00.");
+    const dados = await carregarMinhasIndicacoes();
+    renderizarPainelIndicacoes(dados);
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
 async function solicitarSaqueIndicacao() {
   const chavePix = document.getElementById("indicacaoChavePix")?.value.trim() || "";
   const tipoChavePix = document.getElementById("indicacaoTipoChavePix")?.value.trim() || "";
@@ -2840,6 +2874,12 @@ function renderizarPainelIndicacoes(dados) {
   const podeSacar = saldoDisponivel >= saqueMinimo;
   const indicacoes = Array.isArray(dados.indicacoes) ? dados.indicacoes.slice(0, 8) : [];
   const saques = Array.isArray(dados.saques) ? dados.saques.slice(0, 5) : [];
+  const pix = dados.dadosPix || {};
+  const tipoPix = String(pix.tipoChavePix || "");
+  const chavePix = valorCampoSeguroIndicacao(pix.chavePix || "");
+  const nomeTitular = valorCampoSeguroIndicacao(pix.nomeTitular || "");
+  const cpfCnpjTitular = valorCampoSeguroIndicacao(pix.cpfCnpjTitular || "");
+  const selecionarTipo = (tipo) => tipoPix === tipo ? "selected" : "";
 
   box.innerHTML = `
     <div class="indicacoes-topo">
@@ -2851,8 +2891,8 @@ function renderizarPainelIndicacoes(dados) {
     <div class="indicacoes-link-box">
       <small>Seu link exclusivo de indicação</small>
       <div>
-        <input type="text" value="${dados.link || ""}" readonly>
-        <button type="button" onclick="copiarTextoNorteServic('${String(dados.link || "").replace(/'/g, "\'")}')">Copiar</button>
+        <input type="text" value="${valorCampoSeguroIndicacao(dados.link || "")}" readonly>
+        <button type="button" onclick="copiarTextoNorteServic('${String(dados.link || "").replace(/'/g, "\\'")}')">Copiar</button>
       </div>
       <span>Código: ${dados.codigo || "-"}</span>
     </div>
@@ -2866,32 +2906,38 @@ function renderizarPainelIndicacoes(dados) {
 
     <div class="indicacoes-saque-box indicacoes-saque-box-completo">
       <div class="indicacoes-saque-head">
-        <strong>Saque mínimo: ${formatarMoedaIndicacao(saqueMinimo)}</strong>
-        <span>${podeSacar ? "Você já pode solicitar saque." : `Faltam ${formatarMoedaIndicacao(Math.max(0, saqueMinimo - saldoDisponivel))} para liberar saque.`}</span>
+        <strong>Dados Pix para saque</strong>
+        <span>Cadastre seus dados agora. O saque só libera quando o saldo disponível atingir ${formatarMoedaIndicacao(saqueMinimo)}.</span>
+      </div>
+      <div class="indicacoes-saque-status ${podeSacar ? "liberado" : "bloqueado"}">
+        ${podeSacar ? "Você já pode solicitar saque." : `Faltam ${formatarMoedaIndicacao(Math.max(0, saqueMinimo - saldoDisponivel))} para liberar saque.`}
       </div>
       <div class="indicacoes-saque-form">
         <label>Tipo de Chave Pix
-          <select id="indicacaoTipoChavePix" ${podeSacar ? "" : "disabled"}>
+          <select id="indicacaoTipoChavePix">
             <option value="">Selecione</option>
-            <option value="cpf">CPF</option>
-            <option value="cnpj">CNPJ</option>
-            <option value="email">E-mail</option>
-            <option value="telefone">Telefone</option>
-            <option value="aleatoria">Chave aleatória</option>
+            <option value="cpf" ${selecionarTipo("cpf")}>CPF</option>
+            <option value="cnpj" ${selecionarTipo("cnpj")}>CNPJ</option>
+            <option value="email" ${selecionarTipo("email")}>E-mail</option>
+            <option value="telefone" ${selecionarTipo("telefone")}>Telefone</option>
+            <option value="aleatoria" ${selecionarTipo("aleatoria")}>Chave aleatória</option>
           </select>
         </label>
         <label>Chave Pix
-          <input id="indicacaoChavePix" type="text" placeholder="Digite sua chave Pix" ${podeSacar ? "" : "disabled"}>
+          <input id="indicacaoChavePix" type="text" placeholder="Digite sua chave Pix" value="${chavePix}">
         </label>
         <label>Nome do Titular
-          <input id="indicacaoNomeTitular" type="text" placeholder="Nome do titular da chave" ${podeSacar ? "" : "disabled"}>
+          <input id="indicacaoNomeTitular" type="text" placeholder="Nome do titular da chave" value="${nomeTitular}">
         </label>
         <label>CPF/CNPJ do Titular
-          <input id="indicacaoCpfCnpjTitular" type="text" placeholder="CPF ou CNPJ do titular" ${podeSacar ? "" : "disabled"}>
+          <input id="indicacaoCpfCnpjTitular" type="text" placeholder="CPF ou CNPJ do titular" value="${cpfCnpjTitular}">
         </label>
       </div>
       <p>A chave Pix deve pertencer ao profissional cadastrado ou responsável informado.</p>
-      <button type="button" ${podeSacar ? "" : "disabled"} onclick="solicitarSaqueIndicacao()">Solicitar saque</button>
+      <div class="indicacoes-saque-acoes">
+        <button type="button" class="btn-salvar-pix-indicacao" onclick="salvarDadosPixIndicacao()">Salvar dados Pix</button>
+        <button type="button" ${podeSacar ? "" : "disabled"} onclick="solicitarSaqueIndicacao()">Solicitar saque</button>
+      </div>
     </div>
 
     <div class="indicacoes-lista">

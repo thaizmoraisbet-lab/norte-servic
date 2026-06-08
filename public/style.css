@@ -15746,3 +15746,67 @@ footer:not(.rodape-minimo) .rodape-admin-link {
   .planos-indique-regras { display: grid; }
   .indicacoes-saque-form { grid-template-columns: 1fr; }
 }
+
+/* Ajuste indicações: dados Pix sempre editáveis e saque só com saldo mínimo */
+.indicacoes-saque-box-completo {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.indicacoes-saque-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 9px 12px;
+  border-radius: 999px;
+  font-size: .82rem;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.indicacoes-saque-status.liberado {
+  color: #DCFCE7;
+  background: rgba(34, 197, 94, .18);
+  border: 1px solid rgba(34, 197, 94, .28);
+}
+
+.indicacoes-saque-status.bloqueado {
+  color: #DBEAFE;
+  background: rgba(255, 255, 255, .10);
+  border: 1px solid rgba(255, 255, 255, .16);
+}
+
+.indicacoes-saque-acoes {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.indicacoes-saque-acoes button {
+  flex: 1 1 180px;
+}
+
+.indicacoes-saque-acoes .btn-salvar-pix-indicacao {
+  background: #22C55E;
+  box-shadow: 0 10px 24px rgba(34,197,94,.18);
+}
+
+@media (max-width: 760px) {
+  .indicacoes-saque-status {
+    width: 100%;
+    text-align: center;
+  }
+
+  .indicacoes-saque-acoes {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .indicacoes-saque-acoes button {
+    width: 100%;
+    flex: initial;
+  }
+}

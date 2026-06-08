@@ -64,3 +64,10 @@ CREATE INDEX IF NOT EXISTS idx_profissionais_indicado_por ON profissionais(indic
 CREATE INDEX IF NOT EXISTS idx_indicacoes_indicador_status ON indicacoes(indicador_id, status);
 CREATE INDEX IF NOT EXISTS idx_saques_indicacoes_profissional ON saques_indicacoes(profissional_id, status);
 CREATE INDEX IF NOT EXISTS idx_solicitacoes_exclusao_profissional_status ON solicitacoes_exclusao_conta(profissional_id, status);
+
+-- Dados Pix de indicação salvos antes do saque mínimo
+ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS indicacao_tipo_chave_pix TEXT;
+ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS indicacao_chave_pix TEXT;
+ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS indicacao_nome_titular TEXT;
+ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS indicacao_cpf_cnpj_titular TEXT;
+ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS indicacao_pix_atualizado_em TIMESTAMPTZ;
