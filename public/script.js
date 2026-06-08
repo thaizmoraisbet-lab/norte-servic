@@ -2735,12 +2735,106 @@ async function inserirPerfilLogadoCabecalho() {
 }
 
 
+
+
+/* ================================================= */
+/* ANIMAÇÕES SUAVES DE ROLAGEM - JS PURO */
+/* ================================================= */
+function iniciarAnimacoesSuavesNorteServic() {
+  const seletores = [
+    '.hero h1',
+    '.hero p',
+    '.busca-box',
+    '.categorias',
+    '.destaques-section .badge-destaque-home',
+    '.destaques-section h2',
+    '.texto-destaque-home',
+    '#listaProfissionais .card',
+    '.home-banner-card',
+    '.por-que-card',
+    '.passos > div',
+    '.home-planos',
+    '.plano-card',
+    '.plano-card-premium',
+    '.planos-info',
+    '.planos-comparativo-premium',
+    '.planos-final-premium',
+    '.perfil-lateral',
+    '.perfil-hero-texto',
+    '.perfil-section-clean',
+    '.avaliacao-card-publica',
+    '.form-avaliacao-card',
+    '.painel-profissional-header',
+    '.painel-card-principal-premium',
+    '.painel-extra-card',
+    '.admin-stat-card',
+    '.admin-prof-card',
+    '.admin-avaliacao-card',
+    '.admin-financeiro-dashboard',
+    '.finance-card',
+    '.admin-grafico-box',
+    '.admin-pagamento-card',
+    '.cadastro-beneficios',
+    '.cadastro-form-card',
+    '.grupo-form-premium'
+  ];
+
+  const reduzirMovimento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduzirMovimento) return;
+
+  const observados = new WeakSet();
+
+  const observer = new IntersectionObserver((entradas) => {
+    entradas.forEach((entrada) => {
+      if (entrada.isIntersecting) {
+        entrada.target.classList.add('ns-reveal-visivel');
+        observer.unobserve(entrada.target);
+      }
+    });
+  }, {
+    threshold: 0.12,
+    rootMargin: '0px 0px -48px 0px'
+  });
+
+  function prepararAnimacoes(raiz = document) {
+    seletores.forEach((seletor) => {
+      raiz.querySelectorAll(seletor).forEach((el, index) => {
+        if (observados.has(el) || el.classList.contains('ns-sem-animacao')) return;
+
+        observados.add(el);
+        el.classList.add('ns-reveal');
+
+        const atraso = Math.min((index % 8) * 45, 260);
+        el.style.setProperty('--ns-delay', `${atraso}ms`);
+
+        observer.observe(el);
+      });
+    });
+  }
+
+  prepararAnimacoes(document);
+
+  const mutationObserver = new MutationObserver((mutacoes) => {
+    mutacoes.forEach((mutacao) => {
+      mutacao.addedNodes.forEach((node) => {
+        if (node.nodeType === 1) prepararAnimacoes(node);
+      });
+    });
+  });
+
+  mutationObserver.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+}
+
 /* ================================================= */
 /* INICIALIZAÇÃO */
 /* ================================================= */
 
 document.addEventListener("DOMContentLoaded", function() {
   iniciarCarregamentoNorteServic();
+  iniciarAnimacoesSuavesNorteServic();
   inserirPerfilLogadoCabecalho();
   ativarTransicoesDeClique();
   ativarBuscaComEnter();
