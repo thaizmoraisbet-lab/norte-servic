@@ -2736,7 +2736,7 @@ async function carregarPainelProfissional() {
     const totalServicos = (profissional.servicos || "").split(",").map(s => s.trim()).filter(Boolean).length;
     const foto = profissional.fotoPerfil ? `<img src="${profissional.fotoPerfil}" alt="Foto de ${profissional.nome}">` : `<span>${profissional.nome ? profissional.nome.charAt(0).toUpperCase() : "?"}</span>`;
 
-    header.innerHTML = `<span>Painel do profissional</span><h1>Olá, ${profissional.nome}.</h1><p>Gerencie seu perfil, acompanhe sua publicação e mantenha seus dados prontos para receber clientes.</p>`;
+    header.innerHTML = `<span>Painel do profissional</span><h1>Olá, ${profissional.nome}.</h1><p>Gerencie sua conta e acompanhe seu perfil na Norte Servic.</p>`;
 
     resumo.innerHTML = `
       <div class="painel-foto-profissional">${foto}</div>
@@ -2769,11 +2769,10 @@ async function carregarPainelProfissional() {
     if (painelPlano) {
       painelPlano.innerHTML = `
         <span class="painel-box-badge">Plano ativo</span>
-        <h3>Seu destaque na Norte Servic</h3>
-        <p>Seu plano atual é <strong>${planoAtual}</strong> e está <strong>${planoStatus}</strong>. Perfis com mais destaque tendem a chamar mais atenção na vitrine.</p>
+        <h3>${planoAtual}</h3>
+        <p>Status: <strong>${planoStatus}</strong> · Força do perfil: <strong>${forcaPerfil}%</strong>.</p>
         <div class="painel-forca-perfil"><div style="width: ${forcaPerfil}%"></div></div>
-        <p style="margin-top: 10px;">Força do perfil: <strong>${forcaPerfil}%</strong>.</p>
-        <a href="planos.html?origem=painel" class="painel-plano-cta">Ver planos de destaque</a>
+        <a href="planos.html?origem=painel" class="painel-plano-cta">Ver planos</a>
       `;
     }
 
@@ -2781,13 +2780,12 @@ async function carregarPainelProfissional() {
       painelDicas.innerHTML = `
         <span class="painel-box-badge">Ajustes rápidos</span>
         <h3>Melhore seu perfil</h3>
-        <ul>
-          <li>Use uma foto real e nítida.</li>
-          <li>Selecione todos os serviços que você realmente realiza.</li>
-          <li>Informe corretamente as cidades que atende.</li>
-          <li>Escreva uma descrição objetiva sobre sua experiência.</li>
-          <li>Mantenha o WhatsApp sempre atualizado.</li>
-        </ul>
+        <div class="painel-dicas-compactas">
+          <span>Foto real</span>
+          <span>Serviços corretos</span>
+          <span>Cidades atualizadas</span>
+          <span>WhatsApp ativo</span>
+        </div>
       `;
     }
 
