@@ -1746,217 +1746,6 @@ function ordenarProfissionaisPorPlano(lista = []) {
   });
 }
 
-
-/* ================================================= */
-/* HOME - MAPA, DASHBOARD E MOVIMENTO REAL */
-/* ================================================= */
-
-function nsEscaparHTML(valor) {
-  return String(valor ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-function nsFormatarNumero(valor) {
-  const numero = Number(valor || 0);
-  return numero.toLocaleString("pt-BR");
-}
-
-function nsFormatarMoedaCentavos(centavos) {
-  const valor = Number(centavos || 0) / 100;
-  return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
-
-function nsPosicaoCidadeMapa(cidade, index = 0) {
-  const nome = normalizarTextoNorteServic(cidade);
-  const posicoes = {
-    "muricilandia": [58, 42],
-    "santa fe do araguaia": [56, 39],
-    "araguaina": [59, 36],
-    "palmas": [58, 54],
-    "gurupi": [57, 63],
-    "porto nacional": [57, 57],
-    "araguana": [56, 37],
-    "xambioa": [55, 34],
-    "tocantinopolis": [63, 35],
-    "imperatriz": [66, 35],
-    "belem": [63, 25],
-    "maraba": [57, 31],
-    "goiania": [50, 68],
-    "brasilia": [53, 65],
-    "sao paulo": [54, 82],
-    "rio de janeiro": [61, 80],
-    "belo horizonte": [58, 72],
-    "salvador": [70, 58],
-    "recife": [77, 45],
-    "fortaleza": [73, 35]
-  };
-
-  if (posicoes[nome]) return posicoes[nome];
-
-  let hash = 0;
-  for (const letra of nome) hash = (hash * 31 + letra.charCodeAt(0)) % 1000;
-  return [34 + ((hash + index * 17) % 44), 28 + ((hash * 3 + index * 19) % 52)];
-}
-
-function nsAnimarNumero(el, valor, sufixo = "") {
-  if (!el) return;
-  const alvo = Number(valor || 0);
-  const duracao = 850;
-  const inicio = performance.now();
-
-  function passo(agora) {
-    const progresso = Math.min((agora - inicio) / duracao, 1);
-    const suavizado = 1 - Math.pow(1 - progresso, 3);
-    el.textContent = `${nsFormatarNumero(Math.round(alvo * suavizado))}${sufixo}`;
-    if (progresso < 1) requestAnimationFrame(passo);
-  }
-
-  requestAnimationFrame(passo);
-}
-
-function nsAtualizarStatsMovimento(stats = {}) {
-  const container = document.getElementById("nsMovimentoStats");
-  if (!container) return;
-
-  container.innerHTML = `
-    <article class="ns-stat-card destaque"><small>👷</small><strong data-valor="${Number(stats.profissionais || 0)}">0</strong><span>Profissionais cadastrados</span></article>
-    <article class="ns-stat-card"><small>🏙️</small><strong data-valor="${Number(stats.cidades || 0)}">0</strong><span>Cidades atendidas</span></article>
-    <article class="ns-stat-card"><small>⭐</small><strong data-valor="${Number(stats.avaliacoes || 0)}">0</strong><span>Avaliações aprovadas</span></article>
-    <article class="ns-stat-card"><small>💎</small><strong data-valor="${Number(stats.planosAtivos || 0)}">0</strong><span>Perfis em destaque</span></article>
-  `;
-
-  container.querySelectorAll("strong[data-valor]").forEach((el) => nsAnimarNumero(el, el.dataset.valor));
-}
-
-function nsRenderMapaMovimento(cidades = []) {
-  const mapa = document.getElementById("nsMapaPontos");
-  const legenda = document.getElementById("nsMapaLegenda");
-  if (!mapa) return;
-
-  const lista = (cidades || []).slice(0, 9);
-
-  if (lista.length === 0) {
-    mapa.innerHTML = `<div class="ns-mapa-empty">Aguardando cidades ativas</div>`;
-    if (legenda) legenda.innerHTML = `<span>Cadastre profissionais para o mapa ganhar pontos reais.</span>`;
-    return;
-  }
-
-  mapa.innerHTML = lista.map((item, index) => {
-    const [x, y] = nsPosicaoCidadeMapa(item.cidade, index);
-    const pulso = Math.min(1.4, 0.75 + Number(item.total || 1) * 0.12);
-    const detalhes = (item.profissoes || []).map(p => `${nsEscaparHTML(p.nome)}: ${p.total}`).join(" • ");
-    return `
-      <button class="ns-mapa-ponto" style="left:${x}%; top:${y}%; --pulse:${pulso}; --delay:${index * 0.22}s" type="button" data-cidade="${nsEscaparHTML(item.cidade)}" data-detalhes="${nsEscaparHTML(detalhes || 'Profissionais ativos na cidade')}">
-        <span></span>
-        <strong>${Number(item.total || 0)}</strong>
-      </button>
-    `;
-  }).join("");
-
-  if (legenda) {
-    const primeira = lista[0];
-    const detalhes = (primeira.profissoes || []).map(p => `${p.nome}: ${p.total}`).join(" • ") || "Profissionais ativos";
-    legenda.innerHTML = `<span class="ativo">● ${nsEscaparHTML(primeira.cidade)} - ${primeira.total} profissionais</span><span>${nsEscaparHTML(detalhes)}</span>`;
-  }
-
-  mapa.querySelectorAll(".ns-mapa-ponto").forEach((botao) => {
-    botao.addEventListener("click", () => {
-      if (!legenda) return;
-      legenda.innerHTML = `<span class="ativo">● ${nsEscaparHTML(botao.dataset.cidade || '')}</span><span>${nsEscaparHTML(botao.dataset.detalhes || '')}</span>`;
-    });
-  });
-}
-
-function nsRenderRanking(containerId, lista = [], tipo = "profissao") {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-
-  if (!lista || lista.length === 0) {
-    container.innerHTML = `<p class="ns-ranking-vazio">Dados aparecem conforme a plataforma cresce.</p>`;
-    return;
-  }
-
-  const maior = Math.max(...lista.map(item => Number(item.total || 0)), 1);
-  container.innerHTML = lista.slice(0, 6).map((item, index) => {
-    const porcentagem = Math.max(8, Math.round((Number(item.total || 0) / maior) * 100));
-    const subtitulo = tipo === "cidade" && item.profissoes?.length
-      ? item.profissoes.slice(0, 2).map(p => p.nome).join(" • ")
-      : `${Number(item.total || 0)} ${Number(item.total || 0) === 1 ? 'perfil' : 'perfis'}`;
-
-    return `
-      <article class="ns-ranking-item">
-        <div><strong>${index + 1}º ${nsEscaparHTML(item.nome || item.cidade)}</strong><span>${nsEscaparHTML(subtitulo)}</span></div>
-        <em>${Number(item.total || 0)}</em>
-        <i style="width:${porcentagem}%"></i>
-      </article>
-    `;
-  }).join("");
-}
-
-function nsRenderFeedMovimento(feed = []) {
-  const container = document.getElementById("nsMovimentoFeed");
-  if (!container) return;
-
-  if (!feed || feed.length === 0) {
-    container.innerHTML = `<p class="ns-feed-vazio">Os movimentos aparecem aqui conforme cadastros, avaliações e planos forem acontecendo.</p>`;
-    return;
-  }
-
-  container.innerHTML = feed.slice(0, 8).map((item, index) => `
-    <article class="ns-feed-item" style="--delay:${index * 0.08}s">
-      <div>${nsEscaparHTML(item.icone || '🔵')}</div>
-      <section><strong>${nsEscaparHTML(item.titulo || 'Movimento na plataforma')}</strong><span>${nsEscaparHTML(item.texto || '')}</span></section>
-    </article>
-  `).join("");
-}
-
-function nsRenderPerfisAtivos(perfis = []) {
-  const container = document.getElementById("nsPerfisAtivos");
-  if (!container) return;
-
-  if (!perfis || perfis.length === 0) {
-    container.innerHTML = `<p class="ns-feed-vazio">Perfis aprovados aparecerão aqui.</p>`;
-    return;
-  }
-
-  container.innerHTML = `
-    <div class="ns-online-avatars">
-      ${perfis.slice(0, 6).map((p) => {
-        const inicial = nsEscaparHTML(String(p.nome || '?').charAt(0).toUpperCase());
-        const foto = p.fotoPerfil ? `<img src="${nsEscaparHTML(p.fotoPerfil)}" alt="${nsEscaparHTML(p.nome)}">` : `<span>${inicial}</span>`;
-        return `<a href="perfil.html?id=${encodeURIComponent(p.id)}" class="ns-online-avatar" title="${nsEscaparHTML(p.nome)}">${foto}<i></i></a>`;
-      }).join("")}
-    </div>
-    <div class="ns-online-texto">
-      <strong>${nsFormatarNumero(perfis.length)} perfis na vitrine</strong>
-      <span>Profissionais aprovados e prontos para receber contato.</span>
-    </div>
-  `;
-}
-
-async function carregarMovimentoNorteServic() {
-  const secao = document.getElementById("norteServicMovimento");
-  if (!secao) return;
-
-  try {
-    const dados = await apiFetch(`/api/home/movimento?_=${Date.now()}`);
-    nsAtualizarStatsMovimento(dados.estatisticas || {});
-    nsRenderMapaMovimento(dados.cidades || []);
-    nsRenderRanking("nsRankingProfissoes", dados.profissoes || [], "profissao");
-    nsRenderRanking("nsRankingCidades", (dados.cidades || []).map(c => ({ ...c, nome: c.cidade })), "cidade");
-    nsRenderFeedMovimento(dados.feed || []);
-    nsRenderPerfisAtivos(dados.perfisAtivos || []);
-    secao.dataset.carregado = "true";
-  } catch (error) {
-    const feed = document.getElementById("nsMovimentoFeed");
-    if (feed) feed.innerHTML = `<p class="ns-feed-vazio">Não foi possível carregar os dados agora. ${nsEscaparHTML(error.message)}</p>`;
-  }
-}
-
 /* ================================================= */
 /* BUSCA INTELIGENTE */
 /* ================================================= */
@@ -2217,17 +2006,7 @@ function carregarServicosDaProfissao() {
     return;
   }
 
-  const servicos = servicosPorProfissaoNorteServic[profissao] || [
-    ...pegarServicosFallbackDaCategoria(),
-    "Atendimento presencial",
-    "Atendimento a domicílio",
-    "Orçamento",
-    "Serviço completo",
-    "Manutenção",
-    "Instalação",
-    "Consultoria",
-    "Serviço urgente"
-  ].filter((item, index, arr) => arr.indexOf(item) === index);
+  const servicos = servicosPorProfissaoNorteServic[profissao] || pegarServicosFallbackDaCategoria();
 
   if (!servicos.length) {
     servicosBox.innerHTML = `<p class="servicos-placeholder">Nenhum serviço pré-definido encontrado. Use o campo "Outro serviço".</p>`;
@@ -4118,12 +3897,6 @@ function iniciarAnimacoesSuavesNorteServic() {
     '.texto-destaque-home',
     '#listaProfissionais .card',
     '.home-banner-card',
-    '.ns-movimento-home',
-    '.ns-stat-card',
-    '.ns-mapa-card',
-    '.ns-feed-card',
-    '.ns-ranking-card',
-    '.ns-online-card',
     '.por-que-card',
     '.passos > div',
     '.home-planos',
@@ -4221,7 +3994,6 @@ document.addEventListener("DOMContentLoaded", function() {
   ativarEnterNoAdmin();
   ativarTopoMenorAoRolar();
   mostrarProfissionais();
-  carregarMovimentoNorteServic();
   carregarPerfilProfissional();
   carregarPainelProfissional();
   iniciarEditarPerfil();
