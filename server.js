@@ -33,6 +33,11 @@ const EFI_BASE_URL = EFI_AMBIENTE === 'producao'
   : 'https://pix-h.api.efipay.com.br';
 const BONUS_DIAS_PLANO = Number(process.env.BONUS_DIAS_PLANO || 5);
 
+// Sistema de indicações Norte Servic
+const INDICACAO_COMISSAO_TOP = Number(process.env.INDICACAO_COMISSAO_TOP || 10);
+const INDICACAO_SAQUE_MINIMO = Number(process.env.INDICACAO_SAQUE_MINIMO || 100);
+const INDICACAO_DIAS_LIBERACAO = Number(process.env.INDICACAO_DIAS_LIBERACAO || 5);
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
@@ -193,6 +198,199 @@ function gerarTxidNorteServic() {
   return `NS${Date.now()}${crypto.randomBytes(6).toString('hex')}`.slice(0, 35);
 }
 
+function limparCodigoIndicacao(valor) {
+  return String(valor || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .slice(0, 24);
+}
+
+function gerarCodigoIndicacaoLocal(nome = '', whatsapp = '') {
+  const baseNome = String(nome || 'NS')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .slice(0, 5) || 'NS';
+  const finalWhatsapp = String(whatsapp || '').slice(-4) || crypto.randomBytes(2).toString('hex').toUpperCase();
+  const aleatorio = crypto.randomBytes(2).toString('hex').toUpperCase();
+  return limparCodigoIndicacao(`${baseNome}${finalWhatsapp}${aleatorio}`);
+}
+
+async function garantirSistemaIndicacoes() {
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS codigo_indicacao TEXT`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS indicado_por_id BIGINT REFERENCES profissionais(id) ON DELETE SET NULL`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS indicado_por_codigo TEXT`);
+  await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_profissionais_codigo_indicacao ON profissionais(codigo_indicacao) WHERE codigo_indicacao IS NOT NULL`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_profissionais_indicado_por ON profissionais(indicado_por_id)`);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS indicacoes (
+      id BIGSERIAL PRIMARY KEY,
+      indicador_id BIGINT NOT NULL REFERENCES profissionais(id) ON DELETE CASCADE,
+      indicado_id BIGINT NOT NULL REFERENCES profissionais(id) ON DELETE CASCADE,
+      pagamento_id BIGINT,
+      saque_id BIGINT,
+      codigo_indicacao TEXT,
+      plano_key TEXT,
+      valor_comissao NUMERIC(10,2) NOT NULL DEFAULT 10,
+      status TEXT NOT NULL DEFAULT 'pendente',
+      motivo TEXT,
+      liberado_em TIMESTAMPTZ,
+      confirmado_em TIMESTAMPTZ,
+      criado_em TIMESTAMPTZ DEFAULT NOW(),
+      atualizado_em TIMESTAMPTZ DEFAULT NOW(),
+      UNIQUE(indicado_id)
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS saques_indicacoes (
+      id BIGSERIAL PRIMARY KEY,
+      profissional_id BIGINT NOT NULL REFERENCES profissionais(id) ON DELETE CASCADE,
+      valor NUMERIC(10,2) NOT NULL,
+      chave_pix TEXT NOT NULL,
+      tipo_chave_pix TEXT,
+      status TEXT NOT NULL DEFAULT 'aguardando',
+      indicacoes_ids JSONB DEFAULT '[]'::jsonb,
+      observacao_admin TEXT,
+      solicitado_em TIMESTAMPTZ DEFAULT NOW(),
+      pago_em TIMESTAMPTZ,
+      atualizado_em TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_indicacoes_indicador_status ON indicacoes(indicador_id, status)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_saques_indicacoes_profissional ON saques_indicacoes(profissional_id, status)`);
+}
+
+async function garantirCodigoIndicacao(profissionalId) {
+  await garantirSistemaIndicacoes();
+  const atual = await pool.query('SELECT id, nome, whatsapp, codigo_indicacao FROM profissionais WHERE id=$1', [profissionalId]);
+  if (atual.rowCount === 0) return '';
+  if (atual.rows[0].codigo_indicacao) return atual.rows[0].codigo_indicacao;
+
+  for (let tentativa = 0; tentativa < 5; tentativa++) {
+    const codigo = gerarCodigoIndicacaoLocal(atual.rows[0].nome, atual.rows[0].whatsapp);
+    try {
+      const result = await pool.query('UPDATE profissionais SET codigo_indicacao=$1 WHERE id=$2 RETURNING codigo_indicacao', [codigo, profissionalId]);
+      return result.rows[0]?.codigo_indicacao || codigo;
+    } catch (error) {
+      if (!String(error.message || '').includes('duplicate')) throw error;
+    }
+  }
+
+  const fallback = limparCodigoIndicacao(`NS${profissionalId}${crypto.randomBytes(3).toString('hex')}`);
+  await pool.query('UPDATE profissionais SET codigo_indicacao=$1 WHERE id=$2', [fallback, profissionalId]);
+  return fallback;
+}
+
+async function liberarIndicacoesVencidas(indicadorId = null) {
+  await garantirSistemaIndicacoes();
+  const params = [];
+  let filtro = '';
+  if (indicadorId) {
+    params.push(indicadorId);
+    filtro = ` AND indicador_id=$${params.length}`;
+  }
+  await pool.query(
+    `UPDATE indicacoes
+     SET status='disponivel', atualizado_em=NOW()
+     WHERE status='pendente_liberacao'
+       AND liberado_em IS NOT NULL
+       AND liberado_em <= NOW()
+       ${filtro}`,
+    params
+  );
+}
+
+async function processarIndicacaoPorPagamento(pagamento, planoKey = '') {
+  try {
+    await garantirSistemaIndicacoes();
+    const chavePlano = String(planoKey || pagamento?.plano_key || pagamento?.plano || '').toLowerCase();
+    if (chavePlano !== 'top') return;
+
+    const indicadoRes = await pool.query(
+      `SELECT id, nome, email, whatsapp, status, indicado_por_id, indicado_por_codigo
+       FROM profissionais
+       WHERE id=$1`,
+      [pagamento.profissional_id]
+    );
+
+    if (indicadoRes.rowCount === 0) return;
+    const indicado = indicadoRes.rows[0];
+    if (!indicado.indicado_por_id) return;
+
+    const indicadorRes = await pool.query('SELECT id, email, whatsapp FROM profissionais WHERE id=$1', [indicado.indicado_por_id]);
+    if (indicadorRes.rowCount === 0) return;
+    const indicador = indicadorRes.rows[0];
+
+    const mesmoWhatsapp = limparNumero(indicador.whatsapp) && limparNumero(indicador.whatsapp) === limparNumero(indicado.whatsapp);
+    const mesmoEmail = String(indicador.email || '').trim().toLowerCase() && String(indicador.email || '').trim().toLowerCase() === String(indicado.email || '').trim().toLowerCase();
+    if (Number(indicador.id) === Number(indicado.id) || mesmoWhatsapp || mesmoEmail) {
+      await pool.query(
+        `INSERT INTO indicacoes (indicador_id, indicado_id, pagamento_id, codigo_indicacao, plano_key, valor_comissao, status, motivo, confirmado_em)
+         VALUES ($1,$2,$3,$4,$5,$6,'cancelada','Indicação cancelada por dados iguais ao indicador.',NOW())
+         ON CONFLICT (indicado_id) DO UPDATE SET status='cancelada', motivo=EXCLUDED.motivo, atualizado_em=NOW()`,
+        [indicador.id, indicado.id, pagamento.id, indicado.indicado_por_codigo || '', chavePlano, INDICACAO_COMISSAO_TOP]
+      );
+      return;
+    }
+
+    const aprovado = indicado.status === 'aprovado';
+    const liberadoEm = aprovado ? new Date(Date.now() + INDICACAO_DIAS_LIBERACAO * 24 * 60 * 60 * 1000).toISOString() : null;
+    const status = aprovado ? 'pendente_liberacao' : 'aguardando_aprovacao';
+    const motivo = aprovado
+      ? `Comissão confirmada. Liberação automática após ${INDICACAO_DIAS_LIBERACAO} dias.`
+      : 'Aguardando aprovação/publicação do profissional indicado.';
+
+    await pool.query(
+      `INSERT INTO indicacoes
+       (indicador_id, indicado_id, pagamento_id, codigo_indicacao, plano_key, valor_comissao, status, motivo, liberado_em, confirmado_em)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,NOW())
+       ON CONFLICT (indicado_id) DO UPDATE SET
+         pagamento_id=EXCLUDED.pagamento_id,
+         plano_key=EXCLUDED.plano_key,
+         valor_comissao=EXCLUDED.valor_comissao,
+         status=CASE WHEN indicacoes.status IN ('saque_solicitado','pago') THEN indicacoes.status ELSE EXCLUDED.status END,
+         motivo=EXCLUDED.motivo,
+         liberado_em=EXCLUDED.liberado_em,
+         confirmado_em=COALESCE(indicacoes.confirmado_em, NOW()),
+         atualizado_em=NOW()`,
+      [indicador.id, indicado.id, pagamento.id, indicado.indicado_por_codigo || '', chavePlano, INDICACAO_COMISSAO_TOP, status, motivo, liberadoEm]
+    );
+  } catch (error) {
+    console.error('Erro ao processar comissão de indicação:', error.message);
+  }
+}
+
+async function processarIndicacaoDoIndicado(indicadoId) {
+  const pagamento = await pool.query(
+    `SELECT * FROM pagamentos
+     WHERE profissional_id=$1 AND status='pago' AND COALESCE(plano_key, plano)='top'
+     ORDER BY pago_em DESC NULLS LAST, criado_em DESC
+     LIMIT 1`,
+    [indicadoId]
+  );
+  if (pagamento.rowCount > 0) {
+    await processarIndicacaoPorPagamento(pagamento.rows[0], 'top');
+  }
+}
+
+function statusIndicacaoLabel(status) {
+  const mapa = {
+    pendente: 'Pendente',
+    aguardando_aprovacao: 'Aguardando aprovação',
+    pendente_liberacao: 'Em liberação',
+    disponivel: 'Disponível',
+    saque_solicitado: 'Saque solicitado',
+    pago: 'Pago',
+    cancelada: 'Cancelada'
+  };
+  return mapa[status] || status || 'Pendente';
+}
+
 function dinheiroEfi(valor) {
   return Number(valor || 0).toFixed(2);
 }
@@ -275,6 +473,7 @@ async function ativarPlanoPorPagamento(pagamento, raw = {}) {
     );
 
     await pool.query('COMMIT');
+    await processarIndicacaoPorPagamento(pagamentoAtualizado.rows[0], planoKey);
     return pagamentoAtualizado.rows[0];
   } catch (error) {
     await pool.query('ROLLBACK');
@@ -581,6 +780,9 @@ function profissionalParaFrontend(row, opcoes = {}) {
     planoAtual: row.plano_atual || 'Gratuito',
     planoStatus: row.plano_status || 'ativo',
     planoVencimento: row.plano_vencimento || '',
+    codigoIndicacao: row.codigo_indicacao || '',
+    indicadoPorId: row.indicado_por_id || null,
+    indicadoPorCodigo: row.indicado_por_codigo || '',
     stripeCustomerId: row.stripe_customer_id || '',
     stripeSubscriptionId: row.stripe_subscription_id || '',
     criadoEm: row.criado_em,
@@ -677,6 +879,10 @@ function avaliacaoParaFrontend(row) {
 
 garantirTabelaAvaliacoes().catch((error) => {
   console.error('Erro ao garantir tabela de avaliações:', error.message);
+});
+
+garantirSistemaIndicacoes().catch((error) => {
+  console.error('Erro ao garantir sistema de indicações:', error.message);
 });
 
 
@@ -841,17 +1047,38 @@ app.post('/api/cadastro', async (req, res) => {
       return res.status(409).json({ erro: 'Esse WhatsApp já possui cadastro.' });
     }
 
+    await garantirSistemaIndicacoes();
+
+    const refIndicacao = limparCodigoIndicacao(dados.refIndicacao || dados.ref || req.query.ref || '');
+    let indicadoPorId = null;
+    let indicadoPorCodigo = '';
+
+    if (refIndicacao) {
+      const indicador = await pool.query(
+        'SELECT id, whatsapp, email FROM profissionais WHERE codigo_indicacao=$1 LIMIT 1',
+        [refIndicacao]
+      );
+
+      if (indicador.rowCount > 0 && limparNumero(indicador.rows[0].whatsapp) !== whatsapp) {
+        indicadoPorId = indicador.rows[0].id;
+        indicadoPorCodigo = refIndicacao;
+      }
+    }
+
     const senhaHash = await bcrypt.hash(senha, 10);
     const imagens = await processarImagensProfissional(dados, `profissionais/${whatsapp}`);
+    const codigoIndicacaoNovo = gerarCodigoIndicacaoLocal(dados.nome, whatsapp);
 
     const result = await pool.query(
       `INSERT INTO profissionais (
         nome, email, senha_hash, tipo_profissional, categoria, profissao, servicos,
         palavras_chave, cidade, bairro, atende_outras_cidades, cidades_atendidas,
         forma_atendimento, whatsapp, instagram, descricao, foto_perfil, fotos_trabalhos,
+        codigo_indicacao, indicado_por_id, indicado_por_codigo,
         status, verificado, plano_atual, plano_status
       ) VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb,$13,$14,$15,$16,$17,$18::jsonb,
+        $19,$20,$21,
         'pendente', false, 'Gratuito', 'ativo'
       ) RETURNING *`,
       [
@@ -872,7 +1099,10 @@ app.post('/api/cadastro', async (req, res) => {
         dados.instagram || null,
         dados.descricao || null,
         imagens.fotoPerfil || null,
-        JSON.stringify(imagens.fotosTrabalhos || [])
+        JSON.stringify(imagens.fotosTrabalhos || []),
+        codigoIndicacaoNovo,
+        indicadoPorId,
+        indicadoPorCodigo || null
       ]
     );
 
@@ -914,6 +1144,10 @@ app.get('/api/me', autenticar, async (req, res) => {
 
     if (result.rowCount === 0) {
       return res.status(404).json({ erro: 'Profissional não encontrado.' });
+    }
+
+    if (!result.rows[0].codigo_indicacao) {
+      result.rows[0].codigo_indicacao = await garantirCodigoIndicacao(req.user.id);
     }
 
     res.json(profissionalParaFrontend(result.rows[0]));
@@ -1038,6 +1272,232 @@ async function listarAvaliacoesAdmin(req, res) {
   }
 }
 
+
+
+app.get('/api/me/indicacoes', autenticarProfissional, async (req, res) => {
+  try {
+    await garantirSistemaIndicacoes();
+    await garantirCodigoIndicacao(req.profissional.id);
+    await liberarIndicacoesVencidas(req.profissional.id);
+
+    const profissional = await pool.query('SELECT id, nome, codigo_indicacao FROM profissionais WHERE id=$1', [req.profissional.id]);
+    if (profissional.rowCount === 0) return res.status(404).json({ erro: 'Profissional não encontrado.' });
+
+    const codigo = profissional.rows[0].codigo_indicacao || await garantirCodigoIndicacao(req.profissional.id);
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const link = `${baseUrl}/cadastro.html?ref=${encodeURIComponent(codigo)}`;
+
+    const indicacoes = await pool.query(
+      `SELECT i.*, p.nome AS indicado_nome, p.whatsapp AS indicado_whatsapp, p.email AS indicado_email, p.status AS indicado_status, p.plano_atual AS indicado_plano
+       FROM indicacoes i
+       LEFT JOIN profissionais p ON p.id = i.indicado_id
+       WHERE i.indicador_id=$1
+       ORDER BY i.criado_em DESC`,
+      [req.profissional.id]
+    );
+
+    const saques = await pool.query(
+      `SELECT * FROM saques_indicacoes
+       WHERE profissional_id=$1
+       ORDER BY solicitado_em DESC
+       LIMIT 30`,
+      [req.profissional.id]
+    );
+
+    const resumo = indicacoes.rows.reduce((acc, item) => {
+      const valor = Number(item.valor_comissao || 0);
+      acc.totalIndicacoes += 1;
+      if (item.status === 'disponivel') acc.saldoDisponivel += valor;
+      if (item.status === 'pendente_liberacao' || item.status === 'aguardando_aprovacao' || item.status === 'pendente') acc.saldoPendente += valor;
+      if (item.status === 'pago') acc.totalPago += valor;
+      if (item.status === 'saque_solicitado') acc.saldoEmSaque += valor;
+      if (['disponivel','pendente_liberacao','saque_solicitado','pago'].includes(item.status)) acc.assinaturasConfirmadas += 1;
+      return acc;
+    }, { totalIndicacoes: 0, assinaturasConfirmadas: 0, saldoDisponivel: 0, saldoPendente: 0, saldoEmSaque: 0, totalPago: 0 });
+
+    res.json({
+      codigo,
+      link,
+      comissaoPorIndicacao: INDICACAO_COMISSAO_TOP,
+      saqueMinimo: INDICACAO_SAQUE_MINIMO,
+      diasLiberacao: INDICACAO_DIAS_LIBERACAO,
+      resumo,
+      indicacoes: indicacoes.rows.map(row => ({
+        id: row.id,
+        indicadoNome: row.indicado_nome || 'Profissional indicado',
+        indicadoWhatsapp: row.indicado_whatsapp || '',
+        indicadoStatus: row.indicado_status || '',
+        indicadoPlano: row.indicado_plano || 'Gratuito',
+        planoKey: row.plano_key || '',
+        valorComissao: Number(row.valor_comissao || 0),
+        status: row.status,
+        statusLabel: statusIndicacaoLabel(row.status),
+        motivo: row.motivo || '',
+        liberadoEm: row.liberado_em,
+        criadoEm: row.criado_em,
+        confirmadoEm: row.confirmado_em
+      })),
+      saques: saques.rows
+    });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao carregar indicações.', detalhe: error.message });
+  }
+});
+
+app.post('/api/me/indicacoes/saques', autenticarProfissional, async (req, res) => {
+  try {
+    await garantirSistemaIndicacoes();
+    await liberarIndicacoesVencidas(req.profissional.id);
+
+    const chavePix = String(req.body.chavePix || req.body.chave_pix || '').trim();
+    const tipoChavePix = String(req.body.tipoChavePix || req.body.tipo_chave_pix || '').trim();
+
+    if (!chavePix || chavePix.length < 4) {
+      return res.status(400).json({ erro: 'Informe uma chave Pix válida para solicitar o saque.' });
+    }
+
+    const disponiveis = await pool.query(
+      `SELECT id, valor_comissao FROM indicacoes
+       WHERE indicador_id=$1 AND status='disponivel'
+       ORDER BY confirmado_em ASC NULLS LAST, criado_em ASC`,
+      [req.profissional.id]
+    );
+
+    const total = disponiveis.rows.reduce((soma, item) => soma + Number(item.valor_comissao || 0), 0);
+    if (total < INDICACAO_SAQUE_MINIMO) {
+      return res.status(400).json({ erro: `Saldo insuficiente. O saque mínimo é R$ ${INDICACAO_SAQUE_MINIMO.toFixed(2).replace('.', ',')}.` });
+    }
+
+    const ids = disponiveis.rows.map(item => item.id);
+    await pool.query('BEGIN');
+    try {
+      const saque = await pool.query(
+        `INSERT INTO saques_indicacoes (profissional_id, valor, chave_pix, tipo_chave_pix, status, indicacoes_ids)
+         VALUES ($1,$2,$3,$4,'aguardando',$5::jsonb)
+         RETURNING *`,
+        [req.profissional.id, total, chavePix, tipoChavePix || null, JSON.stringify(ids)]
+      );
+
+      await pool.query(
+        `UPDATE indicacoes
+         SET status='saque_solicitado', saque_id=$1, atualizado_em=NOW()
+         WHERE indicador_id=$2 AND status='disponivel'`,
+        [saque.rows[0].id, req.profissional.id]
+      );
+
+      await pool.query('COMMIT');
+      res.status(201).json({ mensagem: 'Solicitação de saque enviada para análise do admin.', saque: saque.rows[0] });
+    } catch (error) {
+      await pool.query('ROLLBACK');
+      throw error;
+    }
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao solicitar saque.', detalhe: error.message });
+  }
+});
+
+app.get('/api/admin/indicacoes', autenticarAdmin, async (_req, res) => {
+  try {
+    await garantirSistemaIndicacoes();
+    await liberarIndicacoesVencidas();
+
+    const indicacoes = await pool.query(
+      `SELECT i.*, ind.nome AS indicador_nome, ind.whatsapp AS indicador_whatsapp,
+              p.nome AS indicado_nome, p.whatsapp AS indicado_whatsapp, p.status AS indicado_status, p.plano_atual AS indicado_plano
+       FROM indicacoes i
+       LEFT JOIN profissionais ind ON ind.id = i.indicador_id
+       LEFT JOIN profissionais p ON p.id = i.indicado_id
+       ORDER BY i.criado_em DESC
+       LIMIT 500`
+    );
+
+    const saques = await pool.query(
+      `SELECT s.*, p.nome AS profissional_nome, p.whatsapp AS profissional_whatsapp
+       FROM saques_indicacoes s
+       LEFT JOIN profissionais p ON p.id = s.profissional_id
+       ORDER BY s.solicitado_em DESC
+       LIMIT 300`
+    );
+
+    res.json({ indicacoes: indicacoes.rows, saques: saques.rows, saqueMinimo: INDICACAO_SAQUE_MINIMO, comissaoPorIndicacao: INDICACAO_COMISSAO_TOP });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao listar indicações.', detalhe: error.message });
+  }
+});
+
+app.patch('/api/admin/indicacoes/saques/:id/pagar', autenticarAdmin, async (req, res) => {
+  try {
+    await garantirSistemaIndicacoes();
+    const id = Number(req.params.id);
+    const observacao = String(req.body.observacao || '').trim();
+
+    await pool.query('BEGIN');
+    try {
+      const saque = await pool.query(
+        `UPDATE saques_indicacoes
+         SET status='pago', pago_em=NOW(), observacao_admin=$1, atualizado_em=NOW()
+         WHERE id=$2 AND status='aguardando'
+         RETURNING *`,
+        [observacao || null, id]
+      );
+
+      if (saque.rowCount === 0) {
+        await pool.query('ROLLBACK');
+        return res.status(404).json({ erro: 'Saque não encontrado ou já finalizado.' });
+      }
+
+      await pool.query(
+        `UPDATE indicacoes SET status='pago', atualizado_em=NOW() WHERE saque_id=$1 AND status='saque_solicitado'`,
+        [id]
+      );
+
+      await pool.query('COMMIT');
+      res.json({ mensagem: 'Saque marcado como pago.', saque: saque.rows[0] });
+    } catch (error) {
+      await pool.query('ROLLBACK');
+      throw error;
+    }
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao marcar saque como pago.', detalhe: error.message });
+  }
+});
+
+app.patch('/api/admin/indicacoes/saques/:id/recusar', autenticarAdmin, async (req, res) => {
+  try {
+    await garantirSistemaIndicacoes();
+    const id = Number(req.params.id);
+    const observacao = String(req.body.observacao || '').trim();
+
+    await pool.query('BEGIN');
+    try {
+      const saque = await pool.query(
+        `UPDATE saques_indicacoes
+         SET status='recusado', observacao_admin=$1, atualizado_em=NOW()
+         WHERE id=$2 AND status='aguardando'
+         RETURNING *`,
+        [observacao || 'Saque recusado pelo admin.', id]
+      );
+
+      if (saque.rowCount === 0) {
+        await pool.query('ROLLBACK');
+        return res.status(404).json({ erro: 'Saque não encontrado ou já finalizado.' });
+      }
+
+      await pool.query(
+        `UPDATE indicacoes SET status='disponivel', saque_id=NULL, atualizado_em=NOW() WHERE saque_id=$1 AND status='saque_solicitado'`,
+        [id]
+      );
+
+      await pool.query('COMMIT');
+      res.json({ mensagem: 'Saque recusado e saldo devolvido ao profissional.', saque: saque.rows[0] });
+    } catch (error) {
+      await pool.query('ROLLBACK');
+      throw error;
+    }
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao recusar saque.', detalhe: error.message });
+  }
+});
 
 app.get('/api/debug/efi', (req, res) => {
   const senha = req.headers['x-admin-password'] || req.query.admin || '';
@@ -1297,6 +1757,8 @@ app.patch('/api/admin/profissionais/:id/aprovar', autenticarAdmin, async (req, r
     if (result.rowCount === 0) {
       return res.status(404).json({ erro: 'Profissional não encontrado.' });
     }
+
+    await processarIndicacaoDoIndicado(req.params.id);
 
     res.json({ mensagem: 'Profissional aprovado.', profissional: profissionalParaFrontend(result.rows[0]) });
   } catch (error) {

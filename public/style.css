@@ -15126,3 +15126,244 @@ footer:not(.rodape-minimo) .rodape-admin-link {
     box-sizing: border-box !important;
   }
 }
+
+/* ================================================= */
+/* SISTEMA DE INDICAÇÕES - NORTE SERVIC */
+/* ================================================= */
+
+.cadastro-ref-alerta {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #DBEAFE, #EFF6FF);
+  border: 1px solid rgba(29, 78, 216, .18);
+  color: #0F172A;
+}
+
+.cadastro-ref-alerta strong {
+  font-weight: 900;
+  color: #1D4ED8;
+}
+
+.cadastro-ref-alerta span {
+  color: #64748B;
+  font-weight: 800;
+}
+
+.painel-indicacoes-card {
+  margin-top: 22px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.indicacoes-topo h3 {
+  margin: 10px 0 8px;
+  font-size: clamp(1.35rem, 3.8vw, 2rem);
+  color: #0F172A;
+}
+
+.indicacoes-topo p {
+  color: #64748B;
+  line-height: 1.45;
+  margin: 0 0 16px;
+}
+
+.indicacoes-link-box {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 22px;
+  padding: 14px;
+  margin: 14px 0;
+}
+
+.indicacoes-link-box small,
+.indicacoes-link-box span {
+  display: block;
+  color: #64748B;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.indicacoes-link-box div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.indicacoes-link-box input {
+  width: 100%;
+  border: 1px solid #DBEAFE;
+  background: #FFFFFF;
+  color: #0F172A;
+  border-radius: 14px;
+  padding: 12px 13px;
+  font-weight: 800;
+  outline: none;
+}
+
+.indicacoes-link-box button,
+.indicacoes-saque-box button {
+  border: none;
+  border-radius: 14px;
+  padding: 12px 16px;
+  background: #1D4ED8;
+  color: #FFFFFF;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(29,78,216,.2);
+}
+
+.indicacoes-saque-box button:disabled {
+  opacity: .48;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.indicacoes-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.indicacoes-stats article {
+  border-radius: 18px;
+  padding: 14px 12px;
+  background: linear-gradient(180deg, #FFFFFF, #F8FAFC);
+  border: 1px solid #E2E8F0;
+  text-align: center;
+}
+
+.indicacoes-stats strong {
+  display: block;
+  color: #1D4ED8;
+  font-size: 1.25rem;
+  font-weight: 950;
+}
+
+.indicacoes-stats span {
+  color: #64748B;
+  font-size: .78rem;
+  font-weight: 800;
+}
+
+.indicacoes-saque-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #0F172A, #1D4ED8);
+  color: #FFFFFF;
+  margin: 16px 0;
+}
+
+.indicacoes-saque-box strong,
+.indicacoes-saque-box span {
+  display: block;
+}
+
+.indicacoes-saque-box span {
+  color: rgba(255,255,255,.76);
+  font-weight: 700;
+  margin-top: 3px;
+}
+
+.indicacoes-lista {
+  margin-top: 16px;
+}
+
+.indicacoes-lista h4 {
+  margin: 0 0 10px;
+  color: #0F172A;
+}
+
+.indicacao-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.indicacao-item strong,
+.indicacao-item span,
+.indicacao-item b {
+  display: block;
+}
+
+.indicacao-item strong {
+  color: #0F172A;
+  font-weight: 900;
+}
+
+.indicacao-item span {
+  color: #64748B;
+  font-size: .86rem;
+  margin-top: 2px;
+}
+
+.indicacao-item b {
+  white-space: nowrap;
+  color: #1D4ED8;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #DBEAFE;
+}
+
+.indicacao-item b.status-ok {
+  background: #DCFCE7;
+  color: #15803D;
+}
+
+.indicacao-item b.status-alerta {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.indicacao-item b.status-erro {
+  background: #FEE2E2;
+  color: #B91C1C;
+}
+
+.indicacoes-vazio {
+  padding: 14px;
+  background: #F8FAFC;
+  color: #64748B;
+  border-radius: 16px;
+  border: 1px dashed #CBD5E1;
+  font-weight: 800;
+}
+
+.admin-indicacoes-content {
+  margin-top: 28px;
+}
+
+.admin-section-title-menor {
+  margin-top: 22px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 760px) {
+  .indicacoes-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .indicacoes-saque-box {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .indicacoes-link-box div {
+    grid-template-columns: 1fr;
+  }
+
+  .indicacao-item {
+    align-items: flex-start;
+  }
+}

@@ -1260,6 +1260,7 @@ let cidadesSelecionadasCadastro = [];
 let filtroAdminAtual = "todos";
 let filtroPagamentosAdminAtual = "todos";
 let pagamentosAdminCache = [];
+let indicacoesAdminCache = { indicacoes: [], saques: [] };
 let profissionaisCache = [];
 let fotosTrabalhosEdicaoAtuais = [];
 
@@ -1303,6 +1304,37 @@ async function apiFetch(url, options = {}) {
   }
 
   return dados;
+}
+
+function obterCodigoIndicacaoDaURL() {
+  const params = new URLSearchParams(window.location.search);
+  const ref = (params.get("ref") || params.get("indicacao") || "").trim();
+  if (ref) {
+    localStorage.setItem("norteServicCodigoIndicacaoRecebido", ref);
+    return ref;
+  }
+  return localStorage.getItem("norteServicCodigoIndicacaoRecebido") || "";
+}
+
+function formatarMoedaIndicacao(valor) {
+  return Number(valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function formatarDataIndicacao(data) {
+  if (!data) return "-";
+  try {
+    return new Date(data).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  } catch (_) {
+    return "-";
+  }
+}
+
+function statusIndicacaoClasse(status = "") {
+  const normalizado = String(status || "").toLowerCase();
+  if (["disponivel", "pago"].includes(normalizado)) return "ok";
+  if (["cancelada", "recusado"].includes(normalizado)) return "erro";
+  if (["saque_solicitado", "aguardando", "pendente_liberacao"].includes(normalizado)) return "alerta";
+  return "neutro";
 }
 
 function getTokenProfissional() {
@@ -2230,6 +2262,18 @@ function dadosFormularioProfissional(incluirSenha = true) {
   return dados;
 }
 
+
+function mostrarAvisoIndicacaoCadastro() {
+  const ref = obterCodigoIndicacaoDaURL();
+  if (!ref) return;
+  const topo = document.querySelector(".cadastro-form-topo");
+  if (!topo || document.querySelector(".cadastro-ref-alerta")) return;
+  const aviso = document.createElement("div");
+  aviso.className = "cadastro-ref-alerta";
+  aviso.innerHTML = `<strong>Cadastro por indicação ativo</strong><span>Código aplicado: ${ref}</span>`;
+  topo.appendChild(aviso);
+}
+
 function iniciarCadastroBackend() {
   const formCadastro = document.getElementById("formCadastro");
   if (!formCadastro) return;
@@ -2270,6 +2314,8 @@ function iniciarCadastroBackend() {
       await validarFotoPerfil1000(arquivoFotoPerfil, true);
 
       const dados = dadosFormularioProfissional(true);
+      const refIndicacao = obterCodigoIndicacaoDaURL();
+      if (refIndicacao) dados.refIndicacao = refIndicacao;
       dados.fotoPerfil = await converterImagemParaBase64(arquivoFotoPerfil, { maxSize: 700, qualidade: 0.82, exigirQuadrada: true });
       dados.fotosTrabalhos = (await converterVariasImagensParaBase64(arquivosTrabalhos)).slice(0, 3);
 
@@ -2715,6 +2761,101 @@ function exigirLoginRedirect() {
   return true;
 }
 
+
+async function carregarMinhasIndicacoes() {
+  const token = getTokenProfissional();
+  if (!token) throw new Error("Login necessário.");
+  return apiFetch("/api/me/indicacoes", {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+}
+
+async function copiarTextoNorteServic(texto) {
+  try {
+    await navigator.clipboard.writeText(texto);
+    alert("Link copiado com sucesso.");
+  } catch (_) {
+    prompt("Copie seu link de indicação:", texto);
+  }
+}
+
+async function solicitarSaqueIndicacao() {
+  try {
+    const chavePix = prompt("Informe sua chave Pix para receber o saque:");
+    if (!chavePix) return;
+    const tipoChavePix = prompt("Tipo da chave Pix: CPF, celular, e-mail ou aleatória", "");
+    const token = getTokenProfissional();
+    const resposta = await apiFetch("/api/me/indicacoes/saques", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ chavePix, tipoChavePix })
+    });
+    alert(resposta.mensagem || "Solicitação enviada para o admin.");
+    carregarPainelProfissional();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function renderizarPainelIndicacoes(dados) {
+  const box = document.getElementById("painelIndicacoesProfissional");
+  if (!box || !dados) return;
+
+  const resumo = dados.resumo || {};
+  const saldoDisponivel = Number(resumo.saldoDisponivel || 0);
+  const saqueMinimo = Number(dados.saqueMinimo || 100);
+  const podeSacar = saldoDisponivel >= saqueMinimo;
+  const indicacoes = Array.isArray(dados.indicacoes) ? dados.indicacoes.slice(0, 5) : [];
+  const saques = Array.isArray(dados.saques) ? dados.saques.slice(0, 3) : [];
+
+  box.innerHTML = `
+    <div class="indicacoes-topo">
+      <span class="painel-box-badge">Programa de indicação</span>
+      <h3>Indique profissionais e ganhe</h3>
+      <p>Ganhe <strong>${formatarMoedaIndicacao(dados.comissaoPorIndicacao || 10)}</strong> quando seu indicado assinar o plano de R$ 39,90. A comissão libera após ${dados.diasLiberacao || 5} dias.</p>
+    </div>
+
+    <div class="indicacoes-link-box">
+      <small>Seu link exclusivo</small>
+      <div>
+        <input value="${dados.link || ""}" readonly>
+        <button type="button" onclick="copiarTextoNorteServic('${String(dados.link || "").replace(/'/g, "\\'")}')">Copiar</button>
+      </div>
+      <span>Código: <strong>${dados.codigo || ""}</strong></span>
+    </div>
+
+    <div class="indicacoes-stats">
+      <article><strong>${resumo.totalIndicacoes || 0}</strong><span>Indicados</span></article>
+      <article><strong>${resumo.assinaturasConfirmadas || 0}</strong><span>Assinaturas</span></article>
+      <article><strong>${formatarMoedaIndicacao(saldoDisponivel)}</strong><span>Disponível</span></article>
+      <article><strong>${formatarMoedaIndicacao(resumo.saldoPendente || 0)}</strong><span>Pendente</span></article>
+    </div>
+
+    <div class="indicacoes-saque-box">
+      <div>
+        <strong>Saque mínimo: ${formatarMoedaIndicacao(saqueMinimo)}</strong>
+        <span>${podeSacar ? "Você já pode solicitar saque." : `Faltam ${formatarMoedaIndicacao(Math.max(0, saqueMinimo - saldoDisponivel))} para liberar saque.`}</span>
+      </div>
+      <button type="button" ${podeSacar ? "" : "disabled"} onclick="solicitarSaqueIndicacao()">Solicitar saque</button>
+    </div>
+
+    <div class="indicacoes-lista">
+      <h4>Últimas indicações</h4>
+      ${indicacoes.length ? indicacoes.map(item => `
+        <div class="indicacao-item">
+          <div>
+            <strong>${item.indicadoNome || "Profissional indicado"}</strong>
+            <span>${item.statusLabel || item.status || "Pendente"} · ${formatarDataIndicacao(item.criadoEm)}</span>
+          </div>
+          <b class="status-${statusIndicacaoClasse(item.status)}">${formatarMoedaIndicacao(item.valorComissao || 0)}</b>
+        </div>
+      `).join("") : `<p class="indicacoes-vazio">Compartilhe seu link para começar a indicar.</p>`}
+    </div>
+
+    ${saques.length ? `<div class="indicacoes-lista"><h4>Saques recentes</h4>${saques.map(s => `<div class="indicacao-item"><div><strong>${formatarMoedaIndicacao(s.valor)}</strong><span>${s.status} · ${formatarDataIndicacao(s.solicitado_em)}</span></div><b>${s.chave_pix || ""}</b></div>`).join("")}</div>` : ""}
+  `;
+}
+
 async function carregarPainelProfissional() {
   const header = document.getElementById("painelProfissionalHeader");
   const resumo = document.getElementById("painelResumoProfissional");
@@ -2722,6 +2863,7 @@ async function carregarPainelProfissional() {
   const linkPerfil = document.getElementById("linkPerfilPublico");
   const painelPlano = document.getElementById("painelPlanoProfissional");
   const painelDicas = document.getElementById("painelDicasProfissional");
+  const painelIndicacoes = document.getElementById("painelIndicacoesProfissional");
 
   if (!header || !resumo || !status) return;
   if (!exigirLoginRedirect()) return;
@@ -2787,6 +2929,15 @@ async function carregarPainelProfissional() {
           <span>WhatsApp ativo</span>
         </div>
       `;
+    }
+
+    if (painelIndicacoes) {
+      try {
+        const dadosIndicacoes = await carregarMinhasIndicacoes();
+        renderizarPainelIndicacoes(dadosIndicacoes);
+      } catch (erroIndicacoes) {
+        painelIndicacoes.innerHTML = `<span class="painel-box-badge">Programa de indicação</span><h3>Indicações indisponíveis</h3><p>${erroIndicacoes.message}</p>`;
+      }
     }
 
     if (linkPerfil) {
@@ -3181,6 +3332,113 @@ async function mostrarAdminPagamentos(profissionais = []) {
 }
 
 
+
+async function buscarAdminIndicacoes() {
+  return apiFetch("/api/admin/indicacoes", {
+    headers: { "x-admin-password": getAdminPassword() }
+  });
+}
+
+function renderizarAdminIndicacoes(dados = {}) {
+  const resumoBox = document.getElementById("adminIndicacoesResumo");
+  const saquesBox = document.getElementById("listaAdminSaquesIndicacoes");
+  const indicacoesBox = document.getElementById("listaAdminIndicacoes");
+  const indicacoes = Array.isArray(dados.indicacoes) ? dados.indicacoes : [];
+  const saques = Array.isArray(dados.saques) ? dados.saques : [];
+
+  if (resumoBox) {
+    const disponivel = indicacoes.filter(i => i.status === "disponivel").reduce((s, i) => s + Number(i.valor_comissao || 0), 0);
+    const pendente = indicacoes.filter(i => ["pendente_liberacao", "aguardando_aprovacao", "pendente"].includes(i.status)).reduce((s, i) => s + Number(i.valor_comissao || 0), 0);
+    const pago = indicacoes.filter(i => i.status === "pago").reduce((s, i) => s + Number(i.valor_comissao || 0), 0);
+    const aguardandoSaque = saques.filter(s => s.status === "aguardando");
+    resumoBox.innerHTML = `
+      <article class="finance-card destaque"><span>Saques aguardando</span><strong>${aguardandoSaque.length}</strong><small>Aprovação manual</small></article>
+      <article class="finance-card"><span>Saldo disponível</span><strong>${formatarMoedaBR(disponivel)}</strong><small>Comissões liberadas</small></article>
+      <article class="finance-card"><span>Pendente</span><strong>${formatarMoedaBR(pendente)}</strong><small>Liberação/aprovação</small></article>
+      <article class="finance-card"><span>Pago</span><strong>${formatarMoedaBR(pago)}</strong><small>Comissões quitadas</small></article>
+    `;
+  }
+
+  if (saquesBox) {
+    const listaSaques = saques.slice(0, 50);
+    saquesBox.innerHTML = listaSaques.length ? listaSaques.map(s => {
+      const whatsapp = s.profissional_whatsapp || "";
+      return `
+        <article class="admin-pagamento-card status-${s.status === "pago" ? "pago" : s.status === "recusado" ? "expirado" : "aguardando"}">
+          <div class="pagamento-card-topo">
+            <div><span class="pagamento-status ${s.status === "pago" ? "pago" : "aguardando"}">${s.status}</span><h3>${s.profissional_nome || "Profissional"}</h3><p>Chave Pix: ${s.chave_pix || "-"}</p></div>
+            <strong>${formatarMoedaBR(s.valor)}</strong>
+          </div>
+          <div class="pagamento-metricas">
+            <p><span>Solicitado</span><strong>${formatarDataHoraCurta(s.solicitado_em)}</strong></p>
+            <p><span>Tipo chave</span><strong>${s.tipo_chave_pix || "Não informado"}</strong></p>
+            <p><span>WhatsApp</span><strong>${whatsapp || "-"}</strong></p>
+            <p><span>Pago em</span><strong>${formatarDataHoraCurta(s.pago_em) || "-"}</strong></p>
+          </div>
+          <div class="pagamento-acoes">
+            ${whatsapp ? `<a href="${criarLinkWhatsApp(whatsapp)}" target="_blank">WhatsApp</a>` : ""}
+            ${s.status === "aguardando" ? `<button onclick="marcarSaqueIndicacaoPago(${s.id})">Marcar pago</button><button class="alerta" onclick="recusarSaqueIndicacao(${s.id})">Recusar</button>` : ""}
+          </div>
+        </article>
+      `;
+    }).join("") : `<div class="admin-vazio admin-vazio-menor"><h3>Nenhum saque solicitado</h3><p>Quando o profissional atingir R$ 100,00, ele poderá solicitar por aqui.</p></div>`;
+  }
+
+  if (indicacoesBox) {
+    indicacoesBox.innerHTML = indicacoes.length ? indicacoes.slice(0, 80).map(i => `
+      <article class="admin-avaliacao-card">
+        <div class="admin-avaliacao-topo">
+          <div><span class="admin-status status-${statusIndicacaoClasse(i.status)}">${i.status}</span><h3>${i.indicador_nome || "Indicador"} → ${i.indicado_nome || "Indicado"}</h3><p>Plano: ${i.plano_key || "-"} · Libera em: ${formatarDataIndicacao(i.liberado_em)}</p></div>
+          <strong>${formatarMoedaBR(i.valor_comissao || 0)}</strong>
+        </div>
+        <p>${i.motivo || ""}</p>
+      </article>
+    `).join("") : `<div class="admin-vazio admin-vazio-menor"><h3>Nenhuma indicação registrada</h3><p>As indicações aparecerão após uso de link de convite.</p></div>`;
+  }
+}
+
+async function mostrarAdminIndicacoes() {
+  const container = document.getElementById("listaAdminSaquesIndicacoes");
+  if (!container) return;
+  try {
+    indicacoesAdminCache = await buscarAdminIndicacoes();
+    renderizarAdminIndicacoes(indicacoesAdminCache);
+  } catch (error) {
+    container.innerHTML = `<div class="admin-vazio"><h3>Erro nas indicações</h3><p>${error.message}</p></div>`;
+  }
+}
+
+async function marcarSaqueIndicacaoPago(id) {
+  const observacao = prompt("Observação do pagamento manual pela Efí (opcional):", "Pago manualmente pela Efí");
+  try {
+    await apiFetch(`/api/admin/indicacoes/saques/${id}/pagar`, {
+      method: "PATCH",
+      headers: { "x-admin-password": getAdminPassword() },
+      body: JSON.stringify({ observacao })
+    });
+    alert("Saque marcado como pago.");
+    mostrarAdminIndicacoes();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function recusarSaqueIndicacao(id) {
+  const observacao = prompt("Informe o motivo da recusa:", "Dados Pix incorretos ou revisão necessária");
+  if (observacao === null) return;
+  try {
+    await apiFetch(`/api/admin/indicacoes/saques/${id}/recusar`, {
+      method: "PATCH",
+      headers: { "x-admin-password": getAdminPassword() },
+      body: JSON.stringify({ observacao })
+    });
+    alert("Saque recusado e saldo devolvido.");
+    mostrarAdminIndicacoes();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
 async function buscarAdminAvaliacoes(status = "pendente") {
   const senhaAdmin = getAdminPassword();
   const urlPrincipal = `/api/admin/avaliacoes?status=${encodeURIComponent(status)}&_=${Date.now()}`;
@@ -3351,6 +3609,7 @@ async function mostrarAdmin() {
     const salvos = await buscarAdminProfissionais();
     mostrarAdminAvaliacoes();
     mostrarAdminPagamentos(salvos);
+    mostrarAdminIndicacoes();
 
     const pendentes = salvos.filter(p => p.status === "pendente").length;
     const aprovados = salvos.filter(p => p.status === "aprovado").length;
@@ -3986,6 +4245,7 @@ document.addEventListener("DOMContentLoaded", function() {
   preencherCategoriasCadastro();
   ativarProfissaoServicos();
   iniciarCidadeInteligente();
+  mostrarAvisoIndicacaoCadastro();
   iniciarCadastroBackend();
   iniciarLoginProfissional();
   iniciarRecuperacaoSenha();
