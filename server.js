@@ -315,7 +315,7 @@ async function verificarEAtualizarPagamento(pagamento) {
   return {
     ...pagamento,
     status_efi: cobranca?.status || '',
-    mensagem_status: 'Pagamento ainda não identificado pela Efí. Aguarde alguns instantes e tente novamente.'
+    mensagem_status: 'Pagamento não identificado pela Norte Servic. Tente novamente em alguns instantes.'
   };
 }
 

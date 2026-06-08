@@ -2656,7 +2656,7 @@ async function consultarStatusPagamentoEfi() {
       botaoJaPaguei.innerText = "Verificando...";
     }
 
-    if (statusEl) statusEl.innerText = 'Consultando pagamento na Efí...';
+    if (statusEl) statusEl.innerText = 'Verificando pagamento...';
 
     const resposta = await apiFetch(`/api/pagamentos/${pagamentoEfiAtual.id}/status`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -2672,7 +2672,7 @@ async function consultarStatusPagamentoEfi() {
     }
 
     if (statusEl) {
-      statusEl.innerText = pagamentoEfiAtual.mensagem_status || 'Pagamento ainda não identificado. Aguarde alguns instantes e toque em “Já paguei” novamente.';
+      statusEl.innerText = pagamentoEfiAtual.mensagem_status || 'Pagamento não identificado pela Norte Servic. Tente novamente em alguns instantes.';
     }
   } catch (error) {
     if (statusEl) statusEl.innerText = error.message || 'Erro ao consultar pagamento.';
