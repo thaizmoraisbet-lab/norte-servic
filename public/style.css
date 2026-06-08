@@ -15367,3 +15367,382 @@ footer:not(.rodape-minimo) .rodape-admin-link {
     align-items: flex-start;
   }
 }
+
+/* ================================================= */
+/* DOCUMENTOS LEGAIS, LGPD E INDICAÇÕES - NORTE SERVIC */
+/* ================================================= */
+
+.rodape-legal {
+  display: grid;
+  gap: 10px;
+  text-align: center;
+  padding: 24px 16px;
+  background: #0F172A;
+  color: rgba(255,255,255,.86);
+}
+
+.rodape-legal nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rodape-legal nav a,
+.rodape-legal .rodape-admin-link {
+  color: #DBEAFE;
+  text-decoration: none;
+  font-size: .86rem;
+  font-weight: 800;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+.rodape-legal p {
+  margin: 0;
+  font-size: .86rem;
+  color: rgba(255,255,255,.72);
+}
+
+.legal-page {
+  background: #F8FAFC;
+  min-height: 100vh;
+  padding: 24px 16px 42px;
+}
+
+.legal-hero {
+  max-width: 980px;
+  margin: 0 auto 20px;
+  padding: 30px 22px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, #0F172A, #1D4ED8);
+  color: #fff;
+  box-shadow: 0 18px 50px rgba(15,23,42,.16);
+}
+
+.legal-hero span {
+  display: inline-flex;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.12);
+  font-size: .78rem;
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.legal-hero h1 {
+  margin: 14px 0 10px;
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  line-height: 1.05;
+}
+
+.legal-hero p,
+.legal-hero small {
+  color: rgba(255,255,255,.82);
+  line-height: 1.55;
+}
+
+.legal-tabs {
+  max-width: 980px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 18px;
+}
+
+.legal-tab-buttons {
+  align-self: start;
+  position: sticky;
+  top: 86px;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 24px;
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 14px 40px rgba(15,23,42,.08);
+}
+
+.legal-tab-buttons button {
+  border: 0;
+  background: #F8FAFC;
+  color: #0F172A;
+  border-radius: 16px;
+  padding: 12px 14px;
+  font-weight: 900;
+  text-align: left;
+  cursor: pointer;
+}
+
+.legal-tab-buttons button.ativo {
+  background: #1D4ED8;
+  color: #fff;
+  box-shadow: 0 10px 28px rgba(29,78,216,.24);
+}
+
+.legal-panel {
+  display: none;
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 28px;
+  padding: 28px;
+  box-shadow: 0 14px 40px rgba(15,23,42,.08);
+}
+
+.legal-panel.ativo { display: block; }
+
+.legal-panel h2 {
+  margin: 0 0 14px;
+  color: #0F172A;
+  font-size: clamp(1.45rem, 4vw, 2rem);
+}
+
+.legal-panel h3 {
+  margin: 18px 0 8px;
+  color: #1D4ED8;
+  font-size: 1rem;
+}
+
+.legal-panel p,
+.legal-panel li {
+  color: #475569;
+  line-height: 1.65;
+  font-size: .98rem;
+}
+
+.legal-panel ul { padding-left: 20px; }
+
+.legal-highlight {
+  display: grid;
+  gap: 4px;
+  margin: 18px 0;
+  padding: 16px;
+  border-radius: 18px;
+  background: #DBEAFE;
+  color: #0F172A;
+  border: 1px solid rgba(29,78,216,.16);
+}
+
+.cadastro-legal-aceite {
+  border: 1px solid #DBEAFE !important;
+  background: linear-gradient(180deg, #FFFFFF, #F8FAFC);
+}
+
+.legal-checkbox-linha {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #E2E8F0;
+  background: #fff;
+  border-radius: 16px;
+  margin: 10px 0;
+  color: #0F172A;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.legal-checkbox-linha input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  flex: 0 0 auto;
+  accent-color: #1D4ED8;
+}
+
+.legal-checkbox-linha a { color: #1D4ED8; }
+
+.legal-aceite-alerta {
+  outline: 3px solid rgba(245, 158, 11, .22);
+}
+
+.painel-privacidade-card {
+  display: grid;
+  gap: 14px;
+}
+
+.painel-privacidade-topo h3 {
+  margin: 8px 0 6px;
+  color: #0F172A;
+}
+
+.painel-privacidade-topo p,
+.painel-privacidade-card small {
+  color: #64748B;
+  line-height: 1.45;
+}
+
+.painel-privacidade-acoes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 10px;
+}
+
+.painel-privacidade-acoes button,
+.painel-privacidade-acoes a {
+  border: 0;
+  text-decoration: none;
+  text-align: center;
+  border-radius: 16px;
+  padding: 12px 10px;
+  font-weight: 900;
+  background: #0F172A;
+  color: #fff;
+  cursor: pointer;
+}
+
+.painel-privacidade-acoes .alerta {
+  background: #FEF2F2;
+  color: #B91C1C;
+  border: 1px solid #FECACA;
+}
+
+.home-indique-ganhe,
+.planos-indique-card {
+  width: min(1120px, calc(100% - 32px));
+  margin: 26px auto;
+  border-radius: 28px;
+  background: linear-gradient(135deg, #0F172A, #1D4ED8);
+  color: #fff;
+  box-shadow: 0 18px 50px rgba(15,23,42,.16);
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.home-indique-ganhe {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  padding: 24px;
+}
+
+.home-indique-ganhe span,
+.planos-indique-card span {
+  display: inline-flex;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.12);
+  font-size: .76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.home-indique-ganhe h2,
+.planos-indique-card h2 {
+  margin: 10px 0 8px;
+  font-size: clamp(1.4rem, 4vw, 2.1rem);
+}
+
+.home-indique-ganhe p,
+.home-indique-ganhe small,
+.planos-indique-card p {
+  color: rgba(255,255,255,.82);
+  line-height: 1.5;
+}
+
+.home-indique-ganhe a,
+.planos-indique-card a {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 210px;
+  border-radius: 16px;
+  padding: 13px 16px;
+  background: #fff;
+  color: #1D4ED8;
+  text-decoration: none;
+  font-weight: 900;
+  box-shadow: 0 12px 26px rgba(0,0,0,.16);
+}
+
+.planos-indique-ganhe {
+  padding: 0 0 4px;
+}
+
+.planos-indique-card {
+  padding: 24px;
+}
+
+.planos-indique-regras {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+
+.planos-indique-regras strong {
+  display: inline-flex;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.indicacoes-saque-box-completo {
+  gap: 14px;
+}
+
+.indicacoes-saque-head {
+  display: grid;
+  gap: 3px;
+}
+
+.indicacoes-saque-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 10px;
+}
+
+.indicacoes-saque-form label {
+  display: grid;
+  gap: 6px;
+  color: #0F172A;
+  font-weight: 900;
+  font-size: .84rem;
+}
+
+.indicacoes-saque-form input,
+.indicacoes-saque-form select {
+  width: 100%;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 12px;
+  background: #fff;
+  color: #0F172A;
+}
+
+.admin-lgpd-card p { margin: 4px 0; }
+
+@media (max-width: 760px) {
+  .legal-page { padding: 14px 12px 28px; }
+  .legal-hero { padding: 24px 18px; border-radius: 24px; }
+  .legal-tabs { grid-template-columns: 1fr; gap: 12px; }
+  .legal-tab-buttons {
+    position: static;
+    display: flex;
+    overflow-x: auto;
+    border-radius: 20px;
+    padding: 8px;
+    gap: 8px;
+  }
+  .legal-tab-buttons button {
+    white-space: nowrap;
+    flex: 0 0 auto;
+    padding: 11px 13px;
+    font-size: .82rem;
+  }
+  .legal-panel { padding: 20px 16px; border-radius: 22px; }
+  .rodape-legal nav { gap: 6px; }
+  .rodape-legal nav a { font-size: .78rem; padding: 7px 9px; }
+  .legal-checkbox-linha { font-size: .88rem; }
+  .painel-privacidade-acoes { grid-template-columns: 1fr; }
+  .home-indique-ganhe { flex-direction: column; align-items: stretch; padding: 20px; text-align: left; }
+  .home-indique-ganhe a, .planos-indique-card a { width: 100%; min-width: 0; }
+  .planos-indique-card { padding: 20px; border-radius: 24px; }
+  .planos-indique-regras { display: grid; }
+  .indicacoes-saque-form { grid-template-columns: 1fr; }
+}

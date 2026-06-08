@@ -6,7 +6,7 @@
 
   <title>Painel do Profissional - Norte Servic</title>
 
-  <link rel="stylesheet" href="style.css?v=compacto-mobile-20260608">
+  <link rel="stylesheet" href="style.css?v=legal-lgpd-indicacoes-20260608">
 </head>
 <body>
 
@@ -56,12 +56,35 @@
     </section>
 
     <section class="painel-extra-card painel-indicacoes-card" id="painelIndicacoesProfissional"></section>
+
+    <section class="painel-extra-card painel-privacidade-card" id="painelPrivacidadeDados">
+      <div class="painel-privacidade-topo">
+        <span class="painel-box-badge">LGPD</span>
+        <h3>Privacidade e Dados</h3>
+        <p>Gerencie seus dados pessoais cadastrados na Norte Servic.</p>
+      </div>
+      <div class="painel-privacidade-acoes">
+        <button type="button" onclick="baixarMeusDados()">Baixar meus dados</button>
+        <a href="editar-perfil.html">Editar meus dados</a>
+        <button type="button" class="alerta" onclick="solicitarExclusaoConta()">Solicitar exclusão da conta</button>
+      </div>
+      <small>A exclusão será enviada ao painel administrativo para análise. Após aprovação, os dados poderão ser removidos ou anonimizados.</small>
+    </section>
+
   </main>
 
-  <footer class="rodape-minimo">
+  <footer class="rodape-minimo rodape-legal">
+    <nav>
+      <a href="documentos-legais.html#termos">Termos de Uso</a>
+      <a href="documentos-legais.html#privacidade">Privacidade</a>
+      <a href="documentos-legais.html#cookies">Cookies</a>
+      <a href="documentos-legais.html#lgpd">LGPD</a>
+      <a href="login.html">Contato</a>
+    </nav>
+    <p>Norte Servic — CNPJ 63.906.559/0001-03</p>
     <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
   </footer>
 
-  <script src="script.js?v=compacto-mobile-20260608"></script>
+  <script src="script.js?v=legal-lgpd-indicacoes-20260608"></script>
 </body>
 </html>

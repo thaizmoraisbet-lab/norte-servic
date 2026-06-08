@@ -1474,6 +1474,16 @@ function getAdminPassword() {
   return sessionStorage.getItem(ADMIN_PASSWORD_STORAGE) || "";
 }
 
+function headersAuth() {
+  const token = getTokenProfissional();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+function headersAdmin() {
+  const senha = getAdminPassword();
+  return senha ? { "x-admin-password": senha } : {};
+}
+
 function setAdminPassword(senha) {
   sessionStorage.setItem(ADMIN_PASSWORD_STORAGE, senha);
 }
@@ -2252,7 +2262,11 @@ function dadosFormularioProfissional(incluirSenha = true) {
     formaAtendimento: document.getElementById("formaAtendimento")?.value || "",
     whatsapp: limparNumero(document.getElementById("whatsapp")?.value || ""),
     instagram: document.getElementById("instagram")?.value.trim() || "",
-    descricao: document.getElementById("descricao")?.value.trim() || ""
+    descricao: document.getElementById("descricao")?.value.trim() || "",
+    aceitouTermos: !!document.getElementById("aceitouTermos")?.checked,
+    aceitouPrivacidade: !!document.getElementById("aceitouPrivacidade")?.checked,
+    termosVersao: "2026.06",
+    privacidadeVersao: "2026.06"
   };
 
   if (incluirSenha) {
@@ -2300,6 +2314,16 @@ function iniciarCadastroBackend() {
 
     if (!servicosSelecionados) {
       if (mensagemCadastro) mensagemCadastro.innerText = "Selecione pelo menos um serviço que você realiza.";
+      return;
+    }
+
+    const aceitouTermos = !!document.getElementById("aceitouTermos")?.checked;
+    const aceitouPrivacidade = !!document.getElementById("aceitouPrivacidade")?.checked;
+
+    if (!aceitouTermos || !aceitouPrivacidade) {
+      if (mensagemCadastro) mensagemCadastro.innerText = "Para concluir o cadastro, aceite os Termos de Uso e a Política de Privacidade.";
+      const boxAceite = document.querySelector(".cadastro-legal-aceite");
+      if (boxAceite) boxAceite.classList.add("legal-aceite-alerta");
       return;
     }
 
@@ -2780,18 +2804,27 @@ async function copiarTextoNorteServic(texto) {
 }
 
 async function solicitarSaqueIndicacao() {
+  const chavePix = document.getElementById("indicacaoChavePix")?.value.trim() || "";
+  const tipoChavePix = document.getElementById("indicacaoTipoChavePix")?.value.trim() || "";
+  const nomeTitular = document.getElementById("indicacaoNomeTitular")?.value.trim() || "";
+  const cpfCnpjTitular = document.getElementById("indicacaoCpfCnpjTitular")?.value.trim() || "";
+
+  if (!tipoChavePix || !chavePix || !nomeTitular || !cpfCnpjTitular) {
+    alert("Preencha todos os dados para saque: tipo de chave, chave Pix, nome do titular e CPF/CNPJ.");
+    return;
+  }
+
+  if (!confirm("Enviar solicitação de saque para análise do administrador?")) return;
+
   try {
-    const chavePix = prompt("Informe sua chave Pix para receber o saque:");
-    if (!chavePix) return;
-    const tipoChavePix = prompt("Tipo da chave Pix: CPF, celular, e-mail ou aleatória", "");
-    const token = getTokenProfissional();
-    const resposta = await apiFetch("/api/me/indicacoes/saques", {
+    await apiFetch("/api/me/indicacoes/saques", {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ chavePix, tipoChavePix })
+      headers: headersAuth(),
+      body: JSON.stringify({ chavePix, tipoChavePix, nomeTitular, cpfCnpjTitular })
     });
-    alert(resposta.mensagem || "Solicitação enviada para o admin.");
-    carregarPainelProfissional();
+    alert("Solicitação de saque enviada para análise do admin.");
+    const dados = await carregarMinhasIndicacoes();
+    renderizarPainelIndicacoes(dados);
   } catch (error) {
     alert(error.message);
   }
@@ -2799,48 +2832,70 @@ async function solicitarSaqueIndicacao() {
 
 function renderizarPainelIndicacoes(dados) {
   const box = document.getElementById("painelIndicacoesProfissional");
-  if (!box || !dados) return;
+  if (!box) return;
 
   const resumo = dados.resumo || {};
   const saldoDisponivel = Number(resumo.saldoDisponivel || 0);
   const saqueMinimo = Number(dados.saqueMinimo || 100);
   const podeSacar = saldoDisponivel >= saqueMinimo;
-  const indicacoes = Array.isArray(dados.indicacoes) ? dados.indicacoes.slice(0, 5) : [];
-  const saques = Array.isArray(dados.saques) ? dados.saques.slice(0, 3) : [];
+  const indicacoes = Array.isArray(dados.indicacoes) ? dados.indicacoes.slice(0, 8) : [];
+  const saques = Array.isArray(dados.saques) ? dados.saques.slice(0, 5) : [];
 
   box.innerHTML = `
     <div class="indicacoes-topo">
       <span class="painel-box-badge">Programa de indicação</span>
-      <h3>Indique profissionais e ganhe</h3>
-      <p>Ganhe <strong>${formatarMoedaIndicacao(dados.comissaoPorIndicacao || 10)}</strong> quando seu indicado assinar o plano de R$ 39,90. A comissão libera após ${dados.diasLiberacao || 5} dias.</p>
+      <h3>Minhas indicações</h3>
+      <p>Ganhe <strong>${formatarMoedaIndicacao(dados.comissaoPorIndicacao || 10)}</strong> quando seu indicado assinar o Plano Premium de R$ 39,90. A comissão libera após ${dados.diasLiberacao || 5} dias.</p>
     </div>
 
     <div class="indicacoes-link-box">
-      <small>Seu link exclusivo</small>
+      <small>Seu link exclusivo de indicação</small>
       <div>
-        <input value="${dados.link || ""}" readonly>
-        <button type="button" onclick="copiarTextoNorteServic('${String(dados.link || "").replace(/'/g, "\\'")}')">Copiar</button>
+        <input type="text" value="${dados.link || ""}" readonly>
+        <button type="button" onclick="copiarTextoNorteServic('${String(dados.link || "").replace(/'/g, "\'")}')">Copiar</button>
       </div>
-      <span>Código: <strong>${dados.codigo || ""}</strong></span>
+      <span>Código: ${dados.codigo || "-"}</span>
     </div>
 
     <div class="indicacoes-stats">
-      <article><strong>${resumo.totalIndicacoes || 0}</strong><span>Indicados</span></article>
-      <article><strong>${resumo.assinaturasConfirmadas || 0}</strong><span>Assinaturas</span></article>
-      <article><strong>${formatarMoedaIndicacao(saldoDisponivel)}</strong><span>Disponível</span></article>
-      <article><strong>${formatarMoedaIndicacao(resumo.saldoPendente || 0)}</strong><span>Pendente</span></article>
+      <article><strong>${resumo.totalIndicacoes || 0}</strong><span>Total de indicados</span></article>
+      <article><strong>${resumo.assinaturasConfirmadas || 0}</strong><span>Assinaturas confirmadas</span></article>
+      <article><strong>${formatarMoedaIndicacao(saldoDisponivel)}</strong><span>Saldo disponível</span></article>
+      <article><strong>${formatarMoedaIndicacao(resumo.saldoPendente || 0)}</strong><span>Comissão pendente</span></article>
     </div>
 
-    <div class="indicacoes-saque-box">
-      <div>
+    <div class="indicacoes-saque-box indicacoes-saque-box-completo">
+      <div class="indicacoes-saque-head">
         <strong>Saque mínimo: ${formatarMoedaIndicacao(saqueMinimo)}</strong>
         <span>${podeSacar ? "Você já pode solicitar saque." : `Faltam ${formatarMoedaIndicacao(Math.max(0, saqueMinimo - saldoDisponivel))} para liberar saque.`}</span>
       </div>
+      <div class="indicacoes-saque-form">
+        <label>Tipo de Chave Pix
+          <select id="indicacaoTipoChavePix" ${podeSacar ? "" : "disabled"}>
+            <option value="">Selecione</option>
+            <option value="cpf">CPF</option>
+            <option value="cnpj">CNPJ</option>
+            <option value="email">E-mail</option>
+            <option value="telefone">Telefone</option>
+            <option value="aleatoria">Chave aleatória</option>
+          </select>
+        </label>
+        <label>Chave Pix
+          <input id="indicacaoChavePix" type="text" placeholder="Digite sua chave Pix" ${podeSacar ? "" : "disabled"}>
+        </label>
+        <label>Nome do Titular
+          <input id="indicacaoNomeTitular" type="text" placeholder="Nome do titular da chave" ${podeSacar ? "" : "disabled"}>
+        </label>
+        <label>CPF/CNPJ do Titular
+          <input id="indicacaoCpfCnpjTitular" type="text" placeholder="CPF ou CNPJ do titular" ${podeSacar ? "" : "disabled"}>
+        </label>
+      </div>
+      <p>A chave Pix deve pertencer ao profissional cadastrado ou responsável informado.</p>
       <button type="button" ${podeSacar ? "" : "disabled"} onclick="solicitarSaqueIndicacao()">Solicitar saque</button>
     </div>
 
     <div class="indicacoes-lista">
-      <h4>Últimas indicações</h4>
+      <h4>Histórico de comissões</h4>
       ${indicacoes.length ? indicacoes.map(item => `
         <div class="indicacao-item">
           <div>
@@ -3366,13 +3421,17 @@ function renderizarAdminIndicacoes(dados = {}) {
       return `
         <article class="admin-pagamento-card status-${s.status === "pago" ? "pago" : s.status === "recusado" ? "expirado" : "aguardando"}">
           <div class="pagamento-card-topo">
-            <div><span class="pagamento-status ${s.status === "pago" ? "pago" : "aguardando"}">${s.status}</span><h3>${s.profissional_nome || "Profissional"}</h3><p>Chave Pix: ${s.chave_pix || "-"}</p></div>
+            <div><span class="pagamento-status ${s.status === "pago" ? "pago" : "aguardando"}">${s.status}</span><h3>${s.profissional_nome || "Profissional"}</h3><p>${s.profissional_email || "E-mail não informado"}</p></div>
             <strong>${formatarMoedaBR(s.valor)}</strong>
           </div>
           <div class="pagamento-metricas">
             <p><span>Solicitado</span><strong>${formatarDataHoraCurta(s.solicitado_em)}</strong></p>
-            <p><span>Tipo chave</span><strong>${s.tipo_chave_pix || "Não informado"}</strong></p>
             <p><span>WhatsApp</span><strong>${whatsapp || "-"}</strong></p>
+            <p><span>Tipo chave Pix</span><strong>${s.tipo_chave_pix || "Não informado"}</strong></p>
+            <p><span>Chave Pix</span><strong>${s.chave_pix || "-"}</strong></p>
+            <p><span>Titular</span><strong>${s.nome_titular || "-"}</strong></p>
+            <p><span>CPF/CNPJ</span><strong>${s.cpf_cnpj_titular || "-"}</strong></p>
+            <p><span>Saldo disponível</span><strong>${formatarMoedaBR(s.saldo_disponivel || s.valor || 0)}</strong></p>
             <p><span>Pago em</span><strong>${formatarDataHoraCurta(s.pago_em) || "-"}</strong></p>
           </div>
           <div class="pagamento-acoes">
@@ -3418,6 +3477,7 @@ async function marcarSaqueIndicacaoPago(id) {
     });
     alert("Saque marcado como pago.");
     mostrarAdminIndicacoes();
+    mostrarAdminExclusoes();
   } catch (error) {
     alert(error.message);
   }
@@ -3434,6 +3494,7 @@ async function recusarSaqueIndicacao(id) {
     });
     alert("Saque recusado e saldo devolvido.");
     mostrarAdminIndicacoes();
+    mostrarAdminExclusoes();
   } catch (error) {
     alert(error.message);
   }
@@ -3610,6 +3671,7 @@ async function mostrarAdmin() {
     mostrarAdminAvaliacoes();
     mostrarAdminPagamentos(salvos);
     mostrarAdminIndicacoes();
+    mostrarAdminExclusoes();
 
     const pendentes = salvos.filter(p => p.status === "pendente").length;
     const aprovados = salvos.filter(p => p.status === "aprovado").length;
@@ -4231,6 +4293,123 @@ function iniciarAnimacoesSuavesNorteServic() {
   });
 }
 
+
+
+/* ================================================= */
+/* DOCUMENTOS LEGAIS, LGPD E PRIVACIDADE */
+/* ================================================= */
+
+function iniciarDocumentosLegais() {
+  const botoes = document.querySelectorAll("[data-legal-tab]");
+  if (!botoes.length) return;
+
+  function ativar(tab) {
+    botoes.forEach(btn => btn.classList.toggle("ativo", btn.dataset.legalTab === tab));
+    document.querySelectorAll(".legal-panel").forEach(panel => {
+      panel.classList.toggle("ativo", panel.id === `legal-${tab}`);
+    });
+    if (history.replaceState) history.replaceState(null, "", `#${tab}`);
+  }
+
+  botoes.forEach(btn => btn.addEventListener("click", () => ativar(btn.dataset.legalTab)));
+  const hash = String(location.hash || "").replace("#", "");
+  if (hash && document.getElementById(`legal-${hash}`)) ativar(hash);
+}
+
+async function baixarMeusDados() {
+  try {
+    const dados = await apiFetch("/api/me/dados", { headers: headersAuth() });
+    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "meus-dados-norte-servic.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function solicitarExclusaoConta() {
+  const motivo = prompt("Informe o motivo da solicitação de exclusão da conta:");
+  if (motivo === null) return;
+  if (!confirm("Enviar solicitação de exclusão para análise do administrador?")) return;
+
+  try {
+    await apiFetch("/api/me/solicitar-exclusao", {
+      method: "POST",
+      headers: headersAuth(),
+      body: JSON.stringify({ motivo })
+    });
+    alert("Solicitação enviada. O administrador analisará seu pedido.");
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function buscarAdminExclusoes() {
+  return apiFetch("/api/admin/lgpd/exclusoes", { headers: headersAdmin() });
+}
+
+function renderizarAdminExclusoes(lista = []) {
+  const box = document.getElementById("listaAdminExclusoes");
+  if (!box) return;
+  box.innerHTML = lista.length ? lista.map(item => `
+    <article class="admin-pagamento-card admin-lgpd-card">
+      <div>
+        <span class="admin-status status-${statusIndicacaoClasse(item.status)}">${item.status}</span>
+        <h3>${item.profissional_nome || "Profissional"}</h3>
+        <p>WhatsApp: ${item.profissional_whatsapp || "-"} · E-mail: ${item.profissional_email || "-"}</p>
+        <p>Motivo: ${item.motivo || "Não informado"}</p>
+        <p>Solicitado em: ${formatarDataIndicacao(item.criado_em)}</p>
+      </div>
+      <div class="admin-card-actions">
+        ${item.status === "aguardando" ? `<button onclick="aprovarExclusaoConta(${item.id})">Aprovar/anonimizar</button><button class="alerta" onclick="recusarExclusaoConta(${item.id})">Recusar</button>` : `<small>${item.observacao_admin || "Finalizado"}</small>`}
+      </div>
+    </article>
+  `).join("") : `<div class="admin-vazio admin-vazio-menor"><h3>Nenhuma solicitação de exclusão</h3><p>Pedidos LGPD aparecerão aqui.</p></div>`;
+}
+
+async function mostrarAdminExclusoes() {
+  const box = document.getElementById("listaAdminExclusoes");
+  if (!box) return;
+  box.innerHTML = `<div class="admin-vazio admin-vazio-menor"><h3>Carregando solicitações...</h3></div>`;
+  try {
+    const dados = await buscarAdminExclusoes();
+    renderizarAdminExclusoes(dados.solicitacoes || []);
+  } catch (error) {
+    box.innerHTML = `<div class="admin-vazio"><h3>Erro ao carregar solicitações</h3><p>${error.message}</p></div>`;
+  }
+}
+
+async function aprovarExclusaoConta(id) {
+  const observacao = prompt("Observação do admin:") || "Conta anonimizada conforme solicitação LGPD.";
+  if (!confirm("Aprovar a solicitação e anonimizar o cadastro?")) return;
+  try {
+    await apiFetch(`/api/admin/lgpd/exclusoes/${id}/aprovar`, {
+      method: "PATCH",
+      headers: headersAdmin(),
+      body: JSON.stringify({ observacao })
+    });
+    mostrarAdminExclusoes();
+  } catch (error) { alert(error.message); }
+}
+
+async function recusarExclusaoConta(id) {
+  const observacao = prompt("Motivo da recusa:") || "Solicitação recusada pelo administrador.";
+  try {
+    await apiFetch(`/api/admin/lgpd/exclusoes/${id}/recusar`, {
+      method: "PATCH",
+      headers: headersAdmin(),
+      body: JSON.stringify({ observacao })
+    });
+    mostrarAdminExclusoes();
+  } catch (error) { alert(error.message); }
+}
+
 /* ================================================= */
 /* INICIALIZAÇÃO */
 /* ================================================= */
@@ -4257,6 +4436,7 @@ document.addEventListener("DOMContentLoaded", function() {
   iniciarEditarPerfil();
   alternarCidadesAtendidas();
   adicionarAdminNoRodape();
+  iniciarDocumentosLegais();
   iniciarCarrosselBannersMobile();
   iniciarAutoScrollFaixasHome();
   prepararPaginaPlanosEfi();

@@ -37,6 +37,8 @@ const BONUS_DIAS_PLANO = Number(process.env.BONUS_DIAS_PLANO || 5);
 const INDICACAO_COMISSAO_TOP = Number(process.env.INDICACAO_COMISSAO_TOP || 10);
 const INDICACAO_SAQUE_MINIMO = Number(process.env.INDICACAO_SAQUE_MINIMO || 100);
 const INDICACAO_DIAS_LIBERACAO = Number(process.env.INDICACAO_DIAS_LIBERACAO || 5);
+const TERMOS_VERSAO_ATUAL = process.env.TERMOS_VERSAO_ATUAL || '2026.06';
+const PRIVACIDADE_VERSAO_ATUAL = process.env.PRIVACIDADE_VERSAO_ATUAL || '2026.06';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -263,6 +265,37 @@ async function garantirSistemaIndicacoes() {
   `);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_indicacoes_indicador_status ON indicacoes(indicador_id, status)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_saques_indicacoes_profissional ON saques_indicacoes(profissional_id, status)`);
+}
+
+
+
+async function garantirSistemaLegal() {
+  await garantirSistemaIndicacoes();
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS aceitou_termos BOOLEAN DEFAULT false`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS aceitou_privacidade BOOLEAN DEFAULT false`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS termos_versao TEXT`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS privacidade_versao TEXT`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS aceite_data TIMESTAMPTZ`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS aceite_ip TEXT`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS aceite_user_agent TEXT`);
+
+  await pool.query(`ALTER TABLE saques_indicacoes ADD COLUMN IF NOT EXISTS nome_titular TEXT`);
+  await pool.query(`ALTER TABLE saques_indicacoes ADD COLUMN IF NOT EXISTS cpf_cnpj_titular TEXT`);
+  await pool.query(`ALTER TABLE saques_indicacoes ADD COLUMN IF NOT EXISTS saldo_disponivel NUMERIC(10,2)`);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS solicitacoes_exclusao_conta (
+      id BIGSERIAL PRIMARY KEY,
+      profissional_id BIGINT REFERENCES profissionais(id) ON DELETE SET NULL,
+      motivo TEXT,
+      status TEXT NOT NULL DEFAULT 'aguardando',
+      observacao_admin TEXT,
+      criado_em TIMESTAMPTZ DEFAULT NOW(),
+      atualizado_em TIMESTAMPTZ DEFAULT NOW(),
+      finalizado_em TIMESTAMPTZ
+    )
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_solicitacoes_exclusao_profissional_status ON solicitacoes_exclusao_conta(profissional_id, status)`);
 }
 
 async function garantirCodigoIndicacao(profissionalId) {
@@ -885,6 +918,10 @@ garantirSistemaIndicacoes().catch((error) => {
   console.error('Erro ao garantir sistema de indicações:', error.message);
 });
 
+garantirSistemaLegal().catch((error) => {
+  console.error('Erro ao garantir sistema legal/LGPD:', error.message);
+});
+
 
 function autenticarAdmin(req, res, next) {
   const senha = req.headers['x-admin-password'];
@@ -1041,6 +1078,13 @@ app.post('/api/cadastro', async (req, res) => {
       return res.status(400).json({ erro: 'A senha precisa ter pelo menos 6 caracteres.' });
     }
 
+    const aceitouTermos = dados.aceitouTermos === true || dados.aceitou_termos === true;
+    const aceitouPrivacidade = dados.aceitouPrivacidade === true || dados.aceitou_privacidade === true;
+
+    if (!aceitouTermos || !aceitouPrivacidade) {
+      return res.status(400).json({ erro: 'Para concluir o cadastro, aceite os Termos de Uso e a Política de Privacidade.' });
+    }
+
     const existe = await pool.query('SELECT id FROM profissionais WHERE whatsapp = $1', [whatsapp]);
 
     if (existe.rowCount > 0) {
@@ -1048,6 +1092,7 @@ app.post('/api/cadastro', async (req, res) => {
     }
 
     await garantirSistemaIndicacoes();
+    await garantirSistemaLegal();
 
     const refIndicacao = limparCodigoIndicacao(dados.refIndicacao || dados.ref || req.query.ref || '');
     let indicadoPorId = null;
@@ -1075,10 +1120,12 @@ app.post('/api/cadastro', async (req, res) => {
         palavras_chave, cidade, bairro, atende_outras_cidades, cidades_atendidas,
         forma_atendimento, whatsapp, instagram, descricao, foto_perfil, fotos_trabalhos,
         codigo_indicacao, indicado_por_id, indicado_por_codigo,
+        aceitou_termos, aceitou_privacidade, termos_versao, privacidade_versao, aceite_data, aceite_ip, aceite_user_agent,
         status, verificado, plano_atual, plano_status
       ) VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb,$13,$14,$15,$16,$17,$18::jsonb,
         $19,$20,$21,
+        $22,$23,$24,$25,NOW(),$26,$27,
         'pendente', false, 'Gratuito', 'ativo'
       ) RETURNING *`,
       [
@@ -1102,7 +1149,13 @@ app.post('/api/cadastro', async (req, res) => {
         JSON.stringify(imagens.fotosTrabalhos || []),
         codigoIndicacaoNovo,
         indicadoPorId,
-        indicadoPorCodigo || null
+        indicadoPorCodigo || null,
+        true,
+        true,
+        String(dados.termosVersao || dados.termos_versao || TERMOS_VERSAO_ATUAL),
+        String(dados.privacidadeVersao || dados.privacidade_versao || PRIVACIDADE_VERSAO_ATUAL),
+        req.headers['x-forwarded-for'] || req.socket.remoteAddress || '',
+        req.headers['user-agent'] || ''
       ]
     );
 
@@ -1274,6 +1327,125 @@ async function listarAvaliacoesAdmin(req, res) {
 
 
 
+
+
+app.get('/api/me/dados', autenticar, async (req, res) => {
+  try {
+    await garantirSistemaLegal();
+    const result = await pool.query('SELECT * FROM profissionais WHERE id=$1', [req.user.id]);
+    if (result.rowCount === 0) return res.status(404).json({ erro: 'Profissional não encontrado.' });
+    const row = result.rows[0];
+    res.json({
+      exportadoEm: new Date().toISOString(),
+      dados: profissionalParaFrontend(row, { incluirFotosTrabalhos: true }),
+      aceite: {
+        aceitouTermos: !!row.aceitou_termos,
+        aceitouPrivacidade: !!row.aceitou_privacidade,
+        termosVersao: row.termos_versao || '',
+        privacidadeVersao: row.privacidade_versao || '',
+        aceiteData: row.aceite_data || null
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao baixar dados.', detalhe: error.message });
+  }
+});
+
+app.post('/api/me/solicitar-exclusao', autenticar, async (req, res) => {
+  try {
+    await garantirSistemaLegal();
+    const motivo = String(req.body.motivo || '').trim();
+    const existente = await pool.query(
+      `SELECT id FROM solicitacoes_exclusao_conta WHERE profissional_id=$1 AND status='aguardando' LIMIT 1`,
+      [req.user.id]
+    );
+    if (existente.rowCount > 0) return res.status(409).json({ erro: 'Já existe uma solicitação de exclusão aguardando análise.' });
+    const result = await pool.query(
+      `INSERT INTO solicitacoes_exclusao_conta (profissional_id, motivo, status)
+       VALUES ($1,$2,'aguardando') RETURNING *`,
+      [req.user.id, motivo || null]
+    );
+    res.status(201).json({ mensagem: 'Solicitação de exclusão enviada para análise do administrador.', solicitacao: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao solicitar exclusão.', detalhe: error.message });
+  }
+});
+
+app.get('/api/admin/lgpd/exclusoes', autenticarAdmin, async (_req, res) => {
+  try {
+    await garantirSistemaLegal();
+    const result = await pool.query(
+      `SELECT s.*, p.nome AS profissional_nome, p.whatsapp AS profissional_whatsapp, p.email AS profissional_email
+       FROM solicitacoes_exclusao_conta s
+       LEFT JOIN profissionais p ON p.id = s.profissional_id
+       ORDER BY CASE WHEN s.status='aguardando' THEN 0 ELSE 1 END, s.criado_em DESC
+       LIMIT 200`
+    );
+    res.json({ solicitacoes: result.rows });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao listar solicitações de exclusão.', detalhe: error.message });
+  }
+});
+
+app.patch('/api/admin/lgpd/exclusoes/:id/aprovar', autenticarAdmin, async (req, res) => {
+  try {
+    await garantirSistemaLegal();
+    const id = Number(req.params.id);
+    const observacao = String(req.body.observacao || '').trim();
+    await pool.query('BEGIN');
+    try {
+      const solicitacao = await pool.query(
+        `UPDATE solicitacoes_exclusao_conta
+         SET status='aprovado', observacao_admin=$1, finalizado_em=NOW(), atualizado_em=NOW()
+         WHERE id=$2 AND status='aguardando'
+         RETURNING *`,
+        [observacao || 'Conta anonimizada conforme solicitação LGPD.', id]
+      );
+      if (solicitacao.rowCount === 0) {
+        await pool.query('ROLLBACK');
+        return res.status(404).json({ erro: 'Solicitação não encontrada ou já finalizada.' });
+      }
+      const profissionalId = solicitacao.rows[0].profissional_id;
+      if (profissionalId) {
+        await pool.query(
+          `UPDATE profissionais SET
+             nome='Conta removida', email=NULL, whatsapp=CONCAT('removido_', id::text, '_', COALESCE(whatsapp,'')),
+             instagram=NULL, descricao='Conta removida a pedido do titular dos dados.',
+             foto_perfil=NULL, fotos_trabalhos='[]'::jsonb, status='recusado', atualizado_em=NOW()
+           WHERE id=$1`,
+          [profissionalId]
+        );
+      }
+      await pool.query('COMMIT');
+      res.json({ mensagem: 'Solicitação aprovada e conta anonimizada.', solicitacao: solicitacao.rows[0] });
+    } catch (error) {
+      await pool.query('ROLLBACK');
+      throw error;
+    }
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao aprovar exclusão.', detalhe: error.message });
+  }
+});
+
+app.patch('/api/admin/lgpd/exclusoes/:id/recusar', autenticarAdmin, async (req, res) => {
+  try {
+    await garantirSistemaLegal();
+    const id = Number(req.params.id);
+    const observacao = String(req.body.observacao || '').trim();
+    const result = await pool.query(
+      `UPDATE solicitacoes_exclusao_conta
+       SET status='recusado', observacao_admin=$1, finalizado_em=NOW(), atualizado_em=NOW()
+       WHERE id=$2 AND status='aguardando'
+       RETURNING *`,
+      [observacao || 'Solicitação recusada pelo administrador.', id]
+    );
+    if (result.rowCount === 0) return res.status(404).json({ erro: 'Solicitação não encontrada ou já finalizada.' });
+    res.json({ mensagem: 'Solicitação recusada.', solicitacao: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao recusar exclusão.', detalhe: error.message });
+  }
+});
+
 app.get('/api/me/indicacoes', autenticarProfissional, async (req, res) => {
   try {
     await garantirSistemaIndicacoes();
@@ -1349,11 +1521,14 @@ app.post('/api/me/indicacoes/saques', autenticarProfissional, async (req, res) =
     await garantirSistemaIndicacoes();
     await liberarIndicacoesVencidas(req.profissional.id);
 
+    await garantirSistemaLegal();
     const chavePix = String(req.body.chavePix || req.body.chave_pix || '').trim();
     const tipoChavePix = String(req.body.tipoChavePix || req.body.tipo_chave_pix || '').trim();
+    const nomeTitular = String(req.body.nomeTitular || req.body.nome_titular || '').trim();
+    const cpfCnpjTitular = String(req.body.cpfCnpjTitular || req.body.cpf_cnpj_titular || '').trim();
 
-    if (!chavePix || chavePix.length < 4) {
-      return res.status(400).json({ erro: 'Informe uma chave Pix válida para solicitar o saque.' });
+    if (!tipoChavePix || !chavePix || chavePix.length < 4 || !nomeTitular || !cpfCnpjTitular) {
+      return res.status(400).json({ erro: 'Informe tipo de chave Pix, chave Pix, nome do titular e CPF/CNPJ do titular.' });
     }
 
     const disponiveis = await pool.query(
@@ -1372,10 +1547,10 @@ app.post('/api/me/indicacoes/saques', autenticarProfissional, async (req, res) =
     await pool.query('BEGIN');
     try {
       const saque = await pool.query(
-        `INSERT INTO saques_indicacoes (profissional_id, valor, chave_pix, tipo_chave_pix, status, indicacoes_ids)
-         VALUES ($1,$2,$3,$4,'aguardando',$5::jsonb)
+        `INSERT INTO saques_indicacoes (profissional_id, valor, chave_pix, tipo_chave_pix, nome_titular, cpf_cnpj_titular, saldo_disponivel, status, indicacoes_ids)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,'aguardando',$8::jsonb)
          RETURNING *`,
-        [req.profissional.id, total, chavePix, tipoChavePix || null, JSON.stringify(ids)]
+        [req.profissional.id, total, chavePix, tipoChavePix || null, nomeTitular, cpfCnpjTitular, total, JSON.stringify(ids)]
       );
 
       await pool.query(
@@ -1412,7 +1587,7 @@ app.get('/api/admin/indicacoes', autenticarAdmin, async (_req, res) => {
     );
 
     const saques = await pool.query(
-      `SELECT s.*, p.nome AS profissional_nome, p.whatsapp AS profissional_whatsapp
+      `SELECT s.*, p.nome AS profissional_nome, p.whatsapp AS profissional_whatsapp, p.email AS profissional_email
        FROM saques_indicacoes s
        LEFT JOIN profissionais p ON p.id = s.profissional_id
        ORDER BY s.solicitado_em DESC
