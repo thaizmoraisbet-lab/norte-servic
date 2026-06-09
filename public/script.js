@@ -4104,6 +4104,8 @@ function prepararPaginaPlanosEfi() {
 
 function abrirModalPagamentoEfi(pagamento, plano) {
   pagamentoEfiAtual = pagamento;
+  document.documentElement.classList.add('efi-modal-aberto');
+  document.body.classList.add('efi-modal-aberto');
   const modal = document.getElementById('efiPagamentoModal');
   const titulo = document.getElementById('efiPagamentoTitulo');
   const descricao = document.getElementById('efiPagamentoDescricao');
@@ -4137,6 +4139,8 @@ function fecharModalPagamentoEfi() {
     modal.classList.add('escondido');
     modal.setAttribute('aria-hidden', 'true');
   }
+  document.documentElement.classList.remove('efi-modal-aberto');
+  document.body.classList.remove('efi-modal-aberto');
   clearInterval(pagamentoEfiTimer);
 }
 
@@ -4207,10 +4211,18 @@ function obterIniciaisProfissional(nome = "") {
   return `${primeira}${segunda}`.toUpperCase();
 }
 
+function paginaPermitePerfilLogadoCabecalho() {
+  const pagina = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  // Evita que links públicos enviados para clientes apareçam como se estivessem logados.
+  // O perfil no cabeçalho só aparece nas áreas realmente profissionais.
+  return ['painel-profissional.html', 'editar-perfil.html', 'planos.html'].includes(pagina);
+}
+
 async function inserirPerfilLogadoCabecalho() {
   const header = document.querySelector(".ns-header");
   const nav = document.querySelector(".ns-nav");
   if (!header || document.querySelector(".ns-header-profile")) return;
+  if (!paginaPermitePerfilLogadoCabecalho()) return;
 
   const token = getTokenProfissional();
   if (!token) return;
