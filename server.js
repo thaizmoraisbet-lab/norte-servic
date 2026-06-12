@@ -1025,6 +1025,22 @@ async function garantirSistemaCidadeParceira() {
 
   await pool.query(`ALTER TABLE cidade_coleta_profissionais ADD COLUMN IF NOT EXISTS email_profissional TEXT`);
   await pool.query(`ALTER TABLE cidade_coleta_profissionais ADD COLUMN IF NOT EXISTS instagram TEXT`);
+  await pool.query(`ALTER TABLE cidade_coletores ADD COLUMN IF NOT EXISTS telefone TEXT`);
+  await pool.query(`ALTER TABLE cidade_coletores ADD COLUMN IF NOT EXISTS valor_comissao_cadastro NUMERIC(10,2) DEFAULT ${CIDADE_COMISSAO_VALOR_CADASTRO}`);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS cidade_saques_coletores (
+      id BIGSERIAL PRIMARY KEY,
+      coletor_id BIGINT REFERENCES cidade_coletores(id) ON DELETE SET NULL,
+      valor NUMERIC(10,2) NOT NULL DEFAULT 0,
+      cadastros_contados INTEGER DEFAULT 0,
+      data_referencia DATE DEFAULT CURRENT_DATE,
+      status TEXT DEFAULT 'aguardando',
+      observacao_admin TEXT,
+      criado_em TIMESTAMPTZ DEFAULT NOW(),
+      atualizado_em TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
 
   await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS origem_cidade_parceira BOOLEAN DEFAULT false`);
   await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS cidade_coleta_id BIGINT`);
@@ -1036,6 +1052,8 @@ async function garantirSistemaCidadeParceira() {
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_cidade_coleta_setor ON cidade_coleta_profissionais(setor)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_cidade_coleta_profissao ON cidade_coleta_profissionais(profissao)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_cidade_coleta_aceita_site ON cidade_coleta_profissionais(aceita_site)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_cidade_saques_coletores_status ON cidade_saques_coletores(status)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_cidade_saques_coletores_coletor_data ON cidade_saques_coletores(coletor_id, data_referencia)`);
 
   const coletoresPadrao = [
     { nome: 'Coletor Nova Canaã', email: 'coletor.novacanaa@norteservic.com.br', senha: 'Nova123', setor: 'Nova Canaã' },
@@ -1048,9 +1066,9 @@ async function garantirSistemaCidadeParceira() {
     if (existe.rowCount === 0) {
       const senhaHash = await bcrypt.hash(coletor.senha, 10);
       await pool.query(
-        `INSERT INTO cidade_coletores (nome, email, senha_hash, setor_fixo, ativo)
-         VALUES ($1,$2,$3,$4,true)`,
-        [coletor.nome, coletor.email, senhaHash, coletor.setor]
+        `INSERT INTO cidade_coletores (nome, email, senha_hash, setor_fixo, valor_comissao_cadastro, ativo)
+         VALUES ($1,$2,$3,$4,$5,true)`,
+        [coletor.nome, coletor.email, senhaHash, coletor.setor, CIDADE_COMISSAO_VALOR_CADASTRO]
       );
     }
   }
@@ -1166,6 +1184,50 @@ function coletaParaFrontend(row) {
     criadoEm: row.criado_em,
     coletorNome: row.coletor_nome || ''
   };
+}
+
+
+function coletorCidadeParaFrontend(row) {
+  return {
+    id: Number(row.id),
+    nome: row.nome || '',
+    email: row.email || '',
+    telefone: row.telefone || '',
+    setor: row.setor_fixo || '',
+    ativo: row.ativo !== false,
+    valorComissaoCadastro: Number(row.valor_comissao_cadastro || CIDADE_COMISSAO_VALOR_CADASTRO),
+    totalCadastros: Number(row.total_cadastros || 0),
+    cadastrosHoje: Number(row.cadastros_hoje || 0),
+    aceitosSite: Number(row.aceitos_site || 0),
+    criadoEm: row.criado_em,
+    atualizadoEm: row.atualizado_em
+  };
+}
+
+function saqueColetorParaFrontend(row) {
+  return {
+    id: Number(row.id),
+    coletorId: row.coletor_id ? Number(row.coletor_id) : null,
+    coletorNome: row.coletor_nome || 'Coletor',
+    coletorEmail: row.coletor_email || '',
+    coletorTelefone: row.coletor_telefone || '',
+    setor: row.setor_fixo || '',
+    valor: Number(row.valor || 0),
+    cadastrosContados: Number(row.cadastros_contados || 0),
+    dataReferencia: row.data_referencia,
+    status: row.status || 'aguardando',
+    observacaoAdmin: row.observacao_admin || '',
+    criadoEm: row.criado_em,
+    atualizadoEm: row.atualizado_em
+  };
+}
+
+async function buscarComissaoColetorCidade(coletorId) {
+  const result = await pool.query(
+    `SELECT id, valor_comissao_cadastro FROM cidade_coletores WHERE id=$1 LIMIT 1`,
+    [coletorId]
+  );
+  return Number(result.rows[0]?.valor_comissao_cadastro || CIDADE_COMISSAO_VALOR_CADASTRO);
 }
 
 garantirSistemaIndicacoes().catch((error) => {
@@ -2363,7 +2425,9 @@ app.post('/api/cidade/coletor/login', async (req, res) => {
       id: Number(coletor.id),
       email: coletor.email,
       nome: coletor.nome,
-      setor: coletor.setor_fixo
+      setor: coletor.setor_fixo,
+      telefone: coletor.telefone || '',
+      valorComissaoCadastro: Number(coletor.valor_comissao_cadastro || CIDADE_COMISSAO_VALOR_CADASTRO)
     }, '10h');
 
     res.json({
@@ -2373,7 +2437,9 @@ app.post('/api/cidade/coletor/login', async (req, res) => {
         id: Number(coletor.id),
         nome: coletor.nome,
         email: coletor.email,
-        setor: coletor.setor_fixo
+        telefone: coletor.telefone || '',
+        setor: coletor.setor_fixo,
+        valorComissaoCadastro: Number(coletor.valor_comissao_cadastro || CIDADE_COMISSAO_VALOR_CADASTRO)
       }
     });
   } catch (error) {
@@ -2487,20 +2553,28 @@ app.get('/api/cidade/coletor/comissao', autenticarColetorCidade, async (req, res
     `, [req.coletorCidade.id]);
 
     const cadastrosHoje = Number(result.rows[0]?.total || 0);
-    const valorCalculado = cadastrosHoje * CIDADE_COMISSAO_VALOR_CADASTRO;
+    const valorPorCadastro = await buscarComissaoColetorCidade(req.coletorCidade.id);
+    const valorCalculado = cadastrosHoje * valorPorCadastro;
     const valorDisponivel = Math.min(valorCalculado, CIDADE_COMISSAO_META_SAQUE);
     const percentualLimite = CIDADE_COMISSAO_META_SAQUE > 0
       ? Math.round((valorDisponivel / CIDADE_COMISSAO_META_SAQUE) * 100)
       : 0;
     const faltamParaSaque = Math.max(0, CIDADE_COMISSAO_META_SAQUE - valorDisponivel);
-    const faltamCadastrosParaSaque = CIDADE_COMISSAO_VALOR_CADASTRO > 0
-      ? Math.ceil(faltamParaSaque / CIDADE_COMISSAO_VALOR_CADASTRO)
+    const faltamCadastrosParaSaque = valorPorCadastro > 0
+      ? Math.ceil(faltamParaSaque / valorPorCadastro)
       : 0;
     const saqueLiberado = valorDisponivel >= CIDADE_COMISSAO_META_SAQUE;
+    const saquePendente = await pool.query(`
+      SELECT id, status FROM cidade_saques_coletores
+      WHERE coletor_id=$1
+        AND data_referencia=(now() AT TIME ZONE 'America/Sao_Paulo')::date
+        AND status='aguardando'
+      LIMIT 1
+    `, [req.coletorCidade.id]);
 
     res.json({
       cadastrosHoje,
-      valorPorCadastro: CIDADE_COMISSAO_VALOR_CADASTRO,
+      valorPorCadastro,
       metaSaque: CIDADE_COMISSAO_META_SAQUE,
       limiteDiario: CIDADE_COMISSAO_META_SAQUE,
       valorDisponivel,
@@ -2508,11 +2582,13 @@ app.get('/api/cidade/coletor/comissao', autenticarColetorCidade, async (req, res
       faltamParaSaque,
       faltamCadastrosParaSaque,
       saqueLiberado,
+      saquePendente: saquePendente.rowCount > 0,
+      saquePendenteId: saquePendente.rows[0]?.id || null,
       whatsappSaque: CIDADE_WHATSAPP_SAQUE,
       regraSaque: 'O saque só é liberado ao completar R$ 50,00 no dia. Todos os cadastros são avaliados pelo time da Norte Servic antes do pagamento.',
       mensagem: saqueLiberado
-        ? 'Meta diária de R$ 50,00 atingida. Solicite o saque pelo WhatsApp da empresa. Os cadastros serão avaliados pelo time antes do pagamento.'
-        : `${cadastrosHoje} cadastro(s) hoje. Cada cadastro finalizado soma R$ ${CIDADE_COMISSAO_VALOR_CADASTRO.toFixed(2).replace('.', ',')}. Faltam ${faltamCadastrosParaSaque} cadastro(s) para liberar o saque de R$ ${CIDADE_COMISSAO_META_SAQUE.toFixed(2).replace('.', ',')}.`
+        ? 'Meta diária de R$ 50,00 atingida. Solicite o saque. Os cadastros serão avaliados pelo time antes do pagamento.'
+        : `${cadastrosHoje} cadastro(s) hoje. Cada cadastro finalizado soma R$ ${valorPorCadastro.toFixed(2).replace('.', ',')}. Faltam ${faltamCadastrosParaSaque} cadastro(s) para liberar o saque de R$ ${CIDADE_COMISSAO_META_SAQUE.toFixed(2).replace('.', ',')}.`
     });
   } catch (error) {
     res.status(500).json({ erro: 'Erro ao calcular comissão do coletor.', detalhe: error.message });
@@ -2600,6 +2676,213 @@ app.post('/api/cidade/coleta/profissionais', autenticarColetorCidade, async (req
       ? 'Já existe profissional com esse WhatsApp no site oficial.'
       : error.message;
     res.status(500).json({ erro: 'Erro ao cadastrar coleta.', detalhe });
+  }
+});
+
+
+
+app.post('/api/cidade/coletor/saques', autenticarColetorCidade, async (req, res) => {
+  try {
+    await garantirSistemaCidadeParceira();
+    const valorPorCadastro = await buscarComissaoColetorCidade(req.coletorCidade.id);
+    const dataRef = await pool.query(`SELECT (now() AT TIME ZONE 'America/Sao_Paulo')::date AS data_ref`);
+    const dataReferencia = dataRef.rows[0].data_ref;
+
+    const contagem = await pool.query(`
+      SELECT COUNT(*)::int AS total
+      FROM cidade_coleta_profissionais
+      WHERE coletor_id=$1
+        AND criado_em >= (date_trunc('day', now() AT TIME ZONE 'America/Sao_Paulo') AT TIME ZONE 'America/Sao_Paulo')
+    `, [req.coletorCidade.id]);
+
+    const cadastrosHoje = Number(contagem.rows[0]?.total || 0);
+    const valorCalculado = Math.min(cadastrosHoje * valorPorCadastro, CIDADE_COMISSAO_META_SAQUE);
+
+    if (valorCalculado < CIDADE_COMISSAO_META_SAQUE) {
+      return res.status(400).json({ erro: 'O saque só é liberado ao completar R$ 50,00 no dia. Todos os cadastros são avaliados pelo time da Norte Servic antes do pagamento.' });
+    }
+
+    const pendente = await pool.query(`
+      SELECT id FROM cidade_saques_coletores
+      WHERE coletor_id=$1 AND data_referencia=$2 AND status='aguardando'
+      LIMIT 1
+    `, [req.coletorCidade.id, dataReferencia]);
+
+    if (pendente.rowCount > 0) {
+      return res.status(400).json({ erro: 'Já existe uma solicitação de saque aguardando análise para hoje.' });
+    }
+
+    const result = await pool.query(`
+      INSERT INTO cidade_saques_coletores (coletor_id, valor, cadastros_contados, data_referencia, status)
+      VALUES ($1,$2,$3,$4,'aguardando')
+      RETURNING *
+    `, [req.coletorCidade.id, valorCalculado, cadastrosHoje, dataReferencia]);
+
+    res.status(201).json({
+      mensagem: 'Solicitação de saque enviada para o Painel Admin. Os cadastros serão avaliados pelo time da Norte Servic antes do pagamento.',
+      saque: saqueColetorParaFrontend(result.rows[0])
+    });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao solicitar saque do coletor.', detalhe: error.message });
+  }
+});
+
+app.get('/api/admin/cidade/coletas', autenticarAdmin, async (_req, res) => {
+  try {
+    await garantirSistemaCidadeParceira();
+    const result = await pool.query(`
+      SELECT ccp.*, cc.nome AS coletor_nome, cc.telefone AS coletor_telefone
+      FROM cidade_coleta_profissionais ccp
+      LEFT JOIN cidade_coletores cc ON cc.id = ccp.coletor_id
+      ORDER BY ccp.criado_em DESC
+      LIMIT 250
+    `);
+    res.json(result.rows.map((row) => ({
+      ...coletaParaFrontend(row),
+      coletorTelefone: row.coletor_telefone || ''
+    })));
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao listar coletas da Cidade Parceira.', detalhe: error.message });
+  }
+});
+
+app.get('/api/admin/cidade/coletores', autenticarAdmin, async (_req, res) => {
+  try {
+    await garantirSistemaCidadeParceira();
+    const result = await pool.query(`
+      SELECT cc.*,
+        COUNT(cp.id)::int AS total_cadastros,
+        COUNT(cp.id) FILTER (WHERE cp.aceita_site=true)::int AS aceitos_site,
+        COUNT(cp.id) FILTER (
+          WHERE cp.criado_em >= (date_trunc('day', now() AT TIME ZONE 'America/Sao_Paulo') AT TIME ZONE 'America/Sao_Paulo')
+        )::int AS cadastros_hoje
+      FROM cidade_coletores cc
+      LEFT JOIN cidade_coleta_profissionais cp ON cp.coletor_id = cc.id
+      GROUP BY cc.id
+      ORDER BY cc.ativo DESC, cc.nome ASC
+    `);
+    res.json(result.rows.map(coletorCidadeParaFrontend));
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao listar coletores.', detalhe: error.message });
+  }
+});
+
+app.post('/api/admin/cidade/coletores', autenticarAdmin, async (req, res) => {
+  try {
+    await garantirSistemaCidadeParceira();
+    const nome = String(req.body.nome || '').trim();
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const senha = String(req.body.senha || '').trim();
+    const telefone = limparNumero(req.body.telefone || '');
+    const setor = String(req.body.setor || req.body.setorFixo || '').trim();
+    const valor = Number(req.body.valorComissaoCadastro || req.body.valor_comissao_cadastro || CIDADE_COMISSAO_VALOR_CADASTRO);
+
+    if (!nome || !email || !senha || !setor) {
+      return res.status(400).json({ erro: 'Nome, e-mail, senha e setor são obrigatórios.' });
+    }
+    if (senha.length < 6) {
+      return res.status(400).json({ erro: 'A senha precisa ter pelo menos 6 caracteres.' });
+    }
+
+    const senhaHash = await bcrypt.hash(senha, 10);
+    const result = await pool.query(`
+      INSERT INTO cidade_coletores (nome, email, telefone, senha_hash, setor_fixo, valor_comissao_cadastro, ativo)
+      VALUES ($1,$2,$3,$4,$5,$6,true)
+      RETURNING *
+    `, [nome, email, telefone || null, senhaHash, setor, valor]);
+
+    res.status(201).json({ mensagem: 'Coletor credenciado com sucesso.', coletor: coletorCidadeParaFrontend(result.rows[0]) });
+  } catch (error) {
+    const detalhe = error.code === '23505' ? 'Já existe coletor com esse e-mail.' : error.message;
+    res.status(500).json({ erro: 'Erro ao credenciar coletor.', detalhe });
+  }
+});
+
+app.patch('/api/admin/cidade/coletores/:id', autenticarAdmin, async (req, res) => {
+  try {
+    await garantirSistemaCidadeParceira();
+    const id = Number(req.params.id);
+    const atual = await pool.query('SELECT * FROM cidade_coletores WHERE id=$1 LIMIT 1', [id]);
+    if (atual.rowCount === 0) return res.status(404).json({ erro: 'Coletor não encontrado.' });
+
+    const nome = String(req.body.nome ?? atual.rows[0].nome).trim();
+    const email = String(req.body.email ?? atual.rows[0].email).trim().toLowerCase();
+    const telefone = limparNumero(req.body.telefone ?? atual.rows[0].telefone ?? '');
+    const setor = String(req.body.setor || req.body.setorFixo || atual.rows[0].setor_fixo).trim();
+    const valor = Number(req.body.valorComissaoCadastro || req.body.valor_comissao_cadastro || atual.rows[0].valor_comissao_cadastro || CIDADE_COMISSAO_VALOR_CADASTRO);
+    const ativo = req.body.ativo === undefined ? atual.rows[0].ativo : normalizarBooleanoCidade(req.body.ativo);
+    const senha = String(req.body.senha || '').trim();
+
+    let result;
+    if (senha) {
+      if (senha.length < 6) return res.status(400).json({ erro: 'A senha precisa ter pelo menos 6 caracteres.' });
+      const senhaHash = await bcrypt.hash(senha, 10);
+      result = await pool.query(`
+        UPDATE cidade_coletores
+        SET nome=$1, email=$2, telefone=$3, setor_fixo=$4, valor_comissao_cadastro=$5, ativo=$6, senha_hash=$7, atualizado_em=NOW()
+        WHERE id=$8
+        RETURNING *
+      `, [nome, email, telefone || null, setor, valor, ativo, senhaHash, id]);
+    } else {
+      result = await pool.query(`
+        UPDATE cidade_coletores
+        SET nome=$1, email=$2, telefone=$3, setor_fixo=$4, valor_comissao_cadastro=$5, ativo=$6, atualizado_em=NOW()
+        WHERE id=$7
+        RETURNING *
+      `, [nome, email, telefone || null, setor, valor, ativo, id]);
+    }
+
+    res.json({ mensagem: 'Coletor atualizado.', coletor: coletorCidadeParaFrontend(result.rows[0]) });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao atualizar coletor.', detalhe: error.message });
+  }
+});
+
+app.get('/api/admin/cidade/saques', autenticarAdmin, async (_req, res) => {
+  try {
+    await garantirSistemaCidadeParceira();
+    const result = await pool.query(`
+      SELECT s.*, cc.nome AS coletor_nome, cc.email AS coletor_email, cc.telefone AS coletor_telefone, cc.setor_fixo
+      FROM cidade_saques_coletores s
+      LEFT JOIN cidade_coletores cc ON cc.id = s.coletor_id
+      ORDER BY s.criado_em DESC
+      LIMIT 200
+    `);
+    res.json(result.rows.map(saqueColetorParaFrontend));
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao listar saques dos coletores.', detalhe: error.message });
+  }
+});
+
+app.patch('/api/admin/cidade/saques/:id/pagar', autenticarAdmin, async (req, res) => {
+  try {
+    const observacao = String(req.body.observacao || 'Pago após avaliação dos cadastros.').trim();
+    const result = await pool.query(`
+      UPDATE cidade_saques_coletores
+      SET status='pago', observacao_admin=$1, atualizado_em=NOW()
+      WHERE id=$2
+      RETURNING *
+    `, [observacao, req.params.id]);
+    if (result.rowCount === 0) return res.status(404).json({ erro: 'Saque não encontrado.' });
+    res.json({ mensagem: 'Saque marcado como pago.', saque: saqueColetorParaFrontend(result.rows[0]) });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao marcar saque como pago.', detalhe: error.message });
+  }
+});
+
+app.patch('/api/admin/cidade/saques/:id/recusar', autenticarAdmin, async (req, res) => {
+  try {
+    const observacao = String(req.body.observacao || 'Recusado após avaliação dos cadastros.').trim();
+    const result = await pool.query(`
+      UPDATE cidade_saques_coletores
+      SET status='recusado', observacao_admin=$1, atualizado_em=NOW()
+      WHERE id=$2
+      RETURNING *
+    `, [observacao, req.params.id]);
+    if (result.rowCount === 0) return res.status(404).json({ erro: 'Saque não encontrado.' });
+    res.json({ mensagem: 'Saque recusado.', saque: saqueColetorParaFrontend(result.rows[0]) });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao recusar saque.', detalhe: error.message });
   }
 });
 

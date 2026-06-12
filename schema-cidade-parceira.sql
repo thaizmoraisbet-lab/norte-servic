@@ -63,3 +63,22 @@ CREATE INDEX IF NOT EXISTS idx_cidade_coleta_aceita_site ON cidade_coleta_profis
 -- Regra aplicada no backend: cada cadastro finalizado soma R$ 2,00.
 -- O saque só é liberado ao completar R$ 50,00 no dia por coletor.
 -- Todos os cadastros são avaliados pelo time da Norte Servic antes do pagamento.
+
+-- Atualização v10 — credenciamento avançado de coletores e saques pelo Painel Admin
+ALTER TABLE cidade_coletores ADD COLUMN IF NOT EXISTS telefone TEXT;
+ALTER TABLE cidade_coletores ADD COLUMN IF NOT EXISTS valor_comissao_cadastro NUMERIC(10,2) DEFAULT 2;
+
+CREATE TABLE IF NOT EXISTS cidade_saques_coletores (
+  id BIGSERIAL PRIMARY KEY,
+  coletor_id BIGINT REFERENCES cidade_coletores(id) ON DELETE SET NULL,
+  valor NUMERIC(10,2) NOT NULL DEFAULT 0,
+  cadastros_contados INTEGER DEFAULT 0,
+  data_referencia DATE DEFAULT CURRENT_DATE,
+  status TEXT DEFAULT 'aguardando',
+  observacao_admin TEXT,
+  criado_em TIMESTAMPTZ DEFAULT NOW(),
+  atualizado_em TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_cidade_saques_coletores_status ON cidade_saques_coletores(status);
+CREATE INDEX IF NOT EXISTS idx_cidade_saques_coletores_coletor_data ON cidade_saques_coletores(coletor_id, data_referencia);

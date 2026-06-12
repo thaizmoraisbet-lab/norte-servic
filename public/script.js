@@ -3275,7 +3275,7 @@ function ativarEnterNoAdmin() {
 
 function filtrarAdmin(status, botao = null) {
   filtroAdminAtual = status;
-  document.querySelectorAll(".admin-filtros button").forEach(btn => btn.classList.remove("ativo"));
+  document.querySelectorAll(".admin-filtros-profissionais button").forEach(btn => btn.classList.remove("ativo"));
   if (botao) botao.classList.add("ativo");
   mostrarAdmin();
 }
@@ -3364,6 +3364,56 @@ function renderizarGraficoFaturamentoAdmin(pagos = []) {
   }).join("");
 }
 
+function htmlAdminPagamentoCard(p) {
+  const status = statusPagamentoAdmin(p);
+  const bruto = valorPagamentoNumero(p);
+  const liquido = valorLiquidoEstimado(p);
+  const taxa = Math.max(0, bruto - liquido);
+  const nome = p.profissional_nome || p.profissionalNome || "Profissional";
+  const whatsapp = p.profissional_whatsapp || p.profissionalWhatsapp || "";
+  const plano = p.plano_nome || p.planoNome || p.plano_key || p.plano || "Plano";
+  const txid = p.efi_txid || p.txid || "";
+  const dataCriacao = formatarDataHoraCurta(p.criado_em || p.criadoEm);
+  const dataPago = formatarDataHoraCurta(p.pago_em || p.pagoEm);
+  const vencimentoPlano = formatarDataCurta(p.plano_vencimento || p.planoVencimento || "");
+  const mensagemExpirado = mensagemWhatsAppPagamentoExpirado(p);
+  const linkExpirado = linkWhatsappNumeroMensagem(whatsapp, mensagemExpirado);
+
+  return `
+    <article class="admin-pagamento-card status-${status}">
+      <div class="pagamento-card-topo">
+        <div>
+          <span class="pagamento-status ${status}">${labelStatusPagamentoAdmin(status)}</span>
+          <h3>${nome}</h3>
+          <p>${plano}</p>
+        </div>
+        <strong>${formatarMoedaBR(bruto)}</strong>
+      </div>
+      <div class="pagamento-metricas">
+        <p><span>Líquido estimado</span><strong>${formatarMoedaBR(liquido)}</strong></p>
+        <p><span>Taxa estimada</span><strong>${formatarMoedaBR(taxa)}</strong></p>
+        <p><span>WhatsApp</span><strong>${whatsapp || "Não informado"}</strong></p>
+        <p><span>Criado</span><strong>${dataCriacao || "-"}</strong></p>
+        <p><span>Pago em</span><strong>${dataPago || "-"}</strong></p>
+        <p><span>Vencimento do plano</span><strong>${vencimentoPlano || "Após ativação + 35 dias"}</strong></p>
+      </div>
+      <small class="pagamento-txid">TXID: ${txid || "não informado"}</small>
+      <div class="pagamento-acoes">
+        ${whatsapp ? `<a href="${criarLinkWhatsApp(whatsapp)}" target="_blank">WhatsApp</a>` : ""}
+        ${status === "expirado" && whatsapp ? `<a class="alerta" href="${linkExpirado}" target="_blank">Cobrar assinatura</a>` : ""}
+        ${p.profissional_id ? `<a href="perfil.html?id=${p.profissional_id}" target="_blank">Ver perfil</a>` : ""}
+      </div>
+    </article>
+  `;
+}
+
+function chaveDataPagamentoAdmin(p) {
+  const data = p.criado_em || p.criadoEm || p.pago_em || p.pagoEm || p.atualizado_em || p.atualizadoEm || Date.now();
+  const d = new Date(data);
+  if (Number.isNaN(d.getTime())) return "Sem data";
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
 function renderizarAdminPagamentos(pagamentos = []) {
   const container = document.getElementById("listaAdminPagamentos");
   const contador = document.getElementById("contadorPagamentosAdmin");
@@ -3372,51 +3422,34 @@ function renderizarAdminPagamentos(pagamentos = []) {
   const filtrados = pagamentos.filter(p => filtroPagamentosAdminAtual === "todos" || statusPagamentoAdmin(p) === filtroPagamentosAdminAtual);
   if (contador) contador.innerText = `${filtrados.length} pagamento(s)`;
 
+  const aguardando = pagamentos.filter(p => statusPagamentoAdmin(p) === "aguardando").length;
+  setAdminBadge("badgeAdminPagamentos", aguardando);
+
   if (!filtrados.length) {
     container.innerHTML = `<div class="admin-vazio admin-vazio-menor"><h3>Nenhum pagamento encontrado</h3><p>Quando profissionais gerarem Pix, eles aparecerão aqui.</p></div>`;
     return;
   }
 
-  container.innerHTML = filtrados.map(p => {
-    const status = statusPagamentoAdmin(p);
-    const bruto = valorPagamentoNumero(p);
-    const liquido = valorLiquidoEstimado(p);
-    const taxa = Math.max(0, bruto - liquido);
-    const nome = p.profissional_nome || p.profissionalNome || "Profissional";
-    const whatsapp = p.profissional_whatsapp || p.profissionalWhatsapp || "";
-    const plano = p.plano_nome || p.planoNome || p.plano_key || p.plano || "Plano";
-    const txid = p.efi_txid || p.txid || "";
-    const dataCriacao = formatarDataHoraCurta(p.criado_em || p.criadoEm);
-    const dataPago = formatarDataHoraCurta(p.pago_em || p.pagoEm);
-    const vencimentoPlano = formatarDataCurta(p.plano_vencimento || p.planoVencimento || "");
-    const mensagemExpirado = mensagemWhatsAppPagamentoExpirado(p);
-    const linkExpirado = linkWhatsappNumeroMensagem(whatsapp, mensagemExpirado);
+  const grupos = filtrados.reduce((acc, p) => {
+    const chave = chaveDataPagamentoAdmin(p);
+    if (!acc[chave]) acc[chave] = [];
+    acc[chave].push(p);
+    return acc;
+  }, {});
 
+  container.innerHTML = Object.entries(grupos).map(([data, lista]) => {
+    const totalDia = lista.reduce((soma, p) => soma + valorPagamentoNumero(p), 0);
+    const aguardandoDia = lista.filter(p => statusPagamentoAdmin(p) === "aguardando").length;
     return `
-      <article class="admin-pagamento-card status-${status}">
-        <div class="pagamento-card-topo">
-          <div>
-            <span class="pagamento-status ${status}">${labelStatusPagamentoAdmin(status)}</span>
-            <h3>${nome}</h3>
-            <p>${plano}</p>
-          </div>
-          <strong>${formatarMoedaBR(bruto)}</strong>
+      <section class="admin-pagamentos-dia">
+        <div class="admin-pagamentos-dia-topo">
+          <div><span>Pix gerados em</span><h3>${data}</h3></div>
+          <small>${lista.length} registro(s) • ${formatarMoedaBR(totalDia)} • ${aguardandoDia} aguardando</small>
         </div>
-        <div class="pagamento-metricas">
-          <p><span>Líquido estimado</span><strong>${formatarMoedaBR(liquido)}</strong></p>
-          <p><span>Taxa estimada</span><strong>${formatarMoedaBR(taxa)}</strong></p>
-          <p><span>WhatsApp</span><strong>${whatsapp || "Não informado"}</strong></p>
-          <p><span>Criado</span><strong>${dataCriacao || "-"}</strong></p>
-          <p><span>Pago em</span><strong>${dataPago || "-"}</strong></p>
-          <p><span>Vencimento do plano</span><strong>${vencimentoPlano || "Após ativação + 35 dias"}</strong></p>
+        <div class="admin-pagamentos-dia-lista">
+          ${lista.map(htmlAdminPagamentoCard).join("")}
         </div>
-        <small class="pagamento-txid">TXID: ${txid || "não informado"}</small>
-        <div class="pagamento-acoes">
-          ${whatsapp ? `<a href="${criarLinkWhatsApp(whatsapp)}" target="_blank">WhatsApp</a>` : ""}
-          ${status === "expirado" && whatsapp ? `<a class="alerta" href="${linkExpirado}" target="_blank">Cobrar assinatura</a>` : ""}
-          ${p.profissional_id ? `<a href="perfil.html?id=${p.profissional_id}" target="_blank">Ver perfil</a>` : ""}
-        </div>
-      </article>
+      </section>
     `;
   }).join("");
 }
@@ -3446,6 +3479,7 @@ function renderizarAdminIndicacoes(dados = {}) {
   const indicacoesBox = document.getElementById("listaAdminIndicacoes");
   const indicacoes = Array.isArray(dados.indicacoes) ? dados.indicacoes : [];
   const saques = Array.isArray(dados.saques) ? dados.saques : [];
+  setAdminBadge("badgeAdminIndicacoes", saques.filter(s => s.status === "aguardando").length);
 
   if (resumoBox) {
     const disponivel = indicacoes.filter(i => i.status === "disponivel").reduce((s, i) => s + Number(i.valor_comissao || 0), 0);
@@ -3586,6 +3620,7 @@ async function mostrarAdminAvaliacoes() {
       .filter(item => String(item.status || "pendente").trim().toLowerCase() === "pendente");
 
     if (contador) contador.innerText = `${validas.length} pendente(s)`;
+    setAdminBadge("badgeAdminAvaliacoes", validas.length);
 
     if (!validas || validas.length === 0) {
       container.innerHTML = `<div class="admin-vazio admin-vazio-menor"><h3>Nenhuma avaliação pendente</h3><p>Quando clientes enviarem avaliações, elas aparecerão aqui para aprovação.</p></div>`;
@@ -3718,10 +3753,13 @@ async function mostrarAdmin() {
     mostrarAdminPagamentos(salvos);
     mostrarAdminIndicacoes();
     mostrarAdminExclusoes();
+    mostrarAdminColetores();
+    buscarAdminCidadeColetas().then(renderizarAdminCidadeColetas).catch(() => renderizarAdminCidadeColetas([]));
 
     const pendentes = salvos.filter(p => p.status === "pendente").length;
     const aprovados = salvos.filter(p => p.status === "aprovado").length;
     const cidadesUnicas = new Set(salvos.map(p => normalizarTextoNorteServic(p.cidade)).filter(Boolean)).size;
+    setAdminBadge("badgeAdminProfissionais", pendentes);
 
     if (stats) {
       stats.innerHTML = `
@@ -4420,6 +4458,7 @@ async function buscarAdminExclusoes() {
 function renderizarAdminExclusoes(lista = []) {
   const box = document.getElementById("listaAdminExclusoes");
   if (!box) return;
+  setAdminBadge("badgeAdminLgpd", lista.filter(item => item.status === "aguardando").length);
   box.innerHTML = lista.length ? lista.map(item => `
     <article class="admin-pagamento-card admin-lgpd-card">
       <div>
@@ -4473,6 +4512,250 @@ async function recusarExclusaoConta(id) {
   } catch (error) { alert(error.message); }
 }
 
+
+
+/* ================================================= */
+/* ADMIN V10 — MÓDULOS, CIDADE PARCEIRA E NOTIFICAÇÕES */
+/* ================================================= */
+
+function setAdminBadge(id, valor) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const n = Number(valor || 0);
+  el.textContent = n > 99 ? "99+" : String(n);
+  el.classList.toggle("ativo", n > 0);
+}
+
+function abrirModuloAdmin(nome, botao = null) {
+  const alvo = nome || "profissionais";
+  document.querySelectorAll("[data-admin-section]").forEach(sec => {
+    sec.classList.toggle("ativo", sec.dataset.adminSection === alvo);
+  });
+  document.querySelectorAll(".admin-modulo-btn").forEach(btn => {
+    btn.classList.toggle("ativo", btn.dataset.adminModulo === alvo);
+  });
+  if (botao) botao.classList.add("ativo");
+  sessionStorage.setItem("adminModuloAtivo", alvo);
+  const painel = document.getElementById("painelAdmin");
+  if (painel) painel.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function restaurarModuloAdmin() {
+  const salvo = sessionStorage.getItem("adminModuloAtivo") || "profissionais";
+  abrirModuloAdmin(salvo);
+}
+
+function buscarAdminCidadeColetas() {
+  return apiFetch("/api/admin/cidade/coletas", { headers: { "x-admin-password": getAdminPassword() } });
+}
+
+function buscarAdminColetores() {
+  return apiFetch("/api/admin/cidade/coletores", { headers: { "x-admin-password": getAdminPassword() } });
+}
+
+function buscarAdminSaquesColetores() {
+  return apiFetch("/api/admin/cidade/saques", { headers: { "x-admin-password": getAdminPassword() } });
+}
+
+function renderizarAdminCidadeColetas(coletas = []) {
+  const box = document.getElementById("listaAdminCidadeColetas");
+  if (!box) return;
+  if (!coletas.length) {
+    box.innerHTML = `<div class="admin-vazio admin-vazio-menor"><h3>Nenhum cadastro da Cidade Parceira</h3><p>Quando os coletores enviarem profissionais, eles aparecerão aqui.</p></div>`;
+    return;
+  }
+
+  box.innerHTML = coletas.slice(0, 120).map(item => `
+    <article class="admin-cidade-coleta-card">
+      <div>
+        <span class="admin-status ${item.aceitaSite ? "status-aprovado" : "status-pendente"}">${item.aceitaSite ? "Publicado automático" : "Somente relatório"}</span>
+        <h3>${item.nome || "Profissional"}</h3>
+        <p><strong>${item.profissao || "Profissão"}</strong> • ${item.setor || "Setor"}${item.bairro ? " • " + item.bairro : ""}</p>
+        <small>Coletor: ${item.coletorNome || "Não informado"}${item.coletorTelefone ? " • " + item.coletorTelefone : ""} • ${formatarDataHoraCurta(item.criadoEm)}</small>
+      </div>
+      <div class="admin-cidade-coleta-info">
+        <strong>${item.whatsapp || "Sem WhatsApp"}</strong>
+        ${item.profissionalSiteId ? `<a href="perfil.html?id=${item.profissionalSiteId}" target="_blank">Ver no site</a>` : ""}
+      </div>
+    </article>
+  `).join("");
+}
+
+function htmlStatusColetorAdmin(ativo) {
+  return ativo ? '<span class="admin-status status-aprovado">Ativo</span>' : '<span class="admin-status status-pendente">Inativo</span>';
+}
+
+function renderizarAdminColetores(coletores = []) {
+  const box = document.getElementById("listaAdminColetores");
+  if (!box) return;
+  if (!coletores.length) {
+    box.innerHTML = `<div class="admin-vazio admin-vazio-menor"><h3>Nenhum coletor cadastrado</h3><p>Cadastre o primeiro coletor no formulário ao lado.</p></div>`;
+    return;
+  }
+
+  box.innerHTML = coletores.map(c => `
+    <article class="admin-coletor-card" data-coletor-id="${c.id}">
+      <div class="admin-coletor-card-topo">
+        <div>${htmlStatusColetorAdmin(c.ativo)}<h3>${c.nome}</h3><p>${c.email}</p></div>
+        <strong>${formatarMoedaBR(c.valorComissaoCadastro || 2)}</strong>
+      </div>
+      <div class="admin-coletor-metricas">
+        <p><span>Telefone</span><strong>${c.telefone || "Não informado"}</strong></p>
+        <p><span>Setor do dia</span><strong>${c.setor || "-"}</strong></p>
+        <p><span>Hoje</span><strong>${c.cadastrosHoje || 0} cadastro(s)</strong></p>
+        <p><span>Total</span><strong>${c.totalCadastros || 0}</strong></p>
+        <p><span>No site</span><strong>${c.aceitosSite || 0}</strong></p>
+      </div>
+      <div class="admin-coletor-acoes">
+        <button onclick="editarColetorAdmin(${c.id})">Editar</button>
+        <button onclick="alterarStatusColetorAdmin(${c.id}, ${c.ativo ? "false" : "true"})">${c.ativo ? "Desativar" : "Ativar"}</button>
+        ${c.telefone ? `<a href="${criarLinkWhatsApp(c.telefone)}" target="_blank">WhatsApp</a>` : ""}
+      </div>
+    </article>
+  `).join("");
+}
+
+function renderizarAdminSaquesColetores(saques = []) {
+  const box = document.getElementById("listaAdminSaquesColetores");
+  if (!box) return;
+  const pendentes = saques.filter(s => s.status === "aguardando").length;
+  setAdminBadge("badgeAdminColetores", pendentes);
+
+  box.innerHTML = saques.length ? saques.map(s => `
+    <article class="admin-pagamento-card status-${s.status === "pago" ? "pago" : s.status === "recusado" ? "expirado" : "aguardando"}">
+      <div class="pagamento-card-topo">
+        <div>
+          <span class="pagamento-status ${s.status === "pago" ? "pago" : "aguardando"}">${s.status}</span>
+          <h3>${s.coletorNome}</h3>
+          <p>${s.setor || "Setor não informado"} • ${formatarDataCurta(s.dataReferencia)}</p>
+        </div>
+        <strong>${formatarMoedaBR(s.valor)}</strong>
+      </div>
+      <div class="pagamento-metricas">
+        <p><span>Cadastros</span><strong>${s.cadastrosContados}</strong></p>
+        <p><span>Telefone</span><strong>${s.coletorTelefone || "-"}</strong></p>
+        <p><span>E-mail</span><strong>${s.coletorEmail || "-"}</strong></p>
+        <p><span>Solicitado</span><strong>${formatarDataHoraCurta(s.criadoEm)}</strong></p>
+        <p><span>Observação</span><strong>${s.observacaoAdmin || "Aguardando análise"}</strong></p>
+      </div>
+      <div class="pagamento-acoes">
+        ${s.coletorTelefone ? `<a href="${criarLinkWhatsApp(s.coletorTelefone)}" target="_blank">WhatsApp</a>` : ""}
+        ${s.status === "aguardando" ? `<button onclick="marcarSaqueColetorPago(${s.id})">Marcar pago</button><button class="alerta" onclick="recusarSaqueColetor(${s.id})">Recusar</button>` : ""}
+      </div>
+    </article>
+  `).join("") : `<div class="admin-vazio admin-vazio-menor"><h3>Nenhum saque de coletor solicitado</h3><p>Quando o coletor completar a meta e pedir saque, a notificação aparecerá aqui.</p></div>`;
+}
+
+async function mostrarAdminColetores() {
+  const lista = document.getElementById("listaAdminColetores");
+  const saquesBox = document.getElementById("listaAdminSaquesColetores");
+  if (!lista && !saquesBox) return;
+  try {
+    if (lista) lista.innerHTML = `<div class="admin-vazio admin-vazio-menor"><h3>Carregando coletores...</h3></div>`;
+    if (saquesBox) saquesBox.innerHTML = `<div class="admin-vazio admin-vazio-menor"><h3>Carregando saques...</h3></div>`;
+    const [coletores, saques] = await Promise.all([buscarAdminColetores(), buscarAdminSaquesColetores()]);
+    window.adminColetoresCache = coletores || [];
+    renderizarAdminColetores(coletores || []);
+    renderizarAdminSaquesColetores(saques || []);
+  } catch (error) {
+    if (lista) lista.innerHTML = `<div class="admin-vazio"><h3>Erro nos coletores</h3><p>${error.message}</p></div>`;
+    if (saquesBox) saquesBox.innerHTML = `<div class="admin-vazio"><h3>Erro nos saques</h3><p>${error.message}</p></div>`;
+  }
+}
+
+function prepararAdminColetores() {
+  const form = document.getElementById("formAdminColetor");
+  if (!form || form.dataset.pronto === "true") return;
+  form.dataset.pronto = "true";
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const msg = document.getElementById("msgAdminColetor");
+    const botao = form.querySelector('button[type="submit"]');
+    const textoOriginal = botao?.textContent || "Credenciar coletor";
+    if (msg) msg.textContent = "";
+    try {
+      if (botao) { botao.textContent = "Salvando..."; botao.disabled = true; }
+      const fd = new FormData(form);
+      const payload = Object.fromEntries(fd.entries());
+      payload.valorComissaoCadastro = Number(payload.valorComissaoCadastro || 2);
+      const editandoId = form.dataset.editandoId;
+      await apiFetch(editandoId ? `/api/admin/cidade/coletores/${editandoId}` : "/api/admin/cidade/coletores", {
+        method: editandoId ? "PATCH" : "POST",
+        headers: { "x-admin-password": getAdminPassword() },
+        body: JSON.stringify(payload)
+      });
+      form.reset();
+      delete form.dataset.editandoId;
+      const campoSenha = document.getElementById("adminColetorSenha");
+      if (campoSenha) campoSenha.required = true;
+      if (botao) botao.textContent = "Credenciar coletor";
+      if (document.getElementById("adminColetorComissao")) document.getElementById("adminColetorComissao").value = "2";
+      if (msg) msg.textContent = "Coletor salvo com sucesso.";
+      await mostrarAdminColetores();
+    } catch (error) {
+      if (msg) msg.textContent = error.message;
+      alert(error.message);
+    } finally {
+      if (botao) { botao.textContent = textoOriginal; botao.disabled = false; }
+    }
+  });
+}
+
+function editarColetorAdmin(id) {
+  const coletor = (window.adminColetoresCache || []).find(c => Number(c.id) === Number(id));
+  const form = document.getElementById("formAdminColetor");
+  if (!coletor || !form) return;
+  form.dataset.editandoId = String(id);
+  document.getElementById("adminColetorNome").value = coletor.nome || "";
+  document.getElementById("adminColetorTelefone").value = coletor.telefone || "";
+  document.getElementById("adminColetorEmail").value = coletor.email || "";
+  document.getElementById("adminColetorSenha").value = "";
+  document.getElementById("adminColetorSenha").required = false;
+  document.getElementById("adminColetorSetor").value = coletor.setor || "Centro";
+  document.getElementById("adminColetorComissao").value = coletor.valorComissaoCadastro || 2;
+  const botao = form.querySelector('button[type="submit"]');
+  if (botao) botao.textContent = "Salvar alterações do coletor";
+  abrirModuloAdmin("coletores");
+  form.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+async function alterarStatusColetorAdmin(id, ativo) {
+  const coletor = (window.adminColetoresCache || []).find(c => Number(c.id) === Number(id));
+  if (!coletor) return;
+  try {
+    await apiFetch(`/api/admin/cidade/coletores/${id}`, {
+      method: "PATCH",
+      headers: { "x-admin-password": getAdminPassword() },
+      body: JSON.stringify({ ...coletor, ativo })
+    });
+    await mostrarAdminColetores();
+  } catch (error) { alert(error.message); }
+}
+
+async function marcarSaqueColetorPago(id) {
+  const observacao = prompt("Observação do pagamento:") || "Pago após avaliação dos cadastros.";
+  try {
+    await apiFetch(`/api/admin/cidade/saques/${id}/pagar`, {
+      method: "PATCH",
+      headers: { "x-admin-password": getAdminPassword() },
+      body: JSON.stringify({ observacao })
+    });
+    await mostrarAdminColetores();
+  } catch (error) { alert(error.message); }
+}
+
+async function recusarSaqueColetor(id) {
+  const observacao = prompt("Motivo da recusa:") || "Recusado após avaliação dos cadastros.";
+  try {
+    await apiFetch(`/api/admin/cidade/saques/${id}/recusar`, {
+      method: "PATCH",
+      headers: { "x-admin-password": getAdminPassword() },
+      body: JSON.stringify({ observacao })
+    });
+    await mostrarAdminColetores();
+  } catch (error) { alert(error.message); }
+}
+
 /* ================================================= */
 /* INICIALIZAÇÃO */
 /* ================================================= */
@@ -4492,6 +4775,8 @@ document.addEventListener("DOMContentLoaded", function() {
   iniciarLoginProfissional();
   iniciarRecuperacaoSenha();
   ativarEnterNoAdmin();
+  prepararAdminColetores();
+  restaurarModuloAdmin();
   ativarTopoMenorAoRolar();
   mostrarProfissionais();
   carregarPerfilProfissional();

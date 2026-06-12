@@ -342,23 +342,35 @@ async function carregarComissaoColetorCidade() {
     const resumo = $('cidadeComissaoResumo');
     if (resumo) resumo.textContent = dados.mensagem || `Cada cadastro finalizado soma ${formatarDinheiroCidade(valorCadastro)}. O saque só libera ao completar ${formatarDinheiroCidade(limite)} no dia.`;
 
-    const coletor = dadosColetorCidade();
-    const texto = encodeURIComponent(`Olá, sou ${coletor.nome || 'coletor'} do setor ${coletor.setor || ''}. Quero solicitar saque da comissão da coleta. Cadastros hoje: ${cadastrosHoje}. Valor disponível: ${formatarDinheiroCidade(valor)}. Estou ciente de que os cadastros são avaliados pelo time da Norte Servic antes do pagamento.`);
-    const numero = String(dados.whatsappSaque || CIDADE_WHATSAPP_SAQUE_PADRAO).replace(/\D/g, '');
     const link = $('btnSolicitarSaqueColetor');
     if (link) {
-      link.href = saqueLiberado ? `https://wa.me/${numero}?text=${texto}` : '#';
-      link.textContent = saqueLiberado ? 'Solicitar saque pelo WhatsApp' : `Saque libera em ${formatarDinheiroCidade(limite)}`;
-      link.classList.toggle('cidade-btn-desativado', !saqueLiberado);
-      link.setAttribute('aria-disabled', !saqueLiberado ? 'true' : 'false');
-      link.onclick = (evento) => {
+      link.href = '#';
+      link.textContent = dados.saquePendente
+        ? 'Saque enviado para análise'
+        : saqueLiberado ? 'Solicitar saque para análise' : `Saque libera em ${formatarDinheiroCidade(limite)}`;
+      link.classList.toggle('cidade-btn-desativado', !saqueLiberado || dados.saquePendente);
+      link.setAttribute('aria-disabled', (!saqueLiberado || dados.saquePendente) ? 'true' : 'false');
+      link.onclick = async (evento) => {
+        evento.preventDefault();
         if (!saqueLiberado) {
-          evento.preventDefault();
           mostrarToastCidade(`${regraSaque} Valor atual: ${formatarDinheiroCidade(valor)}.`, 'erro');
           return false;
         }
-        mostrarToastCidade('Saque aberto no WhatsApp. Os cadastros serão avaliados pelo time antes do pagamento.', 'ok');
-        return true;
+        if (dados.saquePendente) {
+          mostrarToastCidade('Sua solicitação de saque já está no Painel Admin aguardando análise.', 'ok');
+          return false;
+        }
+        try {
+          mostrarTransicaoCidade('Enviando solicitação de saque para o Painel Admin...');
+          const resposta = await cidadeFetch('/api/cidade/coletor/saques', { method: 'POST', body: JSON.stringify({}) }, true);
+          mostrarToastCidade(resposta.mensagem || 'Solicitação enviada para análise.', 'ok');
+          await carregarComissaoColetorCidade();
+        } catch (error) {
+          mostrarToastCidade(error.message, 'erro');
+        } finally {
+          fecharTransicaoCidade(300);
+        }
+        return false;
       };
     }
   } catch (error) {
