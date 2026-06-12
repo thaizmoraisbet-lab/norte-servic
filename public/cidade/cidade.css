@@ -1859,3 +1859,293 @@ body.cidade-body .cidade-hero-acoes {
     font-size: clamp(26px, 8vw, 38px) !important;
   }
 }
+
+/* ================================================= */
+/* AJUSTES V7 — TRANSIÇÕES PREMIUM EM TODAS AS ABAS */
+/* ================================================= */
+body.cidade-body {
+  animation: cidadePaginaAparecer .46s cubic-bezier(.2,.8,.2,1) both;
+}
+
+body.cidade-body.cidade-page-saindo {
+  pointer-events: none;
+  animation: cidadePaginaSair .28s ease both;
+}
+
+body.cidade-body .ns-header {
+  animation: cidadeCairSuave .54s cubic-bezier(.2,.8,.2,1) both;
+}
+
+body.cidade-body main {
+  animation: cidadeMainAparecer .58s cubic-bezier(.2,.8,.2,1) .04s both;
+}
+
+body.cidade-body footer {
+  animation: cidadeEntradaSuave .56s ease .16s both;
+}
+
+.cidade-reveal {
+  opacity: 0;
+  transform: translate3d(0, 24px, 0) scale(.985);
+  filter: blur(6px);
+  transition:
+    opacity .66s cubic-bezier(.2,.8,.2,1),
+    transform .66s cubic-bezier(.2,.8,.2,1),
+    filter .66s cubic-bezier(.2,.8,.2,1),
+    box-shadow .24s ease,
+    border-color .24s ease,
+    background .24s ease;
+  transition-delay: var(--cidade-delay, 0ms);
+  will-change: opacity, transform, filter;
+}
+
+.cidade-reveal.cidade-revelado {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+}
+
+.cidade-reveal-left {
+  opacity: 0;
+  transform: translate3d(-24px, 0, 0) scale(.985);
+  filter: blur(6px);
+  transition:
+    opacity .66s cubic-bezier(.2,.8,.2,1),
+    transform .66s cubic-bezier(.2,.8,.2,1),
+    filter .66s cubic-bezier(.2,.8,.2,1);
+  transition-delay: var(--cidade-delay, 0ms);
+}
+
+.cidade-reveal-right {
+  opacity: 0;
+  transform: translate3d(24px, 0, 0) scale(.985);
+  filter: blur(6px);
+  transition:
+    opacity .66s cubic-bezier(.2,.8,.2,1),
+    transform .66s cubic-bezier(.2,.8,.2,1),
+    filter .66s cubic-bezier(.2,.8,.2,1);
+  transition-delay: var(--cidade-delay, 0ms);
+}
+
+.cidade-reveal-left.cidade-revelado,
+.cidade-reveal-right.cidade-revelado {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+}
+
+.cidade-pop {
+  animation: cidadePop .52s cubic-bezier(.2,.9,.2,1.2) both;
+}
+
+.cidade-hero-premium,
+.cidade-consulta-hero,
+.cidade-coletor-hero,
+.cidade-login-card,
+.cidade-login-visual {
+  overflow: hidden;
+}
+
+.cidade-hero-premium::before,
+.cidade-consulta-hero::before,
+.cidade-login-visual::before,
+.cidade-coletor-login-centro::before {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,.20) 48%, transparent 58%);
+  transform: translateX(-35%);
+  animation: cidadeVarreduraLuz 1.15s ease .24s both;
+}
+
+.cidade-numero-box strong,
+.cidade-numero-box em,
+.cidade-metricas strong,
+.cidade-setor-item strong,
+.cidade-ranking-item strong,
+.cidade-comissao-valor strong,
+.cidade-profissao-topo > strong {
+  transition: transform .24s ease, color .24s ease, text-shadow .24s ease;
+}
+
+.cidade-card-transicao:hover strong,
+.cidade-numero-box:hover strong,
+.cidade-metricas article:hover strong,
+.cidade-profissao-card:hover .cidade-profissao-topo > strong {
+  transform: translateY(-1px) scale(1.02);
+  text-shadow: 0 12px 28px rgba(37,99,235,.18);
+}
+
+.cidade-metricas article,
+.cidade-login-passos article,
+.cidade-coletor-mini-passos article,
+.cidade-bloco-form,
+.cidade-comissao-card,
+.cidade-acesso-profissional-info,
+.cidade-minhas-coletas,
+.cidade-profissao-card,
+.cidade-vazio-card,
+.cidade-coletor-cta-card,
+.cidade-card-grande,
+.cidade-filtros-consulta,
+.cidade-coletor-login,
+.cidade-coletor-form {
+  backface-visibility: hidden;
+  transform-origin: center;
+}
+
+.cidade-bloco-form:focus-within,
+.cidade-coletor-login:focus-within,
+.cidade-filtros-consulta:focus-within,
+.cidade-card-grande:focus-within,
+.cidade-profissao-card:focus-within {
+  transform: translateY(-2px);
+  border-color: rgba(37,99,235,.30);
+  box-shadow: 0 24px 58px rgba(15,23,42,.12);
+}
+
+.cidade-barra i,
+.cidade-comissao-barra i {
+  transform-origin: left center;
+  animation: cidadeBarraCrescer .72s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.cidade-profissionais-mini div,
+.cidade-coleta-item,
+.cidade-setor-item,
+.cidade-ranking-item {
+  animation: cidadeMiniItem .42s ease both;
+}
+
+.cidade-profissionais-mini div:nth-child(2),
+.cidade-coleta-item:nth-child(2),
+.cidade-setor-item:nth-child(2),
+.cidade-ranking-item:nth-child(2) { animation-delay: .06s; }
+.cidade-profissionais-mini div:nth-child(3),
+.cidade-coleta-item:nth-child(3),
+.cidade-setor-item:nth-child(3),
+.cidade-ranking-item:nth-child(3) { animation-delay: .12s; }
+.cidade-profissionais-mini div:nth-child(4),
+.cidade-coleta-item:nth-child(4),
+.cidade-setor-item:nth-child(4),
+.cidade-ranking-item:nth-child(4) { animation-delay: .18s; }
+
+body.cidade-body .ns-page-loader.cidade-loader.ativo .ns-loader-card,
+body.cidade-body .mini-loading.ativo {
+  animation: cidadeLoaderEntrada .38s cubic-bezier(.2,.8,.2,1) both;
+}
+
+body.cidade-body .ns-page-loader.cidade-loader.saindo .ns-loader-card {
+  animation: cidadeLoaderSaida .36s ease both;
+}
+
+@keyframes cidadePaginaAparecer {
+  from { opacity: 0; background-position: 0 -18px; }
+  to { opacity: 1; background-position: 0 0; }
+}
+
+@keyframes cidadePaginaSair {
+  from { opacity: 1; transform: scale(1); filter: blur(0); }
+  to { opacity: .72; transform: scale(.994); filter: blur(2px); }
+}
+
+@keyframes cidadeCairSuave {
+  from { opacity: 0; transform: translateY(-16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cidadeMainAparecer {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cidadePop {
+  0% { opacity: 0; transform: scale(.94) translateY(12px); filter: blur(4px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+}
+
+@keyframes cidadeVarreduraLuz {
+  0% { opacity: 0; transform: translateX(-35%) rotate(0deg); }
+  25% { opacity: .6; }
+  100% { opacity: 0; transform: translateX(45%) rotate(0deg); }
+}
+
+@keyframes cidadeBarraCrescer {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes cidadeMiniItem {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cidadeLoaderEntrada {
+  from { opacity: 0; transform: scale(.94) translateY(12px); filter: blur(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+}
+
+@keyframes cidadeLoaderSaida {
+  from { opacity: 1; transform: scale(1); filter: blur(0); }
+  to { opacity: 0; transform: scale(.96); filter: blur(4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.cidade-body,
+  body.cidade-body .ns-header,
+  body.cidade-body main,
+  body.cidade-body footer,
+  .cidade-animar-entrada,
+  .cidade-card-transicao,
+  .cidade-reveal,
+  .cidade-reveal-left,
+  .cidade-reveal-right,
+  .cidade-profissao-card,
+  .cidade-profissionais-mini div,
+  .cidade-coleta-item,
+  .cidade-setor-item,
+  .cidade-ranking-item {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+  }
+}
+
+/* Refinos da V7: links, hover e páginas internas com transição */
+body.cidade-body .ns-nav a,
+body.cidade-body .ns-nav button,
+.cidade-nav-btn,
+.cidade-btn {
+  transition: transform .22s ease, box-shadow .22s ease, background .22s ease, color .22s ease, border-color .22s ease, opacity .22s ease;
+}
+
+body.cidade-body .ns-nav a:hover,
+body.cidade-body .ns-nav button:hover,
+.cidade-nav-btn:hover,
+.cidade-btn:hover {
+  transform: translateY(-2px);
+}
+
+.cidade-consulta-hero,
+.cidade-coletor-hero,
+.cidade-login-card,
+.cidade-login-visual,
+.cidade-coletor-login-centro {
+  position: relative;
+}
+
+.cidade-card-transicao.cidade-revelado:hover,
+.cidade-metricas article.cidade-revelado:hover,
+.cidade-profissao-card.cidade-revelado:hover,
+.cidade-coletor-cta-card.cidade-revelado:hover {
+  transform: translateY(-3px) scale(1);
+}
+
+.cidade-form-coleta-rapida .cidade-reveal:nth-child(1) { --cidade-delay: 60ms; }
+.cidade-form-coleta-rapida .cidade-reveal:nth-child(2) { --cidade-delay: 120ms; }
+.cidade-form-coleta-rapida .cidade-reveal:nth-child(3) { --cidade-delay: 180ms; }
+.cidade-form-coleta-rapida .cidade-reveal:nth-child(4) { --cidade-delay: 240ms; }

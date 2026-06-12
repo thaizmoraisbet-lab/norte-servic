@@ -88,6 +88,7 @@ function fecharTransicaoCidade(delay = 280) {
 }
 
 function navegarCidade(url, texto = 'Abrindo Cidade Parceira...') {
+  document.body?.classList.add('cidade-page-saindo');
   mostrarTransicaoCidade(texto);
   setTimeout(() => { window.location.href = url; }, 450);
 }
@@ -216,6 +217,7 @@ async function carregarResumoCidade() {
         const item = porSetor.find((s) => s.setor === setor) || { total: 0 };
         return `<div class="cidade-setor-item cidade-card-transicao"><span>${setor}</span><strong>${Number(item.total || 0)}</strong></div>`;
       }).join('');
+      aplicarAnimacoesCidade(listaSetores);
     }
 
     const ranking = $('cidadeRankingProfissoes');
@@ -224,6 +226,7 @@ async function carregarResumoCidade() {
       ranking.innerHTML = top.length
         ? top.map((item, index) => `<div class="cidade-ranking-item cidade-card-transicao"><span>${index + 1}. ${item.profissao}</span><strong>${item.total}</strong></div>`).join('')
         : '<p class="cidade-vazio">Nenhuma profissão coletada ainda.</p>';
+      aplicarAnimacoesCidade(ranking);
     }
   } catch (error) {
     const setores = $('cidadeSetoresLista');
@@ -281,6 +284,8 @@ function prepararColetorCidade() {
   const temToken = Boolean(tokenColetorCidade());
   loginBox.classList.toggle('escondido', temToken);
   painelBox.classList.toggle('escondido', !temToken);
+  animarTrocaPainelCidade(temToken ? painelBox : loginBox);
+  aplicarAnimacoesCidade(temToken ? painelBox : loginBox);
 
   if (temToken) {
     const coletor = dadosColetorCidade();
@@ -307,6 +312,7 @@ async function carregarMinhasColetasCidade() {
         </div>
       `).join('')
       : '<p class="cidade-vazio">Nenhum cadastro feito por este coletor ainda.</p>';
+    aplicarAnimacoesCidade(lista);
   } catch (error) {
     lista.innerHTML = `<p class="cidade-msg erro">${error.message}</p>`;
   }
@@ -570,6 +576,7 @@ async function carregarProfissoesCidade() {
 
     if (!grupos.length) {
       lista.innerHTML = '<div class="cidade-vazio-card cidade-card-transicao"><h3>Nenhum profissional encontrado</h3><p>Os cadastros dos coletores aparecerão aqui agrupados por profissão.</p></div>';
+      aplicarAnimacoesCidade(lista);
       return;
     }
 
@@ -601,8 +608,10 @@ async function carregarProfissoesCidade() {
         </article>
       `;
     }).join('');
+    aplicarAnimacoesCidade(lista);
   } catch (error) {
     lista.innerHTML = `<div class="cidade-vazio-card cidade-card-transicao"><h3>Erro ao carregar consulta</h3><p>${error.message}</p></div>`;
+    aplicarAnimacoesCidade(lista);
   }
 }
 
@@ -632,9 +641,93 @@ function iniciarAtualizacaoResumoCidade() {
   }, 12000);
 }
 
+
+
+
+function prepararLinksTransicaoCidade() {
+  document.querySelectorAll('a[href]').forEach((link) => {
+    const href = link.getAttribute('href') || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:') || link.target === '_blank') return;
+    link.addEventListener('click', (event) => {
+      const destino = link.getAttribute('href');
+      if (!destino || destino === '#') return;
+      const atual = window.location.pathname.split('/').pop() || 'index.html';
+      const destinoLimpo = destino.split('#')[0].split('?')[0];
+      if (destinoLimpo === atual) return;
+      event.preventDefault();
+      const texto = destino.includes('coletor') ? 'Abrindo área do coletor...'
+        : destino.includes('profissionais') ? 'Abrindo consulta de profissionais...'
+        : destino.includes('home') ? 'Abrindo Cidade Parceira...'
+        : 'Abrindo Norte Servic...';
+      navegarCidade(destino, texto);
+    });
+  });
+}
+
+function animarElementoCidade(elemento, delay = 0, lateral = '') {
+  if (!elemento || elemento.classList.contains('cidade-revelado')) return;
+  const classe = lateral === 'left' ? 'cidade-reveal-left' : lateral === 'right' ? 'cidade-reveal-right' : 'cidade-reveal';
+  elemento.classList.add(classe);
+  elemento.style.setProperty('--cidade-delay', `${delay}ms`);
+  requestAnimationFrame(() => {
+    setTimeout(() => elemento.classList.add('cidade-revelado'), 35);
+  });
+}
+
+function aplicarAnimacoesCidade(raiz = document) {
+  const seletores = [
+    '.cidade-login-card',
+    '.cidade-login-visual',
+    '.cidade-login-passos article',
+    '.cidade-hero-premium',
+    '.cidade-numero-box',
+    '.cidade-hero-acoes .cidade-btn',
+    '.cidade-metricas article',
+    '.cidade-grid-section > *',
+    '.cidade-coletor-cta-card',
+    '.cidade-coletor-hero',
+    '.cidade-coletor-mini-passos article',
+    '.cidade-coletor-login',
+    '.cidade-coletor-form',
+    '.cidade-coletor-status-row > *',
+    '.cidade-comissao-card',
+    '.cidade-bloco-form',
+    '.cidade-switch-site',
+    '.cidade-acesso-profissional-info',
+    '.cidade-form-acoes',
+    '.cidade-minhas-coletas',
+    '.cidade-consulta-hero',
+    '.cidade-filtros-consulta',
+    '.cidade-profissao-card',
+    '.cidade-vazio-card',
+    '.cidade-setor-item',
+    '.cidade-ranking-item',
+    '.cidade-coleta-item'
+  ];
+
+  const elementos = [...raiz.querySelectorAll(seletores.join(','))]
+    .filter((el, index, arr) => arr.indexOf(el) === index && !el.classList.contains('escondido'));
+
+  elementos.forEach((el, index) => {
+    const lateral = el.matches('.cidade-login-card, .cidade-grid-section > :first-child, .cidade-coletor-login') ? 'left'
+      : el.matches('.cidade-login-visual, .cidade-grid-section > :last-child') ? 'right'
+      : '';
+    const delay = Math.min(index * 42, 420);
+    animarElementoCidade(el, delay, lateral);
+  });
+}
+
+function animarTrocaPainelCidade(elemento) {
+  if (!elemento) return;
+  elemento.classList.remove('cidade-reveal', 'cidade-reveal-left', 'cidade-reveal-right', 'cidade-revelado');
+  animarElementoCidade(elemento, 0);
+}
+
 window.addEventListener('DOMContentLoaded', async () => {
   esconderLoadingCidade();
   prepararLoginSenhaCidade();
+  prepararLinksTransicaoCidade();
+  aplicarAnimacoesCidade(document);
 
   if (!protegerPaginaCidade()) return;
 
@@ -644,6 +737,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     await carregarResumoCidade();
     iniciarAtualizacaoResumoCidade();
     fecharTransicaoCidade(350);
+    aplicarAnimacoesCidade(document);
   }
 
   if (pagina === 'coletor') {
@@ -651,11 +745,13 @@ window.addEventListener('DOMContentLoaded', async () => {
     prepararFormularioColetaCidade();
     prepararColetorCidade();
     fecharTransicaoCidade(320);
+    aplicarAnimacoesCidade(document);
   }
 
   if (pagina === 'profissionais') {
     mostrarTransicaoCidade('Carregando consulta de profissionais...');
     await carregarProfissoesCidade();
     fecharTransicaoCidade(350);
+    aplicarAnimacoesCidade(document);
   }
 });
