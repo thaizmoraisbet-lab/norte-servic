@@ -3892,6 +3892,11 @@ function ativarTransicoesDeClique() {
 
     const href = link.getAttribute("href") || "";
     const ehWhatsapp = href.includes("wa.me");
+    const ehCidadeParceira = href.includes("cidade/");
+
+    if (ehCidadeParceira && !link.target) {
+      mostrarLoading("Abrindo Cidade Parceira...");
+    }
 
     if (ehWhatsapp) {
       mostrarLoading("Abrindo WhatsApp...");

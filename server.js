@@ -17,6 +17,14 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'indica123';
 const SUPABASE_URL = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const SUPABASE_STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'norte-servic';
+const CIDADE_PARCEIRA_PASSWORD = process.env.CIDADE_PARCEIRA_PASSWORD || 'cidade123';
+const CIDADE_JWT_SECRET = process.env.CIDADE_JWT_SECRET || JWT_SECRET;
+const CIDADE_MUNICIPIO_PADRAO = process.env.CIDADE_MUNICIPIO_PADRAO || 'Muricilândia - TO';
+const CIDADE_WHATSAPP_SAQUE = (process.env.CIDADE_WHATSAPP_SAQUE || process.env.WHATSAPP_EMPRESA || '5563992472236').replace(/\D/g, '');
+const CIDADE_COMISSAO_VALOR_CADASTRO = Number(process.env.CIDADE_COMISSAO_VALOR_CADASTRO || 2);
+const CIDADE_COMISSAO_META_SAQUE = Number(process.env.CIDADE_COMISSAO_META_SAQUE || process.env.CIDADE_COMISSAO_LIMITE_DIARIO || 50);
+const CIDADE_COMISSAO_LIMITE_DIARIO = CIDADE_COMISSAO_META_SAQUE;
+
 
 // Integração Pix Efí Bank
 const EFI_AMBIENTE = (process.env.EFI_AMBIENTE || 'homologacao').toLowerCase();
@@ -923,12 +931,253 @@ garantirTabelaAvaliacoes().catch((error) => {
   console.error('Erro ao garantir tabela de avaliações:', error.message);
 });
 
+
+/* ================================================= */
+/* NORTE SERVIC CIDADE PARCEIRA / COLETA EM CAMPO */
+/* ================================================= */
+
+const SETORES_CIDADE_PARCEIRA = ['Nova Canaã', 'Nova Muricilândia', 'Centro'];
+
+function normalizarBooleanoCidade(valor) {
+  return valor === true || valor === 'true' || valor === 'sim' || valor === 'Sim' || valor === 'SIM' || valor === 1 || valor === '1';
+}
+
+function gerarTokenCidade(payload, expira = '12h') {
+  return jwt.sign(payload, CIDADE_JWT_SECRET, { expiresIn: expira });
+}
+
+function autenticarCidadeParceira(req, res, next) {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+
+  if (!token) {
+    return res.status(401).json({ erro: 'Senha da Cidade Parceira necessária.' });
+  }
+
+  try {
+    const dados = jwt.verify(token, CIDADE_JWT_SECRET);
+    if (dados.tipo !== 'cidade-parceira') {
+      return res.status(401).json({ erro: 'Acesso da Cidade Parceira inválido.' });
+    }
+    req.cidadeParceira = dados;
+    next();
+  } catch (_) {
+    return res.status(401).json({ erro: 'Sessão da Cidade Parceira expirada. Digite a senha novamente.' });
+  }
+}
+
+function autenticarColetorCidade(req, res, next) {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+
+  if (!token) {
+    return res.status(401).json({ erro: 'Login do coletor necessário.' });
+  }
+
+  try {
+    const dados = jwt.verify(token, CIDADE_JWT_SECRET);
+    if (dados.tipo !== 'coletor-cidade') {
+      return res.status(401).json({ erro: 'Acesso do coletor inválido.' });
+    }
+    req.coletorCidade = dados;
+    next();
+  } catch (_) {
+    return res.status(401).json({ erro: 'Sessão do coletor expirada. Faça login novamente.' });
+  }
+}
+
+async function garantirSistemaCidadeParceira() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS cidade_coletores (
+      id BIGSERIAL PRIMARY KEY,
+      nome TEXT NOT NULL,
+      email TEXT NOT NULL UNIQUE,
+      senha_hash TEXT NOT NULL,
+      setor_fixo TEXT NOT NULL,
+      ativo BOOLEAN DEFAULT true,
+      criado_em TIMESTAMPTZ DEFAULT NOW(),
+      atualizado_em TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS cidade_coleta_profissionais (
+      id BIGSERIAL PRIMARY KEY,
+      coletor_id BIGINT REFERENCES cidade_coletores(id) ON DELETE SET NULL,
+      nome TEXT NOT NULL,
+      whatsapp TEXT,
+      email_profissional TEXT,
+      instagram TEXT,
+      categoria TEXT,
+      profissao TEXT NOT NULL,
+      servicos TEXT,
+      cidade TEXT DEFAULT 'Muricilândia - TO',
+      setor TEXT NOT NULL,
+      bairro TEXT,
+      descricao TEXT,
+      aceita_site BOOLEAN DEFAULT false,
+      profissional_site_id BIGINT REFERENCES profissionais(id) ON DELETE SET NULL,
+      status_coleta TEXT DEFAULT 'coletado',
+      criado_em TIMESTAMPTZ DEFAULT NOW(),
+      atualizado_em TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+
+  await pool.query(`ALTER TABLE cidade_coleta_profissionais ADD COLUMN IF NOT EXISTS email_profissional TEXT`);
+  await pool.query(`ALTER TABLE cidade_coleta_profissionais ADD COLUMN IF NOT EXISTS instagram TEXT`);
+
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS origem_cidade_parceira BOOLEAN DEFAULT false`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS cidade_coleta_id BIGINT`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS setor_coleta TEXT`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS aceita_aparecer_site BOOLEAN DEFAULT false`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS perfil_coleta_pendente BOOLEAN DEFAULT false`);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_cidade_coletores_email ON cidade_coletores(email)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_cidade_coleta_setor ON cidade_coleta_profissionais(setor)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_cidade_coleta_profissao ON cidade_coleta_profissionais(profissao)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_cidade_coleta_aceita_site ON cidade_coleta_profissionais(aceita_site)`);
+
+  const coletoresPadrao = [
+    { nome: 'Coletor Nova Canaã', email: 'coletor.novacanaa@norteservic.com.br', senha: 'Nova123', setor: 'Nova Canaã' },
+    { nome: 'Coletor Nova Muricilândia', email: 'coletor.novamuricilandia@norteservic.com.br', senha: 'Moricilandia123', setor: 'Nova Muricilândia' },
+    { nome: 'Coletor Centro', email: 'coletor.centro@norteservic.com.br', senha: 'Centro123', setor: 'Centro' }
+  ];
+
+  for (const coletor of coletoresPadrao) {
+    const existe = await pool.query('SELECT id FROM cidade_coletores WHERE email=$1 LIMIT 1', [coletor.email]);
+    if (existe.rowCount === 0) {
+      const senhaHash = await bcrypt.hash(coletor.senha, 10);
+      await pool.query(
+        `INSERT INTO cidade_coletores (nome, email, senha_hash, setor_fixo, ativo)
+         VALUES ($1,$2,$3,$4,true)`,
+        [coletor.nome, coletor.email, senhaHash, coletor.setor]
+      );
+    }
+  }
+}
+
+async function publicarColetaNoSiteOficial(coleta, coletorId) {
+  const whatsapp = limparNumero(coleta.whatsapp);
+  const senhaHash = await bcrypt.hash(crypto.randomBytes(14).toString('hex'), 10);
+  const descricao = String(coleta.descricao || `Profissional mapeado pela coleta Cidade Parceira no setor ${coleta.setor}.`).trim();
+  const cidade = coleta.cidade || CIDADE_MUNICIPIO_PADRAO;
+  const emailProfissional = String(coleta.email_profissional || '').trim().toLowerCase() || null;
+  const instagram = String(coleta.instagram || '').trim() || null;
+
+  if (whatsapp) {
+    const existente = await pool.query('SELECT id FROM profissionais WHERE whatsapp=$1 LIMIT 1', [whatsapp]);
+    if (existente.rowCount > 0) {
+      const atualizado = await pool.query(
+        `UPDATE profissionais SET
+          nome=$1,
+          categoria=$2,
+          profissao=$3,
+          servicos=$4,
+          cidade=$5,
+          bairro=$6,
+          descricao=$7,
+          status='aprovado',
+          verificado=COALESCE(verificado, false),
+          origem_cidade_parceira=true,
+          cidade_coleta_id=$8,
+          setor_coleta=$9,
+          aceita_aparecer_site=true,
+          instagram=COALESCE($10, instagram),
+          email=COALESCE($11, email),
+          perfil_coleta_pendente=true
+         WHERE id=$12
+         RETURNING *`,
+        [
+          coleta.nome,
+          coleta.categoria || 'Profissionais locais',
+          coleta.profissao,
+          coleta.servicos || coleta.profissao,
+          cidade,
+          coleta.bairro || coleta.setor,
+          descricao,
+          coleta.id,
+          coleta.setor,
+          instagram,
+          emailProfissional,
+          existente.rows[0].id
+        ]
+      );
+      return atualizado.rows[0];
+    }
+  }
+
+  const whatsappFinal = whatsapp || `cidade${coleta.id}${Date.now()}`;
+
+  const result = await pool.query(
+    `INSERT INTO profissionais (
+      nome, email, senha_hash, tipo_profissional, categoria, profissao, servicos,
+      palavras_chave, cidade, bairro, atende_outras_cidades, cidades_atendidas,
+      forma_atendimento, whatsapp, instagram, descricao, foto_perfil, fotos_trabalhos,
+      status, verificado, plano_atual, plano_status,
+      origem_cidade_parceira, cidade_coleta_id, setor_coleta, aceita_aparecer_site,
+      perfil_coleta_pendente
+    ) VALUES (
+      $1,$2,$3,'Profissional local',$4,$5,$6,
+      $7,$8,$9,'Não',$10::jsonb,
+      'Presencial',$11,$12,$13,NULL,'[]'::jsonb,
+      'aprovado',false,'Gratuito','ativo',
+      true,$14,$15,true,
+      true
+    ) RETURNING *`,
+    [
+      coleta.nome,
+      emailProfissional,
+      senhaHash,
+      coleta.categoria || 'Profissionais locais',
+      coleta.profissao,
+      coleta.servicos || coleta.profissao,
+      `${coleta.profissao} ${coleta.servicos || ''} ${coleta.setor}`,
+      cidade,
+      coleta.bairro || coleta.setor,
+      JSON.stringify([cidade]),
+      whatsappFinal,
+      instagram,
+      descricao,
+      coleta.id,
+      coleta.setor
+    ]
+  );
+
+  return result.rows[0];
+}
+
+function coletaParaFrontend(row) {
+  return {
+    id: Number(row.id),
+    nome: row.nome || '',
+    whatsapp: row.whatsapp || '',
+    emailProfissional: row.email_profissional || '',
+    instagram: row.instagram || '',
+    categoria: row.categoria || '',
+    profissao: row.profissao || '',
+    servicos: row.servicos || '',
+    cidade: row.cidade || CIDADE_MUNICIPIO_PADRAO,
+    setor: row.setor || '',
+    bairro: row.bairro || '',
+    descricao: row.descricao || '',
+    aceitaSite: Boolean(row.aceita_site),
+    profissionalSiteId: row.profissional_site_id ? Number(row.profissional_site_id) : null,
+    statusColeta: row.status_coleta || 'coletado',
+    criadoEm: row.criado_em,
+    coletorNome: row.coletor_nome || ''
+  };
+}
+
 garantirSistemaIndicacoes().catch((error) => {
   console.error('Erro ao garantir sistema de indicações:', error.message);
 });
 
 garantirSistemaLegal().catch((error) => {
   console.error('Erro ao garantir sistema legal/LGPD:', error.message);
+});
+
+garantirSistemaCidadeParceira().catch((error) => {
+  console.error('Erro ao garantir sistema Cidade Parceira:', error.message);
 });
 
 
@@ -2065,6 +2314,292 @@ app.delete('/api/admin/profissionais/:id', autenticarAdmin, async (req, res) => 
     res.json({ mensagem: 'Profissional removido.' });
   } catch (error) {
     res.status(500).json({ erro: 'Erro ao remover.', detalhe: error.message });
+  }
+});
+
+
+/* ================================================= */
+/* ROTAS CIDADE PARCEIRA */
+/* ================================================= */
+
+app.post('/api/cidade/login', async (req, res) => {
+  try {
+    const senha = String(req.body.senha || '').trim();
+    if (!senha || senha !== CIDADE_PARCEIRA_PASSWORD) {
+      return res.status(401).json({ erro: 'Senha da Cidade Parceira incorreta.' });
+    }
+
+    const token = gerarTokenCidade({ tipo: 'cidade-parceira', municipio: CIDADE_MUNICIPIO_PADRAO });
+    res.json({ mensagem: 'Acesso liberado.', token, municipio: CIDADE_MUNICIPIO_PADRAO });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao acessar Cidade Parceira.', detalhe: error.message });
+  }
+});
+
+app.post('/api/cidade/coletor/login', async (req, res) => {
+  try {
+    await garantirSistemaCidadeParceira();
+
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const senha = String(req.body.senha || '').trim();
+
+    if (!email || !senha) {
+      return res.status(400).json({ erro: 'E-mail e senha são obrigatórios.' });
+    }
+
+    const result = await pool.query('SELECT * FROM cidade_coletores WHERE LOWER(email)=$1 AND ativo=true LIMIT 1', [email]);
+    if (result.rowCount === 0) {
+      return res.status(401).json({ erro: 'Login do coletor incorreto.' });
+    }
+
+    const coletor = result.rows[0];
+    const senhaOk = await bcrypt.compare(senha, coletor.senha_hash);
+    if (!senhaOk) {
+      return res.status(401).json({ erro: 'Login do coletor incorreto.' });
+    }
+
+    const token = gerarTokenCidade({
+      tipo: 'coletor-cidade',
+      id: Number(coletor.id),
+      email: coletor.email,
+      nome: coletor.nome,
+      setor: coletor.setor_fixo
+    }, '10h');
+
+    res.json({
+      mensagem: 'Coletor conectado.',
+      token,
+      coletor: {
+        id: Number(coletor.id),
+        nome: coletor.nome,
+        email: coletor.email,
+        setor: coletor.setor_fixo
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro no login do coletor.', detalhe: error.message });
+  }
+});
+
+app.get('/api/cidade/resumo', autenticarCidadeParceira, async (_req, res) => {
+  try {
+    await garantirSistemaCidadeParceira();
+
+    const total = await pool.query(`SELECT COUNT(*)::int AS total FROM cidade_coleta_profissionais`);
+    const aceitos = await pool.query(`SELECT COUNT(*)::int AS total FROM cidade_coleta_profissionais WHERE aceita_site=true`);
+    const porSetor = await pool.query(`
+      SELECT setor, COUNT(*)::int AS total
+      FROM cidade_coleta_profissionais
+      GROUP BY setor
+      ORDER BY setor
+    `);
+    const porProfissao = await pool.query(`
+      SELECT profissao, COUNT(*)::int AS total
+      FROM cidade_coleta_profissionais
+      GROUP BY profissao
+      ORDER BY total DESC, profissao ASC
+      LIMIT 6
+    `);
+    const categorias = await pool.query(`
+      SELECT COUNT(DISTINCT COALESCE(NULLIF(categoria,''), profissao))::int AS total
+      FROM cidade_coleta_profissionais
+    `);
+
+    res.json({
+      municipio: CIDADE_MUNICIPIO_PADRAO,
+      setoresFixos: SETORES_CIDADE_PARCEIRA,
+      totalProfissionais: Number(total.rows[0]?.total || 0),
+      aceitosSite: Number(aceitos.rows[0]?.total || 0),
+      categoriasMapeadas: Number(categorias.rows[0]?.total || 0),
+      setoresVisitados: porSetor.rows.length,
+      porSetor: porSetor.rows.map((item) => ({ setor: item.setor, total: Number(item.total || 0) })),
+      topProfissoes: porProfissao.rows.map((item) => ({ profissao: item.profissao, total: Number(item.total || 0) }))
+    });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao carregar resumo da Cidade Parceira.', detalhe: error.message });
+  }
+});
+
+app.get('/api/cidade/profissoes', autenticarCidadeParceira, async (req, res) => {
+  try {
+    await garantirSistemaCidadeParceira();
+
+    const { q = '', setor = '' } = req.query;
+    const params = [];
+    let where = 'WHERE 1=1';
+
+    if (q) {
+      params.push(`%${String(q).toLowerCase()}%`);
+      where += ` AND LOWER(CONCAT_WS(' ', nome, profissao, categoria, servicos, setor, bairro, descricao)) LIKE $${params.length}`;
+    }
+
+    if (setor) {
+      params.push(String(setor));
+      where += ` AND setor = $${params.length}`;
+    }
+
+    const result = await pool.query(`
+      SELECT
+        profissao,
+        COALESCE(NULLIF(categoria,''), 'Profissionais locais') AS categoria,
+        COUNT(*)::int AS total,
+        COUNT(*) FILTER (WHERE aceita_site=true)::int AS aceitos_site,
+        JSONB_AGG(
+          JSONB_BUILD_OBJECT(
+            'id', id,
+            'nome', nome,
+            'whatsapp', whatsapp,
+            'setor', setor,
+            'bairro', bairro,
+            'servicos', servicos,
+            'aceitaSite', aceita_site,
+            'profissionalSiteId', profissional_site_id,
+            'criadoEm', criado_em
+          ) ORDER BY criado_em DESC
+        ) AS profissionais
+      FROM cidade_coleta_profissionais
+      ${where}
+      GROUP BY profissao, COALESCE(NULLIF(categoria,''), 'Profissionais locais')
+      ORDER BY total DESC, profissao ASC
+    `, params);
+
+    res.json(result.rows.map((row) => ({
+      profissao: row.profissao,
+      categoria: row.categoria,
+      total: Number(row.total || 0),
+      aceitosSite: Number(row.aceitos_site || 0),
+      profissionais: parseJsonArray(row.profissionais)
+    })));
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao consultar profissionais por profissão.', detalhe: error.message });
+  }
+});
+
+app.get('/api/cidade/coletor/comissao', autenticarColetorCidade, async (req, res) => {
+  try {
+    await garantirSistemaCidadeParceira();
+
+    const result = await pool.query(`
+      SELECT COUNT(*)::int AS total
+      FROM cidade_coleta_profissionais
+      WHERE coletor_id=$1
+        AND criado_em >= (date_trunc('day', now() AT TIME ZONE 'America/Sao_Paulo') AT TIME ZONE 'America/Sao_Paulo')
+    `, [req.coletorCidade.id]);
+
+    const cadastrosHoje = Number(result.rows[0]?.total || 0);
+    const valorCalculado = cadastrosHoje * CIDADE_COMISSAO_VALOR_CADASTRO;
+    const valorDisponivel = Math.min(valorCalculado, CIDADE_COMISSAO_META_SAQUE);
+    const percentualLimite = CIDADE_COMISSAO_META_SAQUE > 0
+      ? Math.round((valorDisponivel / CIDADE_COMISSAO_META_SAQUE) * 100)
+      : 0;
+    const faltamParaSaque = Math.max(0, CIDADE_COMISSAO_META_SAQUE - valorDisponivel);
+    const faltamCadastrosParaSaque = CIDADE_COMISSAO_VALOR_CADASTRO > 0
+      ? Math.ceil(faltamParaSaque / CIDADE_COMISSAO_VALOR_CADASTRO)
+      : 0;
+    const saqueLiberado = valorDisponivel >= CIDADE_COMISSAO_META_SAQUE;
+
+    res.json({
+      cadastrosHoje,
+      valorPorCadastro: CIDADE_COMISSAO_VALOR_CADASTRO,
+      metaSaque: CIDADE_COMISSAO_META_SAQUE,
+      limiteDiario: CIDADE_COMISSAO_META_SAQUE,
+      valorDisponivel,
+      percentualLimite: Math.max(0, Math.min(100, percentualLimite)),
+      faltamParaSaque,
+      faltamCadastrosParaSaque,
+      saqueLiberado,
+      whatsappSaque: CIDADE_WHATSAPP_SAQUE,
+      regraSaque: 'O saque só é liberado ao completar R$ 50,00 no dia. Todos os cadastros são avaliados pelo time da Norte Servic antes do pagamento.',
+      mensagem: saqueLiberado
+        ? 'Meta diária de R$ 50,00 atingida. Solicite o saque pelo WhatsApp da empresa. Os cadastros serão avaliados pelo time antes do pagamento.'
+        : `${cadastrosHoje} cadastro(s) hoje. Cada cadastro finalizado soma R$ ${CIDADE_COMISSAO_VALOR_CADASTRO.toFixed(2).replace('.', ',')}. Faltam ${faltamCadastrosParaSaque} cadastro(s) para liberar o saque de R$ ${CIDADE_COMISSAO_META_SAQUE.toFixed(2).replace('.', ',')}.`
+    });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao calcular comissão do coletor.', detalhe: error.message });
+  }
+});
+
+app.get('/api/cidade/coleta/minhas', autenticarColetorCidade, async (req, res) => {
+  try {
+    await garantirSistemaCidadeParceira();
+
+    const result = await pool.query(`
+      SELECT ccp.*, cc.nome AS coletor_nome
+      FROM cidade_coleta_profissionais ccp
+      LEFT JOIN cidade_coletores cc ON cc.id = ccp.coletor_id
+      WHERE ccp.coletor_id=$1
+      ORDER BY ccp.criado_em DESC
+      LIMIT 20
+    `, [req.coletorCidade.id]);
+
+    res.json(result.rows.map(coletaParaFrontend));
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao carregar suas coletas.', detalhe: error.message });
+  }
+});
+
+app.post('/api/cidade/coleta/profissionais', autenticarColetorCidade, async (req, res) => {
+  try {
+    await garantirSistemaCidadeParceira();
+
+    const dados = req.body || {};
+    const nome = String(dados.nome || '').trim();
+    const profissao = String(dados.profissao || '').trim();
+    const whatsapp = limparNumero(dados.whatsapp || '');
+    const aceitaSite = normalizarBooleanoCidade(dados.aceitaSite || dados.aceita_site);
+    const emailProfissional = String(dados.emailProfissional || dados.email_profissional || '').trim().toLowerCase() || null;
+    const instagram = String(dados.instagram || '').trim() || null;
+    const setor = req.coletorCidade.setor;
+
+    if (!nome || !profissao) {
+      return res.status(400).json({ erro: 'Nome e profissão são obrigatórios.' });
+    }
+
+    const coleta = await pool.query(`
+      INSERT INTO cidade_coleta_profissionais (
+        coletor_id, nome, whatsapp, email_profissional, instagram, categoria, profissao, servicos,
+        cidade, setor, bairro, descricao, aceita_site, status_coleta
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,'coletado')
+      RETURNING *
+    `, [
+      req.coletorCidade.id,
+      nome,
+      whatsapp || null,
+      emailProfissional,
+      instagram,
+      dados.categoria || null,
+      profissao,
+      dados.servicos || null,
+      dados.cidade || CIDADE_MUNICIPIO_PADRAO,
+      setor,
+      dados.bairro || setor,
+      dados.descricao || null,
+      aceitaSite
+    ]);
+
+    let profissionalPublicado = null;
+    if (aceitaSite) {
+      profissionalPublicado = await publicarColetaNoSiteOficial(coleta.rows[0], req.coletorCidade.id);
+      await pool.query(
+        `UPDATE cidade_coleta_profissionais SET profissional_site_id=$1 WHERE id=$2`,
+        [profissionalPublicado.id, coleta.rows[0].id]
+      );
+      coleta.rows[0].profissional_site_id = profissionalPublicado.id;
+    }
+
+    res.status(201).json({
+      mensagem: aceitaSite
+        ? 'Profissional coletado e publicado no site oficial.'
+        : 'Profissional coletado apenas para o relatório da Cidade Parceira.',
+      coleta: coletaParaFrontend(coleta.rows[0]),
+      publicadoNoSite: Boolean(profissionalPublicado),
+      profissional: profissionalPublicado ? profissionalParaFrontend(profissionalPublicado) : null
+    });
+  } catch (error) {
+    const detalhe = error.code === '23505'
+      ? 'Já existe profissional com esse WhatsApp no site oficial.'
+      : error.message;
+    res.status(500).json({ erro: 'Erro ao cadastrar coleta.', detalhe });
   }
 });
 

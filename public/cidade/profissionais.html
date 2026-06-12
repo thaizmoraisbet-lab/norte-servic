@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profissionais por profissão - Norte Servic Cidade Parceira</title>
+  <link rel="stylesheet" href="../style.css?v=cidade-parceira-20260612-v4">
+  <link rel="stylesheet" href="cidade.css?v=cidade-parceira-20260612-v4">
+</head>
+<body class="cidade-body" data-cidade-page="profissionais">
+
+  <div class="mini-loading" id="miniLoading">
+    <div class="loader-bolinha"></div>
+    <p>Carregando profissionais...</p>
+  </div>
+
+  <header class="ns-header">
+    <a href="../index.html" class="ns-logo" aria-label="Voltar para a Norte Servic">
+      <span class="ns-logo-icon">✓</span>
+      <span>Norte Servic</span>
+    </a>
+
+    <nav class="ns-nav" aria-label="Menu Cidade Parceira">
+      <a href="../index.html">Site oficial</a>
+      <a href="home.html">Cidade Parceira</a>
+      <a href="coletor.html">Área do coletor</a>
+      <button class="cidade-nav-btn" type="button" onclick="sairCidadeParceira()">Sair</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="cidade-consulta-page" id="cidadeConsultaBox">
+      <section class="cidade-consulta-hero cidade-animar-entrada">
+        <span class="cidade-badge">Consulta municipal</span>
+        <h1>Profissionais por profissão</h1>
+        <p>Lista gerada com os dados enviados pelos coletores. Os profissionais que aceitaram aparecer no site oficial entram automaticamente na vitrine principal da Norte Servic.</p>
+      </section>
+
+      <section class="cidade-filtros-consulta cidade-animar-entrada atraso-1">
+        <input type="text" id="buscaCidadeProfissao" placeholder="Buscar profissão, serviço, nome ou categoria" oninput="carregarProfissoesCidade()">
+        <select id="filtroSetorCidade" onchange="carregarProfissoesCidade()">
+          <option value="">Todos os setores</option>
+          <option>Nova Canaã</option>
+          <option>Nova Muricilândia</option>
+          <option>Centro</option>
+        </select>
+      </section>
+
+      <section class="cidade-lista-profissoes" id="listaProfissoesCidade"></section>
+    </section>
+  </main>
+
+  <footer class="rodape-minimo rodape-legal">
+    <nav>
+      <a href="../index.html">Site oficial</a>
+      <a href="../admin.html">Painel Admin</a>
+      <a href="home.html">Cidade Parceira</a>
+      <a href="../documentos-legais.html#privacidade">Privacidade</a>
+    </nav>
+    <p>Norte Servic — Consulta da Cidade Parceira</p>
+    <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
+  </footer>
+
+  <script src="cidade.js?v=cidade-parceira-20260612-v4"></script>
+</body>
+</html>

@@ -16009,3 +16009,26 @@ body.efi-modal-aberto {
     text-align: center !important;
   }
 }
+
+/* AJUSTE GLOBAL — LOADING SEMPRE CENTRALIZADO */
+.mini-loading.ativo,
+.ns-page-loader.ativo,
+.ns-page-loader {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-height: 100dvh !important;
+  align-items: center !important;
+  justify-content: center !important;
+  place-items: center !important;
+  margin: 0 !important;
+}
+
+.mini-loading.ativo {
+  display: flex !important;
+}
+
+.ns-loader-card {
+  margin: auto !important;
+}

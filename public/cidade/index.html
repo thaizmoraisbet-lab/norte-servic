@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acesso Cidade Parceira - Norte Servic</title>
+  <link rel="stylesheet" href="../style.css?v=cidade-parceira-20260612-v4">
+  <link rel="stylesheet" href="cidade.css?v=cidade-parceira-20260612-v4">
+</head>
+<body class="cidade-body cidade-login-only" data-cidade-page="login">
+
+  <div class="mini-loading" id="miniLoading">
+    <div class="loader-bolinha"></div>
+    <p>Carregando Cidade Parceira...</p>
+  </div>
+
+  <header class="ns-header cidade-header-login">
+    <a href="../index.html" class="ns-logo" aria-label="Voltar para a Norte Servic">
+      <span class="ns-logo-icon">✓</span>
+      <span>Norte Servic</span>
+    </a>
+
+    <nav class="ns-nav" aria-label="Menu Cidade Parceira">
+      <a href="../index.html">Site oficial</a>
+      <a href="../admin.html">Painel Admin</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="cidade-login-page cidade-login-page-unica" id="cidadeLoginBox">
+      <div class="cidade-login-card cidade-login-card-premium">
+        <span class="cidade-badge">Acesso privado</span>
+        <h1>Cidade Parceira</h1>
+        <p>Digite a senha para abrir a home exclusiva da prefeitura. O painel será carregado em uma página separada, sem abrir conteúdo embaixo.</p>
+
+        <form id="formSenhaCidade" class="cidade-form-senha">
+          <label for="senhaCidade">Senha da Cidade Parceira</label>
+          <div class="cidade-senha-linha">
+            <input type="password" id="senhaCidade" placeholder="Digite a senha de acesso" autocomplete="current-password" autofocus>
+            <button type="button" id="toggleSenhaCidade" aria-label="Mostrar senha">👁</button>
+          </div>
+          <button class="cidade-btn cidade-btn-azul cidade-btn-cheio" type="submit" id="btnEntrarCidade">Acessar painel</button>
+        </form>
+        <p class="cidade-msg erro" id="erroCidade"></p>
+      </div>
+
+      <div class="cidade-login-visual cidade-login-visual-premium">
+        <span>Norte Servic Cidade</span>
+        <h2>Uma vitrine municipal para mapear profissionais locais.</h2>
+        <p>Os coletores cadastram em campo. A prefeitura acompanha os números e, quando o profissional autorizar, ele também aparece no site oficial.</p>
+        <div class="cidade-login-passos">
+          <article><strong>1</strong><span>Senha da prefeitura</span></article>
+          <article><strong>2</strong><span>Home Cidade Parceira</span></article>
+          <article><strong>3</strong><span>Coleta em campo</span></article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape-minimo rodape-legal">
+    <nav>
+      <a href="../index.html">Site oficial</a>
+      <a href="../admin.html">Painel Admin</a>
+      <a href="../documentos-legais.html#privacidade">Privacidade</a>
+    </nav>
+    <p>Norte Servic — Cidade Parceira</p>
+    <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
+  </footer>
+
+  <script src="cidade.js?v=cidade-parceira-20260612-v4"></script>
+</body>
+</html>
