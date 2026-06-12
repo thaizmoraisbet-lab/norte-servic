@@ -79,6 +79,12 @@ const baseProfissoesNorteServic = [
       "Passadeira",
       "Lavadeira",
       "Jardineiro",
+      "Horteiro",
+      "Capinador",
+      "Roçador",
+      "Podador de árvores",
+      "Limpador de lote",
+      "Caseiro",
       "Piscineiro",
       "Dedetizador",
       "Chaveiro",
@@ -112,6 +118,11 @@ const baseProfissoesNorteServic = [
       "casa",
       "quintal",
       "jardim",
+      "capina",
+      "roçagem",
+      "horta",
+      "lote",
+      "terreno",
       "ar-condicionado",
       "geladeira",
       "máquina",
@@ -409,6 +420,10 @@ const baseProfissoesNorteServic = [
     "profissoes": [
       "Tratorista",
       "Vaqueiro",
+      "Horteiro",
+      "Capinador",
+      "Podador de árvores",
+      "Limpador de lote",
       "Diarista rural",
       "Operador de máquina",
       "Roçador",
@@ -441,6 +456,9 @@ const baseProfissoesNorteServic = [
       "plantio",
       "rural",
       "roçagem",
+      "capina",
+      "horta",
+      "lote",
       "veneno",
       "agricultura",
       "boi",
@@ -1471,7 +1489,7 @@ function removerTokenProfissional() {
 }
 
 function getAdminPassword() {
-  return sessionStorage.getItem(ADMIN_PASSWORD_STORAGE) || "";
+  return localStorage.getItem(ADMIN_PASSWORD_STORAGE) || sessionStorage.getItem(ADMIN_PASSWORD_STORAGE) || "";
 }
 
 function headersAuth() {
@@ -1485,7 +1503,15 @@ function headersAdmin() {
 }
 
 function setAdminPassword(senha) {
-  sessionStorage.setItem(ADMIN_PASSWORD_STORAGE, senha);
+  const limpa = String(senha || "").trim();
+  if (!limpa) return;
+  localStorage.setItem(ADMIN_PASSWORD_STORAGE, limpa);
+  sessionStorage.setItem(ADMIN_PASSWORD_STORAGE, limpa);
+}
+
+function removerAdminPassword() {
+  localStorage.removeItem(ADMIN_PASSWORD_STORAGE);
+  sessionStorage.removeItem(ADMIN_PASSWORD_STORAGE);
 }
 
 function mostrarLoading(texto = "Carregando...") {
@@ -3248,7 +3274,7 @@ function iniciarEditarPerfil() {
 /* ADMIN */
 /* ================================================= */
 
-function entrarAdmin() {
+async function entrarAdmin() {
   const senha = document.getElementById("senhaAdmin")?.value || "";
   const erro = document.getElementById("erroSenha");
 
@@ -3257,12 +3283,9 @@ function entrarAdmin() {
     return;
   }
 
+  if (erro) erro.innerText = "";
   setAdminPassword(senha);
-  const loginAdmin = document.getElementById("loginAdmin");
-  const painelAdmin = document.getElementById("painelAdmin");
-  if (loginAdmin) loginAdmin.classList.add("escondido");
-  if (painelAdmin) painelAdmin.classList.remove("escondido");
-  mostrarAdmin();
+  await iniciarPainelAdminLogado(true);
 }
 
 function ativarEnterNoAdmin() {
@@ -3740,14 +3763,15 @@ async function excluirAvaliacao(id) {
   }
 }
 
-async function mostrarAdmin() {
+async function mostrarAdmin(opcoes = {}) {
   const container = document.getElementById("listaAdmin");
   const stats = document.getElementById("adminStats");
   const buscaInput = document.getElementById("adminBusca");
   if (!container) return;
+  const silent = Boolean(opcoes && opcoes.silent);
 
   try {
-    mostrarLoading("Carregando painel...");
+    if (!silent) mostrarLoading("Carregando painel...");
     const salvos = await buscarAdminProfissionais();
     mostrarAdminAvaliacoes();
     mostrarAdminPagamentos(salvos);
@@ -3829,9 +3853,19 @@ async function mostrarAdmin() {
       `;
     }).join("");
   } catch (error) {
-    container.innerHTML = `<div class="admin-vazio"><h3>Erro no painel</h3><p>${error.message}</p></div>`;
+    const msgErro = String(error.message || "");
+    container.innerHTML = `<div class="admin-vazio"><h3>Erro no painel</h3><p>${msgErro}</p></div>`;
+    if (/senha|admin|unauthorized|não autoriz/i.test(msgErro)) {
+      removerAdminPassword();
+      const loginAdmin = document.getElementById("loginAdmin");
+      const painelAdmin = document.getElementById("painelAdmin");
+      if (loginAdmin) loginAdmin.classList.remove("escondido");
+      if (painelAdmin) painelAdmin.classList.add("escondido");
+      const erro = document.getElementById("erroSenha");
+      if (erro) erro.innerText = "Senha expirada ou incorreta. Entre novamente.";
+    }
   } finally {
-    esconderLoading();
+    if (!silent) esconderLoading();
   }
 }
 
@@ -4526,23 +4560,70 @@ function setAdminBadge(id, valor) {
   el.classList.toggle("ativo", n > 0);
 }
 
-function abrirModuloAdmin(nome, botao = null) {
-  const alvo = nome || "profissionais";
+const ADMIN_MODULOS_INFO = {
+  profissionais: { titulo: "Lista de profissionais", descricao: "Site oficial e Cidade Parceira", icone: "👥" },
+  pagamentos: { titulo: "Pagamentos dos planos", descricao: "Pix gerados por data e status", icone: "💳" },
+  indicacoes: { titulo: "Programa de indicação", descricao: "Indicações, comissões e saques", icone: "🔗" },
+  coletores: { titulo: "Coletores Cidade Parceira", descricao: "Credenciamento, setor e comissão", icone: "📍" },
+  lgpd: { titulo: "LGPD e dados", descricao: "Solicitações de exclusão de conta", icone: "🛡️" },
+  avaliacoes: { titulo: "Avaliações pendentes", descricao: "Controle das avaliações enviadas", icone: "⭐" }
+};
+
+function moduloAdminAtualURL() {
+  const params = new URLSearchParams(window.location.search || "");
+  const modulo = params.get("modulo") || "";
+  return ADMIN_MODULOS_INFO[modulo] ? modulo : "";
+}
+
+function navegarModuloAdmin(nome) {
+  const destino = ADMIN_MODULOS_INFO[nome] ? `admin.html?modulo=${encodeURIComponent(nome)}` : "admin.html";
+  mostrarLoading(ADMIN_MODULOS_INFO[nome] ? `Abrindo ${ADMIN_MODULOS_INFO[nome].titulo}...` : "Voltando aos módulos...");
+  setTimeout(() => { window.location.href = destino; }, 220);
+}
+
+function abrirModuloAdmin(nome) {
+  const alvo = ADMIN_MODULOS_INFO[nome] ? nome : "";
   document.querySelectorAll("[data-admin-section]").forEach(sec => {
-    sec.classList.toggle("ativo", sec.dataset.adminSection === alvo);
+    sec.classList.toggle("ativo", Boolean(alvo) && sec.dataset.adminSection === alvo);
   });
   document.querySelectorAll(".admin-modulo-btn").forEach(btn => {
-    btn.classList.toggle("ativo", btn.dataset.adminModulo === alvo);
+    btn.classList.toggle("ativo", Boolean(alvo) && btn.dataset.adminModulo === alvo);
   });
-  if (botao) botao.classList.add("ativo");
-  sessionStorage.setItem("adminModuloAtivo", alvo);
+  if (alvo) sessionStorage.setItem("adminModuloAtivo", alvo);
+}
+
+function configurarPaginaAdminModular() {
   const painel = document.getElementById("painelAdmin");
-  if (painel) painel.scrollIntoView({ behavior: "smooth", block: "start" });
+  if (!painel) return;
+
+  const modulo = moduloAdminAtualURL();
+  document.body.classList.toggle("admin-pagina-modulo", Boolean(modulo));
+  document.body.classList.toggle("admin-pagina-menu", !modulo);
+
+  const topoExistente = document.getElementById("adminModuloPaginaTopo");
+  if (topoExistente) topoExistente.remove();
+
+  if (!modulo) {
+    abrirModuloAdmin("");
+    return;
+  }
+
+  const info = ADMIN_MODULOS_INFO[modulo];
+  const topo = document.createElement("div");
+  topo.id = "adminModuloPaginaTopo";
+  topo.className = "admin-modulo-pagina-topo";
+  topo.innerHTML = `
+    <button type="button" onclick="navegarModuloAdmin('menu')">← Voltar aos módulos</button>
+    <div><span>${info.icone} ${info.descricao}</span><h2>${info.titulo}</h2></div>
+    <button type="button" onclick="mostrarAdmin()">Atualizar agora</button>
+  `;
+  const conteudo = painel.querySelector(".admin-ultra-content");
+  if (conteudo) painel.insertBefore(topo, conteudo);
+  abrirModuloAdmin(modulo);
 }
 
 function restaurarModuloAdmin() {
-  const salvo = sessionStorage.getItem("adminModuloAtivo") || "profissionais";
-  abrirModuloAdmin(salvo);
+  configurarPaginaAdminModular();
 }
 
 function buscarAdminCidadeColetas() {
@@ -4756,6 +4837,41 @@ async function recusarSaqueColetor(id) {
   } catch (error) { alert(error.message); }
 }
 
+
+function iniciarAtualizacaoAdminAutomatica() {
+  if (!document.getElementById("painelAdmin") || window.adminAtualizacaoAutomaticaAtiva) return;
+  window.adminAtualizacaoAutomaticaAtiva = true;
+  setInterval(() => {
+    const painel = document.getElementById("painelAdmin");
+    if (!painel || painel.classList.contains("escondido") || !getAdminPassword()) return;
+    mostrarAdmin({ silent: true });
+  }, 30000);
+}
+
+async function iniciarPainelAdminLogado(forcarCarregamento = false) {
+  const loginAdmin = document.getElementById("loginAdmin");
+  const painelAdmin = document.getElementById("painelAdmin");
+  if (!painelAdmin || !getAdminPassword()) return false;
+
+  if (loginAdmin) loginAdmin.classList.add("escondido");
+  painelAdmin.classList.remove("escondido");
+  configurarPaginaAdminModular();
+  iniciarAtualizacaoAdminAutomatica();
+  await mostrarAdmin({ silent: !forcarCarregamento });
+  return true;
+}
+
+function iniciarAdminPersistente() {
+  const painelAdmin = document.getElementById("painelAdmin");
+  if (!painelAdmin) return;
+  const temSenha = Boolean(getAdminPassword());
+  if (temSenha) {
+    iniciarPainelAdminLogado(false);
+  } else {
+    configurarPaginaAdminModular();
+  }
+}
+
 /* ================================================= */
 /* INICIALIZAÇÃO */
 /* ================================================= */
@@ -4776,7 +4892,7 @@ document.addEventListener("DOMContentLoaded", function() {
   iniciarRecuperacaoSenha();
   ativarEnterNoAdmin();
   prepararAdminColetores();
-  restaurarModuloAdmin();
+  iniciarAdminPersistente();
   ativarTopoMenorAoRolar();
   mostrarProfissionais();
   carregarPerfilProfissional();
