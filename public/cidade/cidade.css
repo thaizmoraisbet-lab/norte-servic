@@ -2368,3 +2368,180 @@ body.cidade-body .cidade-side-brand-premium p {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* ================================================= */
+/* AJUSTE V9 — VOLTA AO CARD ANTIGO, AGORA PREMIUM ELITE */
+/* ================================================= */
+body.cidade-body .cidade-numero-box-elite {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden !important;
+  width: min(780px, 100%) !important;
+  margin: clamp(24px, 3.2vh, 34px) auto 0 !important;
+  padding: clamp(26px, 4vh, 38px) clamp(18px, 4vw, 42px) !important;
+  border-radius: 34px !important;
+  color: #0f172a !important;
+  text-align: center !important;
+  display: grid !important;
+  justify-items: center !important;
+  border: 1px solid rgba(191,219,254,.72) !important;
+  background:
+    radial-gradient(circle at 50% -20%, rgba(37,99,235,.15), transparent 42%),
+    linear-gradient(180deg, #ffffff 0%, #f8fbff 58%, #eef5ff 100%) !important;
+  box-shadow:
+    0 26px 60px rgba(15,23,42,.24),
+    0 0 0 1px rgba(255,255,255,.50) inset,
+    0 14px 36px rgba(37,99,235,.12) inset !important;
+}
+
+body.cidade-body .cidade-numero-box-elite::before {
+  content: "";
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  top: 0;
+  height: 5px;
+  border-radius: 0 0 999px 999px;
+  background: linear-gradient(90deg, transparent, #2563eb 18%, #22c55e 50%, #2563eb 82%, transparent);
+  opacity: .95;
+  filter: drop-shadow(0 12px 18px rgba(37,99,235,.24));
+}
+
+body.cidade-body .cidade-numero-box-elite::after {
+  content: "";
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  right: -120px;
+  bottom: -135px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(37,99,235,.18), rgba(37,99,235,.07) 42%, transparent 72%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+body.cidade-body .cidade-status-elite {
+  margin: 0 auto clamp(18px, 2.8vh, 26px) !important;
+  max-width: min(100%, 620px) !important;
+  padding: 9px 14px !important;
+  border: 1px solid rgba(34,197,94,.18) !important;
+  background: linear-gradient(135deg, rgba(236,253,245,.98), rgba(220,252,231,.78)) !important;
+  box-shadow: 0 14px 30px rgba(34,197,94,.10), inset 0 1px 0 rgba(255,255,255,.80) !important;
+  font-size: clamp(12px, 1.3vw, 14px) !important;
+}
+
+body.cidade-body .cidade-numero-display-elite {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: clamp(10px, 1.6vw, 18px);
+  flex-wrap: wrap;
+}
+
+body.cidade-body .cidade-numero-valor-elite {
+  display: inline-block;
+  font-size: clamp(76px, 9vw, 116px) !important;
+  line-height: .86 !important;
+  letter-spacing: -5px !important;
+  font-weight: 1000 !important;
+  color: #0b1220 !important;
+  text-shadow: 0 12px 38px rgba(15,23,42,.10);
+}
+
+body.cidade-body .cidade-numero-palavra-elite {
+  display: inline-block;
+  font-size: clamp(34px, 4.8vw, 52px) !important;
+  line-height: .96 !important;
+  letter-spacing: -1.8px !important;
+  font-weight: 1000 !important;
+  color: #0b1220 !important;
+  text-shadow: 0 10px 30px rgba(15,23,42,.08);
+}
+
+body.cidade-body .cidade-numero-subtitulo-elite {
+  display: block;
+  width: 100%;
+  margin-top: 12px !important;
+  color: #64748b !important;
+  font-size: clamp(13px, 1.4vw, 15px) !important;
+  font-weight: 900 !important;
+  text-align: center !important;
+}
+
+body.cidade-body .cidade-numero-rodape-elite {
+  width: min(620px, 100%);
+  margin-top: clamp(18px, 2.4vh, 24px);
+  padding: 10px 12px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: rgba(37,99,235,.06);
+  border: 1px solid rgba(37,99,235,.10);
+}
+
+body.cidade-body .cidade-numero-rodape-elite span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #1d4ed8;
+  white-space: nowrap;
+}
+
+body.cidade-body .cidade-numero-rodape-elite span:not(:first-child)::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34,197,94,.12);
+}
+
+body.cidade-body .cidade-numero-box-elite:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 30px 70px rgba(15,23,42,.28),
+    0 0 0 1px rgba(255,255,255,.60) inset,
+    0 14px 36px rgba(37,99,235,.13) inset !important;
+}
+
+@media (max-width: 680px) {
+  body.cidade-body .cidade-numero-box-elite {
+    width: 100% !important;
+    border-radius: 26px !important;
+    padding: 22px 14px 20px !important;
+  }
+
+  body.cidade-body .cidade-numero-display-elite {
+    gap: 6px;
+  }
+
+  body.cidade-body .cidade-numero-valor-elite {
+    font-size: clamp(68px, 20vw, 92px) !important;
+    letter-spacing: -3.8px !important;
+  }
+
+  body.cidade-body .cidade-numero-palavra-elite {
+    font-size: clamp(28px, 9vw, 40px) !important;
+    letter-spacing: -1.2px !important;
+  }
+
+  body.cidade-body .cidade-numero-rodape-elite {
+    border-radius: 20px;
+    align-items: stretch;
+  }
+
+  body.cidade-body .cidade-numero-rodape-elite span {
+    width: 100%;
+    justify-content: center;
+    white-space: normal;
+  }
+}
