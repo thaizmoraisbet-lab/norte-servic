@@ -2149,3 +2149,222 @@ body.cidade-body .ns-nav button:hover,
 .cidade-form-coleta-rapida .cidade-reveal:nth-child(2) { --cidade-delay: 120ms; }
 .cidade-form-coleta-rapida .cidade-reveal:nth-child(3) { --cidade-delay: 180ms; }
 .cidade-form-coleta-rapida .cidade-reveal:nth-child(4) { --cidade-delay: 240ms; }
+
+
+/* ================================================= */
+/* AJUSTE V8 — CARD DE QUANTIDADE MAIS PREMIUM        */
+/* ================================================= */
+body.cidade-body .cidade-numero-box-premium {
+  position: relative;
+  isolation: isolate;
+  width: min(920px, 100%) !important;
+  padding: clamp(20px, 3.2vh, 30px) clamp(18px, 2.8vw, 32px) !important;
+  border-radius: 34px !important;
+  border: 1px solid rgba(37,99,235,.18) !important;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.97) 0%, rgba(239,246,255,.98) 58%, rgba(219,234,254,.92) 100%) !important;
+  box-shadow:
+    0 24px 60px rgba(15,23,42,.18),
+    inset 0 1px 0 rgba(255,255,255,.72),
+    inset 0 -1px 0 rgba(37,99,235,.08) !important;
+}
+
+body.cidade-body .cidade-numero-bg-glow {
+  position: absolute;
+  inset: auto;
+  width: 360px;
+  height: 360px;
+  right: -90px;
+  bottom: -130px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(37,99,235,.20) 0%, rgba(37,99,235,.10) 34%, rgba(37,99,235,0) 70%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+body.cidade-body .cidade-numero-grid-premium {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(260px, .75fr);
+  gap: clamp(18px, 2vw, 24px);
+  align-items: stretch;
+  margin-top: 10px;
+}
+
+body.cidade-body .cidade-numero-principal {
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: clamp(14px, 2vh, 18px) clamp(10px, 1vw, 14px);
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255,255,255,.68), rgba(255,255,255,.28));
+  border: 1px solid rgba(148,163,184,.14);
+}
+
+body.cidade-body .cidade-numero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(37,99,235,.12), rgba(29,78,216,.06));
+  color: #1d4ed8;
+  border: 1px solid rgba(37,99,235,.14);
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+body.cidade-body .cidade-numero-kicker::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  box-shadow: 0 0 0 6px rgba(34,197,94,.12);
+}
+
+body.cidade-body .cidade-total-linha-premium {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(12px, 2vw, 18px);
+  flex-wrap: wrap;
+}
+
+body.cidade-body .cidade-total-valor {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 140px;
+  font-size: clamp(74px, 9vw, 126px) !important;
+  line-height: .86 !important;
+  letter-spacing: -5px !important;
+  font-weight: 1000 !important;
+  color: #0f172a;
+  text-shadow: 0 8px 30px rgba(37,99,235,.08);
+}
+
+body.cidade-body .cidade-total-copy-premium {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  text-align: left;
+}
+
+body.cidade-body .cidade-total-label-premium {
+  display: block;
+  font-size: clamp(34px, 4.2vw, 54px);
+  line-height: .96;
+  letter-spacing: -1.8px;
+  font-weight: 1000;
+  color: #0f172a;
+}
+
+body.cidade-body .cidade-total-copy-premium small {
+  margin: 0 !important;
+  font-size: clamp(14px, 1.3vw, 16px);
+  color: #64748b !important;
+  font-weight: 850;
+}
+
+body.cidade-body .cidade-numero-side-premium {
+  display: grid;
+  gap: 12px;
+  align-content: center;
+}
+
+body.cidade-body .cidade-side-card-premium,
+body.cidade-body .cidade-side-brand-premium {
+  text-align: left;
+  border-radius: 22px;
+  padding: 16px 18px;
+  border: 1px solid rgba(148,163,184,.16);
+  background: rgba(255,255,255,.56);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.52);
+}
+
+body.cidade-body .cidade-side-card-premium span,
+body.cidade-body .cidade-side-brand-premium span {
+  display: block;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+body.cidade-body .cidade-side-card-premium strong {
+  display: block;
+  font-size: clamp(18px, 2vw, 24px);
+  line-height: 1.1;
+  letter-spacing: -.03em;
+  color: #0f172a;
+}
+
+body.cidade-body .cidade-side-brand-premium {
+  background: linear-gradient(135deg, rgba(15,23,42,.96), rgba(37,99,235,.92));
+  border-color: rgba(59,130,246,.24);
+  box-shadow: 0 20px 30px rgba(37,99,235,.18);
+}
+
+body.cidade-body .cidade-side-brand-premium span,
+body.cidade-body .cidade-side-brand-premium p {
+  color: #ffffff;
+}
+
+body.cidade-body .cidade-side-brand-premium p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  opacity: .92;
+}
+
+@media (max-width: 960px) {
+  body.cidade-body .cidade-numero-grid-premium {
+    grid-template-columns: 1fr;
+  }
+
+  body.cidade-body .cidade-numero-side-premium {
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.cidade-body .cidade-side-brand-premium {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 680px) {
+  body.cidade-body .cidade-numero-box-premium {
+    padding: 18px 14px 16px !important;
+    border-radius: 26px !important;
+  }
+
+  body.cidade-body .cidade-total-copy-premium {
+    justify-items: center;
+    text-align: center;
+  }
+
+  body.cidade-body .cidade-total-linha-premium {
+    gap: 8px;
+  }
+
+  body.cidade-body .cidade-total-valor {
+    min-width: auto;
+    font-size: clamp(66px, 18vw, 94px) !important;
+  }
+
+  body.cidade-body .cidade-total-label-premium {
+    font-size: clamp(28px, 8vw, 42px);
+  }
+
+  body.cidade-body .cidade-numero-side-premium {
+    grid-template-columns: 1fr;
+  }
+}
