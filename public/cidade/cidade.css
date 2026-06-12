@@ -2545,3 +2545,31 @@ body.cidade-body .cidade-numero-box-elite:hover {
     white-space: normal;
   }
 }
+
+
+/* PATCH V12 — Cidade Parceira sem barra lateral e loading central padrão */
+html:has(body.cidade-body),
+body.cidade-body,
+body.cidade-body * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+html:has(body.cidade-body)::-webkit-scrollbar,
+body.cidade-body::-webkit-scrollbar,
+body.cidade-body *::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+}
+body.cidade-body .mini-loading,
+body.cidade-body .mini-loading.ativo {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-height: 100dvh !important;
+  transform: none !important;
+  z-index: 2147483000 !important;
+  align-items: center !important;
+  justify-content: center !important;
+}

@@ -1299,29 +1299,43 @@ function limparNumero(valor) {
 }
 
 async function apiFetch(url, options = {}) {
-  const resposta = await fetch(API_BASE + url, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {})
-    }
-  });
+  const controller = new AbortController();
+  const timeoutMs = Number(options.timeoutMs || 18000);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-  let dados = null;
   try {
-    dados = await resposta.json();
-  } catch (_) {
-    dados = null;
-  }
+    const resposta = await fetch(API_BASE + url, {
+      ...options,
+      signal: options.signal || controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {})
+      }
+    });
 
-  if (!resposta.ok) {
-    const detalhe = dados?.detalhe ? ` Detalhe: ${dados.detalhe}` : "";
-    const mensagemErro = dados?.erro || dados?.mensagem || "Erro na requisição.";
-    console.error("Erro API", { url, status: resposta.status, dados });
-    throw new Error(`${mensagemErro}${detalhe}`);
-  }
+    let dados = null;
+    try {
+      dados = await resposta.json();
+    } catch (_) {
+      dados = null;
+    }
 
-  return dados;
+    if (!resposta.ok) {
+      const detalhe = dados?.detalhe ? ` Detalhe: ${dados.detalhe}` : "";
+      const mensagemErro = dados?.erro || dados?.mensagem || "Erro na requisição.";
+      console.error("Erro API", { url, status: resposta.status, dados });
+      throw new Error(`${mensagemErro}${detalhe}`);
+    }
+
+    return dados;
+  } catch (erro) {
+    if (erro && erro.name === "AbortError") {
+      throw new Error("A conexão demorou demais. Tente atualizar esta aba novamente.");
+    }
+    throw erro;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 function obterCodigoIndicacaoDaURL() {
@@ -1514,10 +1528,25 @@ function removerAdminPassword() {
   sessionStorage.removeItem(ADMIN_PASSWORD_STORAGE);
 }
 
+function garantirLoadingNorteServicPadrao(loading, texto = "Carregando...") {
+  if (!loading) return;
+  if (!loading.querySelector(".ns-loader-card")) {
+    loading.innerHTML = `
+      <div class="ns-loader-card ns-loader-card-mini" role="status" aria-live="polite">
+        <div class="ns-loader-logo"><span>✓</span></div>
+        <strong>Norte Servic</strong>
+        <p>${texto}</p>
+        <div class="ns-loader-bar"><span></span></div>
+      </div>
+    `;
+  }
+}
+
 function mostrarLoading(texto = "Carregando...") {
   const loading = document.getElementById("miniLoading");
   if (!loading) return;
 
+  garantirLoadingNorteServicPadrao(loading, texto);
   const p = loading.querySelector("p");
   if (p) p.innerText = texto;
   loading.classList.add("ativo");
@@ -3763,21 +3792,60 @@ async function excluirAvaliacao(id) {
   }
 }
 
+async function carregarModuloAdminIsolado(modulo) {
+  configurarPaginaAdminModular();
+
+  if (modulo === "avaliacoes") {
+    await mostrarAdminAvaliacoes();
+    return true;
+  }
+
+  if (modulo === "indicacoes") {
+    await mostrarAdminIndicacoes();
+    return true;
+  }
+
+  if (modulo === "coletores") {
+    await mostrarAdminColetores();
+    return true;
+  }
+
+  if (modulo === "lgpd") {
+    await mostrarAdminExclusoes();
+    return true;
+  }
+
+  if (modulo === "pagamentos") {
+    const salvos = await buscarAdminProfissionais().catch(() => []);
+    await mostrarAdminPagamentos(salvos);
+    return true;
+  }
+
+  return false;
+}
+
 async function mostrarAdmin(opcoes = {}) {
   const container = document.getElementById("listaAdmin");
   const stats = document.getElementById("adminStats");
   const buscaInput = document.getElementById("adminBusca");
   if (!container) return;
   const silent = Boolean(opcoes && opcoes.silent);
+  const moduloAtivo = moduloAdminAtualURL();
 
   try {
-    if (!silent) mostrarLoading("Carregando painel...");
+    if (!silent) mostrarLoading(moduloAtivo && ADMIN_MODULOS_INFO[moduloAtivo] ? `Carregando ${ADMIN_MODULOS_INFO[moduloAtivo].titulo}...` : "Carregando painel...");
+
+    if (moduloAtivo && moduloAtivo !== "profissionais" && !opcoes.carregarCompleto) {
+      await carregarModuloAdminIsolado(moduloAtivo);
+      return;
+    }
+
     const salvos = await buscarAdminProfissionais();
-    mostrarAdminAvaliacoes();
-    mostrarAdminPagamentos(salvos);
-    mostrarAdminIndicacoes();
-    mostrarAdminExclusoes();
-    mostrarAdminColetores();
+    mostrarAdminAvaliacoes().catch(() => {});
+    mostrarAdminPagamentos(salvos).catch(() => {});
+    mostrarAdminIndicacoes().catch(() => {});
+    mostrarAdminExclusoes().catch(() => {});
+    mostrarAdminColetores().catch(() => {});
     buscarAdminCidadeColetas().then(renderizarAdminCidadeColetas).catch(() => renderizarAdminCidadeColetas([]));
 
     const pendentes = salvos.filter(p => p.status === "pendente").length;
@@ -4578,7 +4646,7 @@ function moduloAdminAtualURL() {
 function navegarModuloAdmin(nome) {
   const destino = ADMIN_MODULOS_INFO[nome] ? `admin.html?modulo=${encodeURIComponent(nome)}` : "admin.html";
   mostrarLoading(ADMIN_MODULOS_INFO[nome] ? `Abrindo ${ADMIN_MODULOS_INFO[nome].titulo}...` : "Voltando aos módulos...");
-  setTimeout(() => { window.location.href = destino; }, 220);
+  setTimeout(() => { window.location.href = destino; }, 90);
 }
 
 function abrirModuloAdmin(nome) {
@@ -4844,7 +4912,7 @@ function iniciarAtualizacaoAdminAutomatica() {
   setInterval(() => {
     const painel = document.getElementById("painelAdmin");
     if (!painel || painel.classList.contains("escondido") || !getAdminPassword()) return;
-    mostrarAdmin({ silent: true });
+    mostrarAdmin({ silent: true }).catch(() => {});
   }, 30000);
 }
 
@@ -4866,7 +4934,10 @@ function iniciarAdminPersistente() {
   if (!painelAdmin) return;
   const temSenha = Boolean(getAdminPassword());
   if (temSenha) {
-    iniciarPainelAdminLogado(false);
+    iniciarPainelAdminLogado(false).catch(() => {
+      removerAdminPassword();
+      configurarPaginaAdminModular();
+    });
   } else {
     configurarPaginaAdminModular();
   }
