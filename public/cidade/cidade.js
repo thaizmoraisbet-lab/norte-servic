@@ -305,6 +305,7 @@ function prepararColetorCidade() {
     const coletor = dadosColetorCidade();
     if ($('coletorNomeTitulo')) $('coletorNomeTitulo').textContent = coletor.nome || 'Coletor conectado';
     if ($('coletorSetorTitulo')) $('coletorSetorTitulo').textContent = coletor.setor || '---';
+    if ($('cidadeSucessoColeta')) $('cidadeSucessoColeta').classList.add('escondido');
     carregarMinhasColetasCidade();
     carregarComissaoColetorCidade();
   }
@@ -352,6 +353,9 @@ async function carregarComissaoColetorCidade() {
     $('cidadeComissaoValor').textContent = formatarDinheiroCidade(valor);
     $('cidadeComissaoDetalhe').textContent = `${cadastrosHoje} cadastro(s) hoje • ${formatarDinheiroCidade(valorCadastro)} por cadastro • saque libera em ${formatarDinheiroCidade(limite)}`;
     $('cidadeComissaoBarra').style.width = `${percentual}%`;
+    if ($('cidadeCadastrosHojeCompacto')) $('cidadeCadastrosHojeCompacto').textContent = cadastrosHoje;
+    if ($('cidadeComissaoCompacta')) $('cidadeComissaoCompacta').textContent = formatarDinheiroCidade(valor);
+    if ($('cidadeMetaCompacta')) $('cidadeMetaCompacta').textContent = `meta ${formatarDinheiroCidade(limite)}`;
 
     const resumo = $('cidadeComissaoResumo');
     if (resumo) resumo.textContent = dados.mensagem || `Cada cadastro finalizado soma ${formatarDinheiroCidade(valorCadastro)}. O saque só libera ao completar ${formatarDinheiroCidade(limite)} no dia.`;
@@ -510,6 +514,65 @@ function formatarTelefoneCidade(valor) {
   return `(${digitos.slice(0, 2)}) ${digitos.slice(2, 7)}-${digitos.slice(7)}`;
 }
 
+
+function alternarPainelComissaoCidade() {
+  const card = $('cidadeComissaoCard');
+  if (!card) return;
+  card.classList.toggle('escondido');
+  if (!card.classList.contains('escondido')) {
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+function atualizarBotaoMobileSalvando(ativo = false) {
+  const botao = $('btnSalvarColetaCidadeMobile');
+  if (!botao) return;
+  botao.disabled = ativo;
+  botao.innerHTML = ativo ? '<span class="spinner-botao"></span><span>Salvando...</span>' : 'Salvar cadastro';
+}
+
+function mostrarSucessoColetaCidade(mensagem = 'O profissional foi enviado para a base de dados.') {
+  const box = $('cidadeSucessoColeta');
+  const texto = $('cidadeSucessoTexto');
+  if (texto) texto.textContent = mensagem;
+  if (!box) return;
+  box.classList.remove('escondido');
+}
+
+function proximoCadastroColetaCidade() {
+  const box = $('cidadeSucessoColeta');
+  if (box) box.classList.add('escondido');
+  const nome = $('nomeColetaCidade');
+  if (nome) {
+    nome.focus();
+    nome.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+let cidadeDuplicadoTimer = null;
+async function verificarWhatsappDuplicadoCidade() {
+  const campo = $('whatsappColetaCidade');
+  const alerta = $('alertaWhatsappDuplicado');
+  if (!campo || !alerta || !tokenColetorCidade()) return;
+  const numero = String(campo.value || '').replace(/\D/g, '');
+  alerta.textContent = '';
+  alerta.className = 'cidade-alerta-duplicado';
+  if (numero.length < 10) return;
+
+  try {
+    const dados = await cidadeFetch(`/api/cidade/coleta/verificar-whatsapp?whatsapp=${encodeURIComponent(numero)}`, {}, true);
+    if (dados.existe) {
+      alerta.textContent = `Atenção: este WhatsApp já aparece em ${dados.origem || 'um cadastro'}. Confira antes de salvar para evitar duplicidade.`;
+      alerta.classList.add('ativo', 'erro');
+    } else {
+      alerta.textContent = 'Número ainda não encontrado na base.';
+      alerta.classList.add('ativo', 'ok');
+    }
+  } catch (_) {
+    // A verificação é auxiliar. Se falhar, o cadastro normal continua funcionando.
+  }
+}
+
 function prepararFormularioColetaCidade() {
   prepararBuscaProfissaoCidade();
   renderizarServicosRapidosCidade([]);
@@ -518,7 +581,12 @@ function prepararFormularioColetaCidade() {
   if (tel) {
     tel.addEventListener('input', () => {
       tel.value = formatarTelefoneCidade(tel.value);
+      const alerta = $('alertaWhatsappDuplicado');
+      if (alerta) { alerta.textContent = ''; alerta.className = 'cidade-alerta-duplicado'; }
+      clearTimeout(cidadeDuplicadoTimer);
+      cidadeDuplicadoTimer = setTimeout(verificarWhatsappDuplicadoCidade, 650);
     });
+    tel.addEventListener('blur', verificarWhatsappDuplicadoCidade);
   }
 
   const profissao = $('profissaoColetaCidade');
@@ -539,6 +607,16 @@ function prepararFormularioColetaCidade() {
     const botao = $('btnSalvarColetaCidade');
     if (msg) { msg.textContent = ''; msg.classList.remove('erro'); }
 
+    const nomeObrigatorio = $('nomeColetaCidade')?.value.trim() || '';
+    const profissaoObrigatoria = $('profissaoColetaCidade')?.value.trim() || '';
+    const whatsappObrigatorio = String($('whatsappColetaCidade')?.value || '').replace(/\D/g, '');
+    if (!nomeObrigatorio || !profissaoObrigatoria || whatsappObrigatorio.length < 10) {
+      const aviso = 'Preencha nome, WhatsApp válido e profissão antes de salvar.';
+      if (msg) { msg.textContent = aviso; msg.classList.add('erro'); }
+      mostrarToastCidade(aviso, 'erro');
+      return;
+    }
+
     const fd = new FormData(form);
     const payload = Object.fromEntries(fd.entries());
     payload.aceitaSite = fd.get('aceitaSite') === 'true';
@@ -547,6 +625,7 @@ function prepararFormularioColetaCidade() {
     if (payload.instagram === '@') payload.instagram = '';
 
     const original = ativarBotaoCidade(botao, 'Salvando...');
+    atualizarBotaoMobileSalvando(true);
     mostrarTransicaoCidade('Enviando cadastro para a base de dados...');
 
     try {
@@ -557,6 +636,7 @@ function prepararFormularioColetaCidade() {
       limparFormularioColetaCidade(false);
       if (msg) msg.textContent = resposta.mensagem;
       mostrarToastCidade(resposta.mensagem);
+      mostrarSucessoColetaCidade(resposta.mensagem || 'Cadastro enviado para a base de dados.');
       if ($('cidadeTotalProfissionais')) await carregarResumoCidade();
       await carregarMinhasColetasCidade();
       await carregarComissaoColetorCidade();
@@ -568,6 +648,7 @@ function prepararFormularioColetaCidade() {
     } finally {
       fecharTransicaoCidade(250);
       restaurarBotaoCidade(botao, original);
+      atualizarBotaoMobileSalvando(false);
     }
   });
 }
@@ -577,6 +658,8 @@ function limparFormularioColetaCidade(mostrarMensagem = true) {
   if (!form) return;
   form.reset();
   if ($('buscaProfissaoColetaCidade')) $('buscaProfissaoColetaCidade').value = '';
+  if ($('alertaWhatsappDuplicado')) { $('alertaWhatsappDuplicado').textContent = ''; $('alertaWhatsappDuplicado').className = 'cidade-alerta-duplicado'; }
+  if ($('cidadeSucessoColeta')) $('cidadeSucessoColeta').classList.add('escondido');
   document.querySelectorAll('.cidade-chip-profissao, .cidade-chip-servico').forEach((el) => el.classList.remove('ativo'));
   renderizarProfissoesRapidasCidade('');
   renderizarServicosRapidosCidade([]);

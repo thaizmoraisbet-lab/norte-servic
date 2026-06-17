@@ -2614,6 +2614,68 @@ app.get('/api/cidade/coleta/minhas', autenticarColetorCidade, async (req, res) =
   }
 });
 
+
+app.get('/api/cidade/coleta/verificar-whatsapp', autenticarColetorCidade, async (req, res) => {
+  try {
+    await garantirSistemaCidadeParceira();
+    const whatsapp = limparNumero(req.query.whatsapp || '');
+
+    if (!whatsapp || whatsapp.length < 10) {
+      return res.json({ existe: false });
+    }
+
+    const coleta = await pool.query(`
+      SELECT id, nome, profissao, setor, criado_em
+      FROM cidade_coleta_profissionais
+      WHERE whatsapp=$1
+      ORDER BY criado_em DESC
+      LIMIT 1
+    `, [whatsapp]);
+
+    if (coleta.rowCount > 0) {
+      const item = coleta.rows[0];
+      return res.json({
+        existe: true,
+        origem: 'coleta do Cidade Parceira',
+        cadastro: {
+          id: item.id,
+          nome: item.nome,
+          profissao: item.profissao,
+          setor: item.setor,
+          criadoEm: item.criado_em
+        }
+      });
+    }
+
+    const profissional = await pool.query(`
+      SELECT id, nome, profissao, status, criado_em
+      FROM profissionais
+      WHERE whatsapp=$1
+      ORDER BY criado_em DESC
+      LIMIT 1
+    `, [whatsapp]);
+
+    if (profissional.rowCount > 0) {
+      const item = profissional.rows[0];
+      return res.json({
+        existe: true,
+        origem: 'site oficial',
+        cadastro: {
+          id: item.id,
+          nome: item.nome,
+          profissao: item.profissao,
+          status: item.status,
+          criadoEm: item.criado_em
+        }
+      });
+    }
+
+    res.json({ existe: false });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao verificar WhatsApp.', detalhe: error.message });
+  }
+});
+
 app.post('/api/cidade/coleta/profissionais', autenticarColetorCidade, async (req, res) => {
   try {
     await garantirSistemaCidadeParceira();
