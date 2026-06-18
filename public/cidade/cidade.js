@@ -66,9 +66,27 @@ function dadosColetorCidade() {
   catch (_) { return {}; }
 }
 
+function travarTelaCidadeLoading() {
+  document.documentElement.classList.add('loading-travado');
+  document.body?.classList.add('loading-travado');
+}
+
+function liberarTelaCidadeLoading() {
+  document.documentElement.classList.remove('loading-travado');
+  document.body?.classList.remove('loading-travado');
+}
+
+function moverLoadingCidadeParaBody(loading) {
+  if (!loading || !document.body) return loading;
+  if (loading.parentElement !== document.body) document.body.appendChild(loading);
+  return loading;
+}
+
 function esconderLoadingCidade() {
   const loading = $('miniLoading');
   if (loading) loading.classList.remove('ativo');
+  const ativos = document.querySelectorAll('.mini-loading.ativo, .ns-page-loader.ativo:not(.saindo)');
+  if (!ativos.length) liberarTelaCidadeLoading();
 }
 
 function mostrarTransicaoCidade(texto = 'Carregando Cidade Parceira...') {
@@ -79,16 +97,18 @@ function mostrarTransicaoCidade(texto = 'Carregando Cidade Parceira...') {
     loader.innerHTML = `
       <div class="ns-loader-card">
         <div class="ns-loader-logo"><span>✓</span></div>
-        <strong>Cidade Parceira</strong>
+        <strong>Norte Servic</strong>
         <p>${texto}</p>
         <div class="ns-loader-bar"><span></span></div>
       </div>
     `;
     document.body.appendChild(loader);
   }
+  moverLoadingCidadeParaBody(loader);
   const p = loader.querySelector('p');
   if (p) p.textContent = texto;
   loader.classList.remove('saindo');
+  travarTelaCidadeLoading();
   loader.classList.add('ativo');
 }
 
@@ -97,7 +117,11 @@ function fecharTransicaoCidade(delay = 280) {
   if (!loader) return;
   setTimeout(() => {
     loader.classList.add('saindo');
-    setTimeout(() => loader.remove(), 420);
+    setTimeout(() => {
+      loader.remove();
+      const ativos = document.querySelectorAll('.mini-loading.ativo, .ns-page-loader.ativo:not(.saindo)');
+      if (!ativos.length) liberarTelaCidadeLoading();
+    }, 420);
   }, delay);
 }
 

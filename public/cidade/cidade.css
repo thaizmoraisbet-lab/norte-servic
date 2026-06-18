@@ -3035,3 +3035,50 @@ body.cidade-coletor-body {
     padding-bottom: 150px;
   }
 }
+
+/* V15 — Loading Cidade Parceira fixo global */
+html.loading-travado,
+body.loading-travado,
+body.cidade-body.loading-travado {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+  touch-action: none !important;
+}
+
+body.cidade-body .mini-loading,
+body.cidade-body .mini-loading.ativo,
+body.cidade-body .ns-page-loader,
+body.cidade-body .ns-page-loader.ativo,
+body.cidade-body .ns-page-loader.cidade-loader,
+body.cidade-body .ns-page-loader.cidade-loader.ativo {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  width: 100dvw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: 100dvh !important;
+  margin: 0 !important;
+  padding: clamp(16px, 4vw, 32px) !important;
+  transform: none !important;
+  z-index: 2147483646 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  place-items: center !important;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(37, 99, 235, .42), transparent 32%),
+    radial-gradient(circle at 82% 28%, rgba(34, 197, 94, .18), transparent 28%),
+    linear-gradient(135deg, rgba(7,17,31,.985), rgba(15,23,42,.975) 46%, rgba(29,78,216,.955)) !important;
+  backdrop-filter: blur(16px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(130%) !important;
+  overflow: hidden !important;
+}
+
+body.cidade-body .ns-page-loader.cidade-loader.ativo .ns-loader-card,
+body.cidade-body .mini-loading.ativo .ns-loader-card {
+  margin: auto !important;
+  transform: translate3d(0,0,0) !important;
+  width: min(360px, 90vw) !important;
+  max-width: 90vw !important;
+}

@@ -1565,19 +1565,46 @@ function garantirLoadingNorteServicPadrao(loading, texto = "Carregando...") {
   }
 }
 
-function mostrarLoading(texto = "Carregando...") {
-  const loading = document.getElementById("miniLoading");
-  if (!loading) return;
+function travarTelaDuranteLoading() {
+  document.documentElement.classList.add("loading-travado");
+  document.body?.classList.add("loading-travado");
+}
 
+function liberarTelaDepoisLoading() {
+  document.documentElement.classList.remove("loading-travado");
+  document.body?.classList.remove("loading-travado");
+}
+
+function moverLoadingParaBody(loading) {
+  if (!loading || !document.body) return loading;
+  if (loading.parentElement !== document.body) {
+    document.body.appendChild(loading);
+  }
+  return loading;
+}
+
+function mostrarLoading(texto = "Carregando...") {
+  let loading = document.getElementById("miniLoading");
+  if (!loading) {
+    loading = document.createElement("div");
+    loading.id = "miniLoading";
+    loading.className = "mini-loading";
+    document.body.appendChild(loading);
+  }
+
+  moverLoadingParaBody(loading);
   garantirLoadingNorteServicPadrao(loading, texto);
   const p = loading.querySelector("p");
   if (p) p.innerText = texto;
+  travarTelaDuranteLoading();
   loading.classList.add("ativo");
 }
 
 function esconderLoading() {
   const loading = document.getElementById("miniLoading");
   if (loading) loading.classList.remove("ativo");
+  const loadersAtivos = document.querySelectorAll(".mini-loading.ativo, .ns-page-loader.ativo");
+  if (!loadersAtivos.length) liberarTelaDepoisLoading();
 }
 
 function aguardarPinturaTela(ms = 80) {
@@ -1599,11 +1626,16 @@ function iniciarCarregamentoNorteServic() {
   `;
 
   document.body.appendChild(loader);
+  travarTelaDuranteLoading();
 
   window.addEventListener("load", () => {
     setTimeout(() => {
       loader.classList.add("saindo");
-      setTimeout(() => loader.remove(), 420);
+      setTimeout(() => {
+        loader.remove();
+        const loadersAtivos = document.querySelectorAll(".mini-loading.ativo, .ns-page-loader.ativo:not(.saindo)");
+        if (!loadersAtivos.length) liberarTelaDepoisLoading();
+      }, 420);
     }, 450);
   });
 }
