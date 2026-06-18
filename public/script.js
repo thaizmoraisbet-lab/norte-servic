@@ -3,7 +3,8 @@
 /* ================================================= */
 
 const API_BASE = "";
-const ADMIN_PASSWORD_STORAGE = "norteServicAdminPassword";
+const ADMIN_SESSION_MARKER_STORAGE = "norteServicAdminSessionOk";
+const ADMIN_EMAIL_STORAGE = "norteServicAdminEmail";
 const PROF_TOKEN_STORAGE = "norteServicProfissionalToken";
 
 /* ================================================= */
@@ -1306,6 +1307,7 @@ async function apiFetch(url, options = {}) {
   try {
     const resposta = await fetch(API_BASE + url, {
       ...options,
+      credentials: options.credentials || "same-origin",
       signal: options.signal || controller.signal,
       headers: {
         "Content-Type": "application/json",
@@ -1503,7 +1505,9 @@ function removerTokenProfissional() {
 }
 
 function getAdminPassword() {
-  return localStorage.getItem(ADMIN_PASSWORD_STORAGE) || sessionStorage.getItem(ADMIN_PASSWORD_STORAGE) || "";
+  // Mantido apenas para compatibilidade interna.
+  // O admin agora usa sessão segura por cookie httpOnly, sem salvar senha no navegador.
+  return localStorage.getItem(ADMIN_SESSION_MARKER_STORAGE) || sessionStorage.getItem(ADMIN_SESSION_MARKER_STORAGE) || "";
 }
 
 function headersAuth() {
@@ -1512,20 +1516,39 @@ function headersAuth() {
 }
 
 function headersAdmin() {
-  const senha = getAdminPassword();
-  return senha ? { "x-admin-password": senha } : {};
+  // A autenticação administrativa é feita automaticamente pelo cookie httpOnly.
+  return {};
 }
 
-function setAdminPassword(senha) {
-  const limpa = String(senha || "").trim();
-  if (!limpa) return;
-  localStorage.setItem(ADMIN_PASSWORD_STORAGE, limpa);
-  sessionStorage.setItem(ADMIN_PASSWORD_STORAGE, limpa);
+function setAdminPassword(_senha) {
+  localStorage.setItem(ADMIN_SESSION_MARKER_STORAGE, "1");
+  sessionStorage.setItem(ADMIN_SESSION_MARKER_STORAGE, "1");
 }
 
 function removerAdminPassword() {
-  localStorage.removeItem(ADMIN_PASSWORD_STORAGE);
-  sessionStorage.removeItem(ADMIN_PASSWORD_STORAGE);
+  localStorage.removeItem(ADMIN_SESSION_MARKER_STORAGE);
+  sessionStorage.removeItem(ADMIN_SESSION_MARKER_STORAGE);
+  localStorage.removeItem(ADMIN_EMAIL_STORAGE);
+  sessionStorage.removeItem(ADMIN_EMAIL_STORAGE);
+}
+
+async function verificarSessaoAdmin() {
+  const dados = await apiFetch("/api/admin/auth/me", { method: "GET" });
+  if (dados?.usuario) {
+    setAdminPassword("sessao-ok");
+    localStorage.setItem(ADMIN_EMAIL_STORAGE, dados.usuario.email || "");
+    sessionStorage.setItem(ADMIN_EMAIL_STORAGE, dados.usuario.email || "");
+    return dados.usuario;
+  }
+  throw new Error("Sessão administrativa inválida.");
+}
+
+async function sairAdminSeguro() {
+  try {
+    await apiFetch("/api/admin/auth/logout", { method: "POST" });
+  } catch (_) {}
+  removerAdminPassword();
+  window.location.href = "admin.html";
 }
 
 function garantirLoadingNorteServicPadrao(loading, texto = "Carregando...") {
@@ -3304,24 +3327,41 @@ function iniciarEditarPerfil() {
 /* ================================================= */
 
 async function entrarAdmin() {
+  const email = document.getElementById("emailAdmin")?.value || "";
   const senha = document.getElementById("senhaAdmin")?.value || "";
   const erro = document.getElementById("erroSenha");
 
-  if (!senha) {
-    if (erro) erro.innerText = "Digite a senha do admin.";
+  if (!email || !senha) {
+    if (erro) erro.innerText = "Digite o e-mail e a senha do admin.";
     return;
   }
 
-  if (erro) erro.innerText = "";
-  setAdminPassword(senha);
-  await iniciarPainelAdminLogado(true);
+  try {
+    mostrarLoading("Entrando com segurança...");
+    if (erro) erro.innerText = "";
+    const dados = await apiFetch("/api/admin/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, senha })
+    });
+    setAdminPassword("sessao-ok");
+    localStorage.setItem(ADMIN_EMAIL_STORAGE, dados?.usuario?.email || email);
+    sessionStorage.setItem(ADMIN_EMAIL_STORAGE, dados?.usuario?.email || email);
+    await iniciarPainelAdminLogado(true);
+  } catch (error) {
+    removerAdminPassword();
+    if (erro) erro.innerText = error.message || "Não foi possível entrar no painel.";
+  } finally {
+    esconderLoading();
+  }
 }
 
 function ativarEnterNoAdmin() {
-  const campoSenha = document.getElementById("senhaAdmin");
-  if (!campoSenha) return;
-  campoSenha.addEventListener("keyup", e => {
-    if (e.key === "Enter") entrarAdmin();
+  const campos = [document.getElementById("emailAdmin"), document.getElementById("senhaAdmin")].filter(Boolean);
+  if (!campos.length) return;
+  campos.forEach(campo => {
+    campo.addEventListener("keyup", e => {
+      if (e.key === "Enter") entrarAdmin();
+    });
   });
 }
 
@@ -3334,13 +3374,13 @@ function filtrarAdmin(status, botao = null) {
 
 async function buscarAdminProfissionais() {
   return apiFetch("/api/admin/profissionais", {
-    headers: { "x-admin-password": getAdminPassword() }
+    headers: headersAdmin()
   });
 }
 
 async function buscarAdminPagamentos() {
   return apiFetch("/api/admin/pagamentos", {
-    headers: { "x-admin-password": getAdminPassword() }
+    headers: headersAdmin()
   });
 }
 
@@ -3521,7 +3561,7 @@ async function mostrarAdminPagamentos(profissionais = []) {
 
 async function buscarAdminIndicacoes() {
   return apiFetch("/api/admin/indicacoes", {
-    headers: { "x-admin-password": getAdminPassword() }
+    headers: headersAdmin()
   });
 }
 
@@ -3604,7 +3644,7 @@ async function marcarSaqueIndicacaoPago(id) {
   try {
     await apiFetch(`/api/admin/indicacoes/saques/${id}/pagar`, {
       method: "PATCH",
-      headers: { "x-admin-password": getAdminPassword() },
+      headers: headersAdmin(),
       body: JSON.stringify({ observacao })
     });
     alert("Saque marcado como pago.");
@@ -3621,7 +3661,7 @@ async function recusarSaqueIndicacao(id) {
   try {
     await apiFetch(`/api/admin/indicacoes/saques/${id}/recusar`, {
       method: "PATCH",
-      headers: { "x-admin-password": getAdminPassword() },
+      headers: headersAdmin(),
       body: JSON.stringify({ observacao })
     });
     alert("Saque recusado e saldo devolvido.");
@@ -3633,12 +3673,11 @@ async function recusarSaqueIndicacao(id) {
 }
 
 async function buscarAdminAvaliacoes(status = "pendente") {
-  const senhaAdmin = getAdminPassword();
   const urlPrincipal = `/api/admin/avaliacoes?status=${encodeURIComponent(status)}&_=${Date.now()}`;
 
   try {
     const dados = await apiFetch(urlPrincipal, {
-      headers: { "x-admin-password": senhaAdmin }
+      headers: headersAdmin()
     });
 
     if (Array.isArray(dados)) return dados;
@@ -3648,7 +3687,7 @@ async function buscarAdminAvaliacoes(status = "pendente") {
     if (status === "pendente") {
       try {
         const dadosFallback = await apiFetch(`/api/admin/avaliacoes/pendentes?_=${Date.now()}`, {
-          headers: { "x-admin-password": senhaAdmin }
+          headers: headersAdmin()
         });
         return Array.isArray(dadosFallback) ? dadosFallback : [];
       } catch (_) {
@@ -3742,7 +3781,7 @@ async function aprovarAvaliacao(id) {
   try {
     await apiFetch(`/api/admin/avaliacoes/${encodeURIComponent(idLimpo)}/aprovar`, {
       method: "PATCH",
-      headers: { "x-admin-password": getAdminPassword() }
+      headers: headersAdmin()
     });
 
     alert("Avaliação aprovada.");
@@ -3761,7 +3800,7 @@ async function recusarAvaliacao(id) {
   try {
     await apiFetch(`/api/admin/avaliacoes/${encodeURIComponent(idLimpo)}/recusar`, {
       method: "PATCH",
-      headers: { "x-admin-password": getAdminPassword() }
+      headers: headersAdmin()
     });
 
     alert("Avaliação recusada.");
@@ -3780,7 +3819,7 @@ async function excluirAvaliacao(id) {
   try {
     await apiFetch(`/api/admin/avaliacoes/${encodeURIComponent(idLimpo)}`, {
       method: "DELETE",
-      headers: { "x-admin-password": getAdminPassword() }
+      headers: headersAdmin()
     });
 
     alert("Avaliação excluída.");
@@ -3941,7 +3980,7 @@ async function aprovarProfissional(id) {
   try {
     await apiFetch(`/api/admin/profissionais/${id}/aprovar`, {
       method: "PATCH",
-      headers: { "x-admin-password": getAdminPassword() }
+      headers: headersAdmin()
     });
     alert("Profissional aprovado com sucesso!");
     mostrarAdmin();
@@ -3956,7 +3995,7 @@ async function removerProfissional(id) {
   try {
     await apiFetch(`/api/admin/profissionais/${id}`, {
       method: "DELETE",
-      headers: { "x-admin-password": getAdminPassword() }
+      headers: headersAdmin()
     });
     alert("Cadastro removido.");
     mostrarAdmin();
@@ -3983,7 +4022,7 @@ async function redefinirSenhaAdmin(id) {
   try {
     const resposta = await apiFetch(`/api/admin/profissionais/${id}/senha`, {
       method: "PATCH",
-      headers: { "x-admin-password": getAdminPassword() },
+      headers: headersAdmin(),
       body: JSON.stringify({ senha: String(novaSenha).trim() })
     });
 
@@ -4011,7 +4050,7 @@ async function atualizarPlanoAdmin(id) {
   try {
     await apiFetch(`/api/admin/profissionais/${id}/plano`, {
       method: "PATCH",
-      headers: { "x-admin-password": getAdminPassword() },
+      headers: headersAdmin(),
       body: JSON.stringify({ planoAtual, planoStatus, planoVencimento })
     });
     alert("Plano atualizado.");
@@ -4695,15 +4734,15 @@ function restaurarModuloAdmin() {
 }
 
 function buscarAdminCidadeColetas() {
-  return apiFetch("/api/admin/cidade/coletas", { headers: { "x-admin-password": getAdminPassword() } });
+  return apiFetch("/api/admin/cidade/coletas", { headers: headersAdmin() });
 }
 
 function buscarAdminColetores() {
-  return apiFetch("/api/admin/cidade/coletores", { headers: { "x-admin-password": getAdminPassword() } });
+  return apiFetch("/api/admin/cidade/coletores", { headers: headersAdmin() });
 }
 
 function buscarAdminSaquesColetores() {
-  return apiFetch("/api/admin/cidade/saques", { headers: { "x-admin-password": getAdminPassword() } });
+  return apiFetch("/api/admin/cidade/saques", { headers: headersAdmin() });
 }
 
 function renderizarAdminCidadeColetas(coletas = []) {
@@ -4830,7 +4869,7 @@ function prepararAdminColetores() {
       const editandoId = form.dataset.editandoId;
       await apiFetch(editandoId ? `/api/admin/cidade/coletores/${editandoId}` : "/api/admin/cidade/coletores", {
         method: editandoId ? "PATCH" : "POST",
-        headers: { "x-admin-password": getAdminPassword() },
+        headers: headersAdmin(),
         body: JSON.stringify(payload)
       });
       form.reset();
@@ -4874,7 +4913,7 @@ async function alterarStatusColetorAdmin(id, ativo) {
   try {
     await apiFetch(`/api/admin/cidade/coletores/${id}`, {
       method: "PATCH",
-      headers: { "x-admin-password": getAdminPassword() },
+      headers: headersAdmin(),
       body: JSON.stringify({ ...coletor, ativo })
     });
     await mostrarAdminColetores();
@@ -4886,7 +4925,7 @@ async function marcarSaqueColetorPago(id) {
   try {
     await apiFetch(`/api/admin/cidade/saques/${id}/pagar`, {
       method: "PATCH",
-      headers: { "x-admin-password": getAdminPassword() },
+      headers: headersAdmin(),
       body: JSON.stringify({ observacao })
     });
     await mostrarAdminColetores();
@@ -4898,7 +4937,7 @@ async function recusarSaqueColetor(id) {
   try {
     await apiFetch(`/api/admin/cidade/saques/${id}/recusar`, {
       method: "PATCH",
-      headers: { "x-admin-password": getAdminPassword() },
+      headers: headersAdmin(),
       body: JSON.stringify({ observacao })
     });
     await mostrarAdminColetores();
@@ -4919,7 +4958,9 @@ function iniciarAtualizacaoAdminAutomatica() {
 async function iniciarPainelAdminLogado(forcarCarregamento = false) {
   const loginAdmin = document.getElementById("loginAdmin");
   const painelAdmin = document.getElementById("painelAdmin");
-  if (!painelAdmin || !getAdminPassword()) return false;
+  if (!painelAdmin) return false;
+
+  await verificarSessaoAdmin();
 
   if (loginAdmin) loginAdmin.classList.add("escondido");
   painelAdmin.classList.remove("escondido");
@@ -4932,15 +4973,13 @@ async function iniciarPainelAdminLogado(forcarCarregamento = false) {
 function iniciarAdminPersistente() {
   const painelAdmin = document.getElementById("painelAdmin");
   if (!painelAdmin) return;
-  const temSenha = Boolean(getAdminPassword());
-  if (temSenha) {
-    iniciarPainelAdminLogado(false).catch(() => {
-      removerAdminPassword();
-      configurarPaginaAdminModular();
-    });
-  } else {
+  iniciarPainelAdminLogado(false).catch(() => {
+    removerAdminPassword();
+    const loginAdmin = document.getElementById("loginAdmin");
+    if (loginAdmin) loginAdmin.classList.remove("escondido");
+    if (painelAdmin) painelAdmin.classList.add("escondido");
     configurarPaginaAdminModular();
-  }
+  });
 }
 
 /* ================================================= */

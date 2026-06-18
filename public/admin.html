@@ -6,7 +6,7 @@
 
   <title>Painel Admin - Norte Servic</title>
 
-  <link rel="stylesheet" href="style.css?v=v12-loading-admin-mobile-20260612">
+  <link rel="stylesheet" href="style.css?v=v14-admin-seguro-20260618">
 </head>
 <body>
 
@@ -37,12 +37,15 @@
 
         <h2>Acessar painel</h2>
 
-        <p>Digite sua senha para entrar na área de controle da plataforma.</p>
+        <p>Entre com e-mail e senha. A sessão administrativa agora é protegida por cookie seguro.</p>
+
+        <label>E-mail do administrador</label>
+        <input type="email" id="emailAdmin" placeholder="admin@norteservic.com.br" autocomplete="username">
 
         <label>Senha do administrador</label>
-        <input type="password" id="senhaAdmin" placeholder="Digite sua senha">
+        <input type="password" id="senhaAdmin" placeholder="Digite sua senha" autocomplete="current-password">
 
-        <button onclick="entrarAdmin()">Entrar no painel</button>
+        <button onclick="entrarAdmin()">Entrar com segurança</button>
 
         <p id="erroSenha"></p>
       </div>
@@ -81,6 +84,7 @@
         <div class="admin-header-actions">
           <a href="cadastro.html">+ Novo cadastro</a>
           <button onclick="mostrarAdmin()">Atualizar</button>
+          <button type="button" class="admin-btn-sair" onclick="sairAdminSeguro()">Sair</button>
         </div>
       </div>
 
@@ -336,6 +340,6 @@
     <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
   </footer>
 
-  <script src="script.js?v=v12-loading-admin-mobile-20260612"></script>
+  <script src="script.js?v=v14-admin-seguro-20260618"></script>
 </body>
 </html>

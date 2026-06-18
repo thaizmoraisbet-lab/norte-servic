@@ -11,9 +11,12 @@ const https = require('https');
 const crypto = require('crypto');
 
 const app = express();
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'troque_essa_senha_em_producao';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'indica123';
+const JWT_SECRET = process.env.JWT_SECRET || (IS_PRODUCTION ? '' : 'dev_jwt_secret_local_only');
+const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || (IS_PRODUCTION ? '' : JWT_SECRET || 'dev_admin_session_secret_local_only');
+const ADMIN_COOKIE_NAME = 'norteServicAdminSession';
+const ADMIN_COOKIE_MAX_AGE_MS = Number(process.env.ADMIN_COOKIE_MAX_AGE_MS || 1000 * 60 * 60 * 8);
 const SUPABASE_URL = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const SUPABASE_STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'norte-servic';
@@ -48,9 +51,36 @@ const INDICACAO_DIAS_LIBERACAO = Number(process.env.INDICACAO_DIAS_LIBERACAO || 
 const TERMOS_VERSAO_ATUAL = process.env.TERMOS_VERSAO_ATUAL || '2026.06';
 const PRIVACIDADE_VERSAO_ATUAL = process.env.PRIVACIDADE_VERSAO_ATUAL || '2026.06';
 
+const VARIAVEIS_OBRIGATORIAS_PRODUCAO = [
+  'DATABASE_URL',
+  'JWT_SECRET',
+  'ADMIN_SESSION_SECRET'
+];
+
+if (IS_PRODUCTION) {
+  const faltando = VARIAVEIS_OBRIGATORIAS_PRODUCAO.filter((nome) => !process.env[nome]);
+  if (faltando.length) {
+    throw new Error(`Variáveis obrigatórias ausentes em produção: ${faltando.join(', ')}`);
+  }
+}
+
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
+app.disable('x-powered-by');
+
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+  if (IS_PRODUCTION) {
+    res.setHeader('Strict-Transport-Security', 'max-age=15552000; includeSubDomains');
+  }
+  next();
 });
 
 app.use(cors({ origin: true, credentials: true }));
@@ -1243,15 +1273,273 @@ garantirSistemaCidadeParceira().catch((error) => {
 });
 
 
-function autenticarAdmin(req, res, next) {
-  const senha = req.headers['x-admin-password'];
+const adminLoginAttempts = new Map();
 
-  if (senha !== ADMIN_PASSWORD) {
-    return res.status(401).json({ erro: 'Acesso administrativo negado.' });
+function parseCookies(req) {
+  return String(req.headers.cookie || '')
+    .split(';')
+    .map((parte) => parte.trim())
+    .filter(Boolean)
+    .reduce((cookies, parte) => {
+      const indice = parte.indexOf('=');
+      if (indice === -1) return cookies;
+      const chave = decodeURIComponent(parte.slice(0, indice));
+      const valor = decodeURIComponent(parte.slice(indice + 1));
+      cookies[chave] = valor;
+      return cookies;
+    }, {});
+}
+
+function cookieSeguroAdmin(valor, maxAgeMs = ADMIN_COOKIE_MAX_AGE_MS) {
+  const partes = [
+    `${ADMIN_COOKIE_NAME}=${encodeURIComponent(valor)}`,
+    'Path=/',
+    'HttpOnly',
+    'SameSite=Lax',
+    `Max-Age=${Math.floor(maxAgeMs / 1000)}`
+  ];
+  if (IS_PRODUCTION) partes.push('Secure');
+  return partes.join('; ');
+}
+
+function limparCookieAdmin() {
+  const partes = [
+    `${ADMIN_COOKIE_NAME}=`,
+    'Path=/',
+    'HttpOnly',
+    'SameSite=Lax',
+    'Max-Age=0'
+  ];
+  if (IS_PRODUCTION) partes.push('Secure');
+  return partes.join('; ');
+}
+
+function ipRequisicao(req) {
+  return String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || req.ip || '')
+    .split(',')[0]
+    .trim() || 'ip-desconhecido';
+}
+
+function verificarLimiteLoginAdmin(req, email) {
+  const chave = `${ipRequisicao(req)}:${String(email || '').toLowerCase()}`;
+  const agora = Date.now();
+  const janelaMs = 15 * 60 * 1000;
+  const limite = 5;
+  const registro = adminLoginAttempts.get(chave) || { tentativas: 0, primeira: agora, bloqueadoAte: 0 };
+
+  if (registro.bloqueadoAte && registro.bloqueadoAte > agora) {
+    const minutos = Math.ceil((registro.bloqueadoAte - agora) / 60000);
+    return { ok: false, mensagem: `Muitas tentativas. Tente novamente em ${minutos} minuto(s).` };
   }
 
-  next();
+  if (agora - registro.primeira > janelaMs) {
+    registro.tentativas = 0;
+    registro.primeira = agora;
+    registro.bloqueadoAte = 0;
+  }
+
+  registro.tentativas += 1;
+  if (registro.tentativas > limite) {
+    registro.bloqueadoAte = agora + janelaMs;
+    adminLoginAttempts.set(chave, registro);
+    return { ok: false, mensagem: 'Muitas tentativas de login. Aguarde alguns minutos e tente novamente.' };
+  }
+
+  adminLoginAttempts.set(chave, registro);
+  return { ok: true, chave };
 }
+
+function limparTentativasLoginAdmin(req, email) {
+  const chave = `${ipRequisicao(req)}:${String(email || '').toLowerCase()}`;
+  adminLoginAttempts.delete(chave);
+}
+
+async function registrarAuditoria(req, acao, detalhes = {}) {
+  try {
+    const usuario = req.adminUser || {};
+    await pool.query(
+      `INSERT INTO audit_logs (usuario_id, usuario_email, usuario_role, acao, ip, user_agent, detalhes)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+      [
+        usuario.id || null,
+        usuario.email || null,
+        usuario.role || null,
+        acao,
+        ipRequisicao(req),
+        String(req.headers['user-agent'] || '').slice(0, 500),
+        detalhes
+      ]
+    );
+  } catch (error) {
+    console.warn('Falha ao registrar auditoria:', error.message);
+  }
+}
+
+async function garantirSistemaAdminSeguro() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS admin_users (
+      id SERIAL PRIMARY KEY,
+      nome TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      senha_hash TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'super_admin',
+      ativo BOOLEAN NOT NULL DEFAULT TRUE,
+      ultimo_login TIMESTAMPTZ,
+      criado_em TIMESTAMPTZ DEFAULT NOW(),
+      atualizado_em TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id BIGSERIAL PRIMARY KEY,
+      usuario_id INTEGER,
+      usuario_email TEXT,
+      usuario_role TEXT,
+      acao TEXT NOT NULL,
+      ip TEXT,
+      user_agent TEXT,
+      detalhes JSONB DEFAULT '{}'::jsonb,
+      criado_em TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+
+  await pool.query('CREATE INDEX IF NOT EXISTS idx_admin_users_email ON admin_users (LOWER(email))');
+  await pool.query('CREATE INDEX IF NOT EXISTS idx_audit_logs_criado_em ON audit_logs (criado_em DESC)');
+  await pool.query('CREATE INDEX IF NOT EXISTS idx_audit_logs_acao ON audit_logs (acao)');
+
+  const qtd = await pool.query('SELECT COUNT(*)::int AS total FROM admin_users');
+  if (Number(qtd.rows[0]?.total || 0) === 0 && process.env.ADMIN_BOOTSTRAP_EMAIL && process.env.ADMIN_BOOTSTRAP_PASSWORD) {
+    const email = String(process.env.ADMIN_BOOTSTRAP_EMAIL).trim().toLowerCase();
+    const nome = process.env.ADMIN_BOOTSTRAP_NAME || 'Administrador Norte Servic';
+    const senhaHash = await bcrypt.hash(String(process.env.ADMIN_BOOTSTRAP_PASSWORD), 12);
+    await pool.query(
+      `INSERT INTO admin_users (nome, email, senha_hash, role, ativo)
+       VALUES ($1,$2,$3,'super_admin', TRUE)
+       ON CONFLICT (email) DO NOTHING`,
+      [nome, email, senhaHash]
+    );
+    console.log('Admin inicial criado via variáveis ADMIN_BOOTSTRAP_EMAIL/ADMIN_BOOTSTRAP_PASSWORD.');
+  }
+}
+
+garantirSistemaAdminSeguro().catch((error) => {
+  console.error('Erro ao garantir sistema admin seguro:', error.message);
+});
+
+async function autenticarAdmin(req, res, next) {
+  try {
+    const cookies = parseCookies(req);
+    const token = cookies[ADMIN_COOKIE_NAME];
+
+    if (!token) {
+      return res.status(401).json({ erro: 'Sessão administrativa não encontrada.' });
+    }
+
+    const payload = jwt.verify(token, ADMIN_SESSION_SECRET);
+    if (!payload || payload.tipo !== 'admin' || !payload.id) {
+      return res.status(401).json({ erro: 'Sessão administrativa inválida.' });
+    }
+
+    await garantirSistemaAdminSeguro();
+
+    const result = await pool.query(
+      `SELECT id, nome, email, role, ativo, ultimo_login
+       FROM admin_users
+       WHERE id=$1 AND ativo=TRUE
+       LIMIT 1`,
+      [payload.id]
+    );
+
+    if (!result.rows.length) {
+      res.setHeader('Set-Cookie', limparCookieAdmin());
+      return res.status(401).json({ erro: 'Usuário administrativo inativo ou não encontrado.' });
+    }
+
+    req.adminUser = result.rows[0];
+    next();
+  } catch (error) {
+    res.setHeader('Set-Cookie', limparCookieAdmin());
+    return res.status(401).json({ erro: 'Sessão administrativa expirada. Faça login novamente.' });
+  }
+}
+
+function exigirAdminRoles(...rolesPermitidas) {
+  return (req, res, next) => {
+    const role = req.adminUser?.role;
+    if (!rolesPermitidas.length || rolesPermitidas.includes(role) || role === 'super_admin') {
+      return next();
+    }
+    return res.status(403).json({ erro: 'Você não tem permissão para executar esta ação.' });
+  };
+}
+
+app.post('/api/admin/auth/login', async (req, res) => {
+  try {
+    await garantirSistemaAdminSeguro();
+
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const senha = String(req.body.senha || '');
+
+    if (!email || !senha) {
+      return res.status(400).json({ erro: 'Informe e-mail e senha.' });
+    }
+
+    const limite = verificarLimiteLoginAdmin(req, email);
+    if (!limite.ok) {
+      return res.status(429).json({ erro: limite.mensagem });
+    }
+
+    const result = await pool.query(
+      `SELECT id, nome, email, senha_hash, role, ativo
+       FROM admin_users
+       WHERE LOWER(email)=LOWER($1)
+       LIMIT 1`,
+      [email]
+    );
+
+    const usuario = result.rows[0];
+    const senhaOk = usuario?.ativo ? await bcrypt.compare(senha, usuario.senha_hash) : false;
+
+    if (!usuario || !senhaOk) {
+      return res.status(401).json({ erro: 'E-mail ou senha inválidos.' });
+    }
+
+    limparTentativasLoginAdmin(req, email);
+
+    await pool.query('UPDATE admin_users SET ultimo_login=NOW(), atualizado_em=NOW() WHERE id=$1', [usuario.id]);
+
+    const token = jwt.sign(
+      {
+        tipo: 'admin',
+        id: usuario.id,
+        email: usuario.email,
+        role: usuario.role
+      },
+      ADMIN_SESSION_SECRET,
+      { expiresIn: Math.floor(ADMIN_COOKIE_MAX_AGE_MS / 1000) }
+    );
+
+    res.setHeader('Set-Cookie', cookieSeguroAdmin(token));
+    const usuarioSeguro = { id: usuario.id, nome: usuario.nome, email: usuario.email, role: usuario.role };
+    req.adminUser = usuarioSeguro;
+    await registrarAuditoria(req, 'admin_login', { email: usuario.email });
+
+    res.json({ ok: true, usuario: usuarioSeguro });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao realizar login administrativo.', detalhe: error.message });
+  }
+});
+
+app.get('/api/admin/auth/me', autenticarAdmin, async (req, res) => {
+  res.json({ ok: true, usuario: req.adminUser });
+});
+
+app.post('/api/admin/auth/logout', autenticarAdmin, async (req, res) => {
+  await registrarAuditoria(req, 'admin_logout', {});
+  res.setHeader('Set-Cookie', limparCookieAdmin());
+  res.json({ ok: true });
+});
 
 app.get('/api/health', async (_req, res) => {
   try {
@@ -2043,9 +2331,8 @@ app.patch('/api/admin/indicacoes/saques/:id/recusar', autenticarAdmin, async (re
   }
 });
 
-app.get('/api/debug/efi', (req, res) => {
-  const senha = req.headers['x-admin-password'] || req.query.admin || '';
-  if (senha !== ADMIN_PASSWORD) return res.status(401).json({ erro: 'Acesso negado.' });
+app.get('/api/debug/efi', autenticarAdmin, exigirAdminRoles('super_admin', 'financeiro'), async (req, res) => {
+  await registrarAuditoria(req, 'debug_efi_visualizado', {});
   res.json(diagnosticoEfiConfiguracao());
 });
 
