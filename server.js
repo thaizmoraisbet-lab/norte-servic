@@ -1457,6 +1457,15 @@ async function enviarWhatsAppTemplate({ to, templateName, language = WHATSAPP_TE
   const whatsapp = numeroWhatsAppApi(to);
   const templateNome = String(templateName || '').trim();
 
+  // TESTE META: o template padrão hello_world não aceita variáveis.
+  // Quando WHATSAPP_TEMPLATE_CADASTRO=hello_world, enviamos sem parâmetros e em inglês.
+  const usandoHelloWorld = templateNome.toLowerCase() === 'hello_world';
+
+  if (usandoHelloWorld) {
+    parameters = [];
+    language = 'en_US';
+  }
+
   if (!whatsapp || whatsapp.length < 12) {
     return registrarMensagemWhatsApp({
       profissionalId,
@@ -1624,10 +1633,14 @@ async function enviarMensagemCadastroProfissional({ profissional, coleta, req = 
 
   const mensagemResumo = `Cadastro Norte Servic: ${nome} (${profissao}) em ${municipio}. Completar perfil: ${link}`;
 
+  const templateCadastro = String(WHATSAPP_TEMPLATE_CADASTRO || '').trim();
+  const cadastroUsandoHelloWorld = templateCadastro.toLowerCase() === 'hello_world';
+
   const registro = await enviarWhatsAppTemplate({
     to: whatsapp,
-    templateName: WHATSAPP_TEMPLATE_CADASTRO,
-    parameters: [nome, municipio, profissao, setor, link],
+    templateName: templateCadastro,
+    language: cadastroUsandoHelloWorld ? 'en_US' : WHATSAPP_TEMPLATE_LANGUAGE,
+    parameters: cadastroUsandoHelloWorld ? [] : [nome, municipio, profissao, setor, link],
     tipo: 'cadastro_profissional',
     profissionalId: profissional?.id || null,
     coletaId: coleta?.id || null,
