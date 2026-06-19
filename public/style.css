@@ -16922,3 +16922,238 @@ body.loading-travado > *:not(.mini-loading):not(.ns-page-loader) {
     border-radius: 16px !important;
   }
 }
+
+
+/* Completar Perfil via WhatsApp v16 */
+.completar-perfil-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, .20), transparent 34%),
+    linear-gradient(135deg, #061225 0%, #0f172a 45%, #172554 100%);
+  color: #0f172a;
+}
+
+.completar-header {
+  background: rgba(2, 6, 23, .72);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+
+.completar-wrap {
+  width: min(980px, calc(100% - 28px));
+  margin: 0 auto;
+  padding: 42px 0 70px;
+}
+
+.completar-hero {
+  text-align: center;
+  color: #fff;
+  margin-bottom: 22px;
+}
+
+.completar-selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(59,130,246,.18);
+  border: 1px solid rgba(147,197,253,.28);
+  color: #bfdbfe;
+  font-weight: 800;
+  font-size: .82rem;
+}
+
+.completar-hero h1 {
+  margin: 14px 0 10px;
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: .98;
+  letter-spacing: -.055em;
+}
+
+.completar-hero p {
+  max-width: 720px;
+  margin: 0 auto;
+  color: rgba(226,232,240,.88);
+  font-size: 1.05rem;
+}
+
+.completar-card {
+  position: relative;
+  margin: 18px auto;
+  padding: clamp(22px, 4vw, 36px);
+  border-radius: 30px;
+  background: rgba(255,255,255,.96);
+  border: 1px solid rgba(255,255,255,.65);
+  box-shadow: 0 24px 70px rgba(2, 6, 23, .32);
+  overflow: hidden;
+}
+
+.completar-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 5px;
+  background: linear-gradient(90deg, #2563eb, #22c55e, #f97316);
+}
+
+.completar-numero {
+  width: 42px;
+  height: 42px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  font-weight: 900;
+  box-shadow: 0 14px 30px rgba(37,99,235,.26);
+  margin-bottom: 14px;
+}
+
+.completar-card h2 {
+  margin: 0 0 6px;
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  letter-spacing: -.035em;
+}
+
+.completar-card p {
+  color: #475569;
+}
+
+.completar-card label {
+  display: block;
+  margin: 16px 0 7px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.completar-card input,
+.completar-card textarea,
+.completar-card select {
+  width: 100%;
+  border: 1px solid rgba(148,163,184,.45);
+  border-radius: 18px;
+  padding: 14px 15px;
+  font: inherit;
+  outline: none;
+  background: #fff;
+  color: #0f172a;
+}
+
+.completar-card input:focus,
+.completar-card textarea:focus,
+.completar-card select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37,99,235,.10);
+}
+
+.completar-card input:disabled {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.completar-card button {
+  width: 100%;
+  margin-top: 18px;
+  border: 0;
+  border-radius: 18px;
+  padding: 15px 18px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 18px 34px rgba(37,99,235,.24);
+}
+
+.completar-msg {
+  margin-top: 14px;
+  font-weight: 800;
+  color: #166534;
+}
+
+.completar-msg.erro {
+  color: #b91c1c;
+}
+
+.completar-form-card form {
+  display: grid;
+  gap: 2px;
+}
+
+.completar-preview {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #f8fafc, #eef2ff);
+  border: 1px solid rgba(148,163,184,.25);
+  margin-bottom: 10px;
+}
+
+.completar-preview img {
+  width: 132px;
+  height: 132px;
+  border-radius: 32px;
+  object-fit: cover;
+  background: #cbd5e1;
+  box-shadow: 0 18px 38px rgba(15,23,42,.16);
+}
+
+.completar-preview img.sem-foto,
+.completar-preview img:not([src]) {
+  display: none;
+}
+
+.completar-upload {
+  margin: 0 !important;
+  display: inline-flex !important;
+  justify-content: center;
+  width: auto;
+}
+
+.completar-upload input {
+  display: none;
+}
+
+.completar-upload span {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 10px 16px;
+  color: #fff;
+  background: #0f172a;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.completar-preview small {
+  color: #64748b;
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  .completar-wrap {
+    width: min(100% - 22px, 980px);
+    padding-top: 26px;
+  }
+
+  .completar-card {
+    border-radius: 24px;
+    padding: 22px;
+  }
+
+  .completar-hero {
+    text-align: left;
+  }
+
+  .completar-hero p {
+    font-size: .98rem;
+  }
+
+  .completar-card button,
+  .completar-card input,
+  .completar-card textarea,
+  .completar-card select {
+    border-radius: 16px;
+  }
+}

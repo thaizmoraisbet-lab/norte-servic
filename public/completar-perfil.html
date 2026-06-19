@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Completar perfil - Norte Servic</title>
+
+  <link rel="stylesheet" href="style.css?v=v16-whatsapp-perfil-20260618">
+</head>
+<body class="completar-perfil-page">
+
+  <div class="mini-loading" id="miniLoading">
+    <div class="ns-loader-card ns-loader-card-mini" role="status" aria-live="polite">
+      <div class="ns-loader-logo"><span>✓</span></div>
+      <strong>Norte Servic</strong>
+      <p>Carregando...</p>
+      <div class="ns-loader-bar"><span></span></div>
+    </div>
+  </div>
+
+  <header class="ns-header completar-header">
+    <a href="index.html" class="ns-logo" aria-label="Norte Servic">
+      <span class="ns-logo-icon">✓</span>
+      <span>Norte Servic</span>
+    </a>
+  </header>
+
+  <main class="completar-wrap">
+    <section class="completar-hero">
+      <span class="completar-selo">Cidade Parceira</span>
+      <h1>Complete seu perfil profissional</h1>
+      <p>
+        Informe o WhatsApp cadastrado pelo coletor, receba um código de segurança e atualize foto, descrição,
+        serviços e informações de atendimento.
+      </p>
+    </section>
+
+    <section class="completar-card" id="etapaTelefone">
+      <div class="completar-numero">1</div>
+      <h2>Solicitar código</h2>
+      <p>Digite o WhatsApp informado no cadastro.</p>
+
+      <label>WhatsApp com DDD</label>
+      <input type="tel" id="perfilWhatsapp" placeholder="(63) 99999-9999" inputmode="numeric" maxlength="16">
+
+      <button type="button" onclick="solicitarCodigoPerfil()">Enviar código pelo WhatsApp</button>
+      <p class="completar-msg" id="msgTelefone"></p>
+    </section>
+
+    <section class="completar-card escondido" id="etapaCodigo">
+      <div class="completar-numero">2</div>
+      <h2>Validar acesso</h2>
+      <p>Digite o código de 6 dígitos enviado pelo WhatsApp.</p>
+
+      <label>Código recebido</label>
+      <input type="text" id="perfilCodigo" placeholder="000000" inputmode="numeric" maxlength="6">
+
+      <button type="button" onclick="validarCodigoPerfil()">Validar código</button>
+      <p class="completar-msg" id="msgCodigo"></p>
+    </section>
+
+    <section class="completar-card completar-form-card escondido" id="etapaPerfil">
+      <div class="completar-numero">3</div>
+      <h2>Atualizar perfil</h2>
+      <p>Essas informações poderão aparecer no seu perfil público da Norte Servic.</p>
+
+      <form id="formCompletarPerfil">
+        <div class="completar-preview">
+          <img id="previewFotoPerfil" alt="Prévia da foto de perfil">
+          <label class="completar-upload">
+            <input type="file" id="fotoPerfilArquivo" accept="image/jpeg,image/png,image/webp">
+            <span>Escolher foto</span>
+          </label>
+          <small>JPG, PNG ou WEBP. Recomendado até 3 MB.</small>
+        </div>
+
+        <label>Nome</label>
+        <input type="text" id="perfilNome" disabled>
+
+        <label>Profissão</label>
+        <input type="text" id="perfilProfissao" disabled>
+
+        <label>Serviços oferecidos</label>
+        <textarea id="perfilServicos" rows="3" placeholder="Ex: faço pintura residencial, pequenos reparos, orçamento..."></textarea>
+
+        <label>Descrição</label>
+        <textarea id="perfilDescricao" rows="4" placeholder="Fale um pouco sobre seu trabalho, experiência e atendimento."></textarea>
+
+        <label>Bairro / referência</label>
+        <input type="text" id="perfilBairro" placeholder="Ex: Centro, Nova Canaã...">
+
+        <label>Instagram</label>
+        <input type="text" id="perfilInstagram" placeholder="@seuinstagram">
+
+        <label>Horário de atendimento</label>
+        <input type="text" id="perfilHorario" placeholder="Ex: segunda a sábado, 08h às 18h">
+
+        <label>Atende outras cidades?</label>
+        <select id="perfilAtendeOutras">
+          <option value="Não">Não</option>
+          <option value="Sim">Sim</option>
+          <option value="Consultar">Consultar</option>
+        </select>
+
+        <label>Cidades atendidas</label>
+        <input type="text" id="perfilCidades" placeholder="Ex: Muricilândia, Araguaína">
+
+        <button type="submit">Salvar meu perfil</button>
+      </form>
+
+      <p class="completar-msg" id="msgPerfil"></p>
+    </section>
+  </main>
+
+  <script src="completar-perfil.js?v=v16-whatsapp-perfil-20260618"></script>
+</body>
+</html>

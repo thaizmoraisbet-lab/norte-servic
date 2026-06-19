@@ -29,6 +29,22 @@ const CIDADE_COMISSAO_META_SAQUE = Number(process.env.CIDADE_COMISSAO_META_SAQUE
 const CIDADE_COMISSAO_LIMITE_DIARIO = CIDADE_COMISSAO_META_SAQUE;
 
 
+const WHATSAPP_API_VERSION = process.env.WHATSAPP_API_VERSION || 'v25.0';
+const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN || '';
+const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID || '';
+const WHATSAPP_BUSINESS_ACCOUNT_ID = process.env.WHATSAPP_BUSINESS_ACCOUNT_ID || '';
+const WHATSAPP_WEBHOOK_VERIFY_TOKEN = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || '';
+const WHATSAPP_TEMPLATE_CADASTRO = process.env.WHATSAPP_TEMPLATE_CADASTRO || 'cadastro_profissional_norte_servic';
+const WHATSAPP_TEMPLATE_CODIGO = process.env.WHATSAPP_TEMPLATE_CODIGO || 'codigo_acesso_norte_servic';
+const WHATSAPP_TEMPLATE_LANGUAGE = process.env.WHATSAPP_TEMPLATE_LANGUAGE || 'pt_BR';
+const WHATSAPP_CODIGO_EXPIRA_MINUTOS = Number(process.env.WHATSAPP_CODIGO_EXPIRA_MINUTOS || 10);
+const WHATSAPP_PERMITIR_TEXTO_LIVRE = String(process.env.WHATSAPP_PERMITIR_TEXTO_LIVRE || '').toLowerCase() === 'true';
+const PROFISSIONAL_ACESSO_SECRET = process.env.PROFISSIONAL_ACESSO_SECRET || JWT_SECRET;
+const MAX_UPLOAD_IMAGEM_BYTES = Number(process.env.MAX_UPLOAD_IMAGEM_BYTES || 3 * 1024 * 1024);
+const UPLOAD_IMAGE_MIMES_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp'];
+
+
+
 // Integração Pix Efí Bank
 const EFI_AMBIENTE = (process.env.EFI_AMBIENTE || 'homologacao').toLowerCase();
 const EFI_CLIENT_ID = process.env.EFI_CLIENT_ID || process.env.ID_do_cliente_EFI || process.env.ID_DO_CLIENTE_EFI || '';
@@ -604,9 +620,21 @@ function dataUrlParaBuffer(dataUrl) {
   const match = dataUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
   if (!match) return null;
 
-  const mime = match[1];
+  const mime = String(match[1] || '').toLowerCase();
+  if (!UPLOAD_IMAGE_MIMES_PERMITIDOS.includes(mime)) {
+    throw new Error('Formato de imagem não permitido. Envie apenas JPG, PNG ou WEBP.');
+  }
+
   const base64 = match[2];
   const buffer = Buffer.from(base64, 'base64');
+
+  if (!buffer.length) {
+    throw new Error('Imagem inválida ou vazia.');
+  }
+
+  if (buffer.length > MAX_UPLOAD_IMAGEM_BYTES) {
+    throw new Error('Imagem muito grande. O limite é 3 MB por imagem.');
+  }
 
   let extensao = 'jpg';
   if (mime.includes('png')) extensao = 'png';
@@ -733,9 +761,8 @@ async function processarImagemNorteServic(buffer, opcoes = {}) {
   }
 
   return await imagem
-    .jpeg({
-      quality: qualidade,
-      mozjpeg: true
+    .webp({
+      quality: qualidade
     })
     .toBuffer();
 }
@@ -755,8 +782,8 @@ async function enviarImagemStorage(imagem, pasta, nomeBase, opcoesImagem = {}) {
   }
 
   arquivo.buffer = await processarImagemNorteServic(arquivo.buffer, opcoesImagem);
-  arquivo.mime = 'image/jpeg';
-  arquivo.extensao = 'jpg';
+  arquivo.mime = 'image/webp';
+  arquivo.extensao = 'webp';
 
   const safePasta = String(pasta || 'profissionais').replace(/[^a-zA-Z0-9/_-]/g, '-');
   const safeNome = String(nomeBase || `foto-${Date.now()}`).replace(/[^a-zA-Z0-9._-]/g, '-');
@@ -1132,7 +1159,10 @@ async function publicarColetaNoSiteOficial(coleta, coletorId) {
           aceita_aparecer_site=true,
           instagram=COALESCE($10, instagram),
           email=COALESCE($11, email),
-          perfil_coleta_pendente=true
+          perfil_coleta_pendente=true,
+          origem_cadastro='cidade_parceira',
+          perfil_completo=false,
+          autorizou_receber_mensagem=true
          WHERE id=$12
          RETURNING *`,
         [
@@ -1163,14 +1193,14 @@ async function publicarColetaNoSiteOficial(coleta, coletorId) {
       forma_atendimento, whatsapp, instagram, descricao, foto_perfil, fotos_trabalhos,
       status, verificado, plano_atual, plano_status,
       origem_cidade_parceira, cidade_coleta_id, setor_coleta, aceita_aparecer_site,
-      perfil_coleta_pendente
+      perfil_coleta_pendente, origem_cadastro, perfil_completo, autorizou_receber_mensagem
     ) VALUES (
       $1,$2,$3,'Profissional local',$4,$5,$6,
       $7,$8,$9,'Não',$10::jsonb,
       'Presencial',$11,$12,$13,NULL,'[]'::jsonb,
       'aprovado',false,'Gratuito','ativo',
       true,$14,$15,true,
-      true
+      true, 'cidade_parceira', false, true
     ) RETURNING *`,
     [
       coleta.nome,
@@ -1271,6 +1301,408 @@ garantirSistemaLegal().catch((error) => {
 garantirSistemaCidadeParceira().catch((error) => {
   console.error('Erro ao garantir sistema Cidade Parceira:', error.message);
 });
+
+
+
+/* ================================================= */
+/* WHATSAPP CLOUD API + COMPLETAR PERFIL */
+/* ================================================= */
+
+function whatsappConfigurado() {
+  return Boolean(WHATSAPP_TOKEN && WHATSAPP_PHONE_NUMBER_ID);
+}
+
+function numeroWhatsAppApi(valor) {
+  const numero = limparNumero(valor || '');
+  if (!numero) return '';
+  if (numero.startsWith('55')) return numero;
+  if (numero.length >= 10 && numero.length <= 11) return `55${numero}`;
+  return numero;
+}
+
+function frontendUrlBase(req = null) {
+  const envUrl = String(process.env.FRONTEND_URL || '').replace(/\/$/, '');
+  if (envUrl) return envUrl;
+  if (req) {
+    const proto = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+    return `${proto}://${req.get('host')}`.replace(/\/$/, '');
+  }
+  return '';
+}
+
+function linkCompletarPerfil(req = null) {
+  const base = frontendUrlBase(req);
+  return `${base}/completar-perfil.html`;
+}
+
+async function garantirSistemaWhatsAppPerfil() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS whatsapp_mensagens (
+      id BIGSERIAL PRIMARY KEY,
+      profissional_id BIGINT,
+      coleta_id BIGINT,
+      whatsapp TEXT NOT NULL,
+      tipo TEXT NOT NULL,
+      template_nome TEXT,
+      mensagem TEXT,
+      status TEXT DEFAULT 'pendente',
+      message_id TEXT,
+      erro TEXT,
+      payload JSONB DEFAULT '{}'::jsonb,
+      resposta JSONB DEFAULT '{}'::jsonb,
+      enviado_em TIMESTAMPTZ,
+      entregue_em TIMESTAMPTZ,
+      lido_em TIMESTAMPTZ,
+      respondido_em TIMESTAMPTZ,
+      criado_em TIMESTAMPTZ DEFAULT NOW(),
+      atualizado_em TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS profissional_acessos_codigo (
+      id BIGSERIAL PRIMARY KEY,
+      profissional_id BIGINT,
+      whatsapp TEXT NOT NULL,
+      codigo_hash TEXT NOT NULL,
+      tentativas INTEGER DEFAULT 0,
+      usado BOOLEAN DEFAULT FALSE,
+      expira_em TIMESTAMPTZ NOT NULL,
+      ip TEXT,
+      user_agent TEXT,
+      criado_em TIMESTAMPTZ DEFAULT NOW(),
+      usado_em TIMESTAMPTZ
+    )
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_whatsapp_mensagens_message_id ON whatsapp_mensagens(message_id)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_whatsapp_mensagens_profissional ON whatsapp_mensagens(profissional_id)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_whatsapp_mensagens_status ON whatsapp_mensagens(status)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_profissional_acessos_whatsapp ON profissional_acessos_codigo(whatsapp)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_profissional_acessos_profissional ON profissional_acessos_codigo(profissional_id)`);
+
+  await pool.query(`ALTER TABLE cidade_coleta_profissionais ADD COLUMN IF NOT EXISTS autorizou_receber_mensagem BOOLEAN DEFAULT TRUE`);
+  await pool.query(`ALTER TABLE cidade_coleta_profissionais ADD COLUMN IF NOT EXISTS whatsapp_mensagem_cadastro_id BIGINT`);
+
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS origem_cadastro TEXT DEFAULT 'site'`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS perfil_completo BOOLEAN DEFAULT FALSE`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS link_completar_perfil_enviado_em TIMESTAMPTZ`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS ultimo_acesso_perfil TIMESTAMPTZ`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS autorizou_receber_mensagem BOOLEAN DEFAULT TRUE`);
+  await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS horario_atendimento TEXT`);
+}
+
+garantirSistemaWhatsAppPerfil().catch((error) => {
+  console.error('Erro ao garantir sistema WhatsApp/perfil:', error.message);
+});
+
+async function registrarMensagemWhatsApp({ profissionalId = null, coletaId = null, whatsapp, tipo, templateNome = '', mensagem = '', status = 'pendente', messageId = null, erro = '', payload = {}, resposta = {} }) {
+  await garantirSistemaWhatsAppPerfil();
+  const result = await pool.query(
+    `INSERT INTO whatsapp_mensagens (
+      profissional_id, coleta_id, whatsapp, tipo, template_nome, mensagem, status, message_id, erro, payload, resposta,
+      enviado_em, atualizado_em
+    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11::jsonb,
+      CASE WHEN $7 IN ('enviada','sent','delivered','read') THEN NOW() ELSE NULL END,
+      NOW()
+    ) RETURNING *`,
+    [
+      profissionalId,
+      coletaId,
+      numeroWhatsAppApi(whatsapp),
+      tipo,
+      templateNome || null,
+      mensagem || '',
+      status,
+      messageId,
+      erro || '',
+      JSON.stringify(payload || {}),
+      JSON.stringify(resposta || {})
+    ]
+  );
+  return result.rows[0];
+}
+
+async function atualizarMensagemWhatsAppPorMessageId(messageId, status, dados = {}) {
+  if (!messageId) return null;
+  await garantirSistemaWhatsAppPerfil();
+
+  const camposTempo = {
+    sent: 'enviado_em',
+    delivered: 'entregue_em',
+    read: 'lido_em',
+    failed: 'atualizado_em'
+  };
+  const campo = camposTempo[status] || 'atualizado_em';
+  const erro = dados?.errors?.[0]?.title || dados?.errors?.[0]?.message || dados?.errors?.[0]?.error_data?.details || '';
+
+  const result = await pool.query(
+    `UPDATE whatsapp_mensagens
+     SET status=$1,
+         erro=COALESCE(NULLIF($2,''), erro),
+         resposta=COALESCE(resposta, '{}'::jsonb) || $3::jsonb,
+         ${campo}=NOW(),
+         atualizado_em=NOW()
+     WHERE message_id=$4
+     RETURNING *`,
+    [status, erro, JSON.stringify(dados || {}), messageId]
+  );
+
+  return result.rows[0] || null;
+}
+
+async function enviarWhatsAppTemplate({ to, templateName, language = WHATSAPP_TEMPLATE_LANGUAGE, parameters = [], tipo = 'template', profissionalId = null, coletaId = null, mensagemResumo = '' }) {
+  await garantirSistemaWhatsAppPerfil();
+
+  const whatsapp = numeroWhatsAppApi(to);
+  const templateNome = String(templateName || '').trim();
+
+  if (!whatsapp || whatsapp.length < 12) {
+    return registrarMensagemWhatsApp({
+      profissionalId,
+      coletaId,
+      whatsapp: whatsapp || to,
+      tipo,
+      templateNome,
+      mensagem: mensagemResumo,
+      status: 'erro',
+      erro: 'Número de WhatsApp inválido para envio.'
+    });
+  }
+
+  if (!whatsappConfigurado()) {
+    return registrarMensagemWhatsApp({
+      profissionalId,
+      coletaId,
+      whatsapp,
+      tipo,
+      templateNome,
+      mensagem: mensagemResumo,
+      status: 'erro',
+      erro: 'WhatsApp Cloud API não configurada. Confira WHATSAPP_TOKEN e WHATSAPP_PHONE_NUMBER_ID na Railway.'
+    });
+  }
+
+  const bodyParameters = parameters.map((text) => ({
+    type: 'text',
+    text: String(text ?? '').slice(0, 1024)
+  }));
+
+  const payload = {
+    messaging_product: 'whatsapp',
+    to: whatsapp,
+    type: 'template',
+    template: {
+      name: templateNome,
+      language: { code: language }
+    }
+  };
+
+  if (bodyParameters.length) {
+    payload.template.components = [
+      {
+        type: 'body',
+        parameters: bodyParameters
+      }
+    ];
+  }
+
+  const url = `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
+
+  try {
+    const resposta = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const dados = await resposta.json().catch(() => ({}));
+    const messageId = dados?.messages?.[0]?.id || null;
+
+    if (!resposta.ok) {
+      const erro = dados?.error?.message || dados?.error?.error_data?.details || 'Erro ao enviar mensagem WhatsApp.';
+      return registrarMensagemWhatsApp({
+        profissionalId,
+        coletaId,
+        whatsapp,
+        tipo,
+        templateNome,
+        mensagem: mensagemResumo,
+        status: 'erro',
+        erro,
+        payload,
+        resposta: dados
+      });
+    }
+
+    return registrarMensagemWhatsApp({
+      profissionalId,
+      coletaId,
+      whatsapp,
+      tipo,
+      templateNome,
+      mensagem: mensagemResumo,
+      status: 'enviada',
+      messageId,
+      payload,
+      resposta: dados
+    });
+  } catch (error) {
+    return registrarMensagemWhatsApp({
+      profissionalId,
+      coletaId,
+      whatsapp,
+      tipo,
+      templateNome,
+      mensagem: mensagemResumo,
+      status: 'erro',
+      erro: error.message,
+      payload
+    });
+  }
+}
+
+async function enviarWhatsAppTextoLivre({ to, body, tipo = 'texto', profissionalId = null, coletaId = null }) {
+  await garantirSistemaWhatsAppPerfil();
+
+  const whatsapp = numeroWhatsAppApi(to);
+  if (!whatsappConfigurado() || !WHATSAPP_PERMITIR_TEXTO_LIVRE) {
+    return registrarMensagemWhatsApp({
+      profissionalId,
+      coletaId,
+      whatsapp,
+      tipo,
+      mensagem: body,
+      status: 'erro',
+      erro: WHATSAPP_PERMITIR_TEXTO_LIVRE
+        ? 'WhatsApp Cloud API não configurada.'
+        : 'Texto livre desativado. Use templates aprovados pela Meta.'
+    });
+  }
+
+  const payload = {
+    messaging_product: 'whatsapp',
+    to: whatsapp,
+    type: 'text',
+    text: { body: String(body || '').slice(0, 4096), preview_url: true }
+  };
+
+  try {
+    const resposta = await fetch(`https://graph.facebook.com/${WHATSAPP_API_VERSION}/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const dados = await resposta.json().catch(() => ({}));
+    const messageId = dados?.messages?.[0]?.id || null;
+
+    if (!resposta.ok) {
+      const erro = dados?.error?.message || dados?.error?.error_data?.details || 'Erro ao enviar texto WhatsApp.';
+      return registrarMensagemWhatsApp({ profissionalId, coletaId, whatsapp, tipo, mensagem: body, status: 'erro', erro, payload, resposta: dados });
+    }
+
+    return registrarMensagemWhatsApp({ profissionalId, coletaId, whatsapp, tipo, mensagem: body, status: 'enviada', messageId, payload, resposta: dados });
+  } catch (error) {
+    return registrarMensagemWhatsApp({ profissionalId, coletaId, whatsapp, tipo, mensagem: body, status: 'erro', erro: error.message, payload });
+  }
+}
+
+async function enviarMensagemCadastroProfissional({ profissional, coleta, req = null }) {
+  const link = linkCompletarPerfil(req);
+  const municipio = coleta?.cidade || profissional?.cidade || CIDADE_MUNICIPIO_PADRAO;
+  const nome = profissional?.nome || coleta?.nome || 'Profissional';
+  const profissao = profissional?.profissao || coleta?.profissao || 'Profissional local';
+  const setor = coleta?.setor || profissional?.setor_coleta || profissional?.bairro || 'Setor informado';
+  const whatsapp = profissional?.whatsapp || coleta?.whatsapp || '';
+
+  const mensagemResumo = `Cadastro Norte Servic: ${nome} (${profissao}) em ${municipio}. Completar perfil: ${link}`;
+
+  const registro = await enviarWhatsAppTemplate({
+    to: whatsapp,
+    templateName: WHATSAPP_TEMPLATE_CADASTRO,
+    parameters: [nome, municipio, profissao, setor, link],
+    tipo: 'cadastro_profissional',
+    profissionalId: profissional?.id || null,
+    coletaId: coleta?.id || null,
+    mensagemResumo
+  });
+
+  if (profissional?.id && registro.status !== 'erro') {
+    await pool.query(
+      `UPDATE profissionais SET link_completar_perfil_enviado_em=NOW(), autorizou_receber_mensagem=TRUE WHERE id=$1`,
+      [profissional.id]
+    );
+  }
+
+  if (coleta?.id) {
+    await pool.query(
+      `UPDATE cidade_coleta_profissionais SET whatsapp_mensagem_cadastro_id=$1, autorizou_receber_mensagem=TRUE WHERE id=$2`,
+      [registro.id, coleta.id]
+    ).catch(() => {});
+  }
+
+  return registro;
+}
+
+function gerarCodigoAcessoPerfil() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function gerarTokenAcessoProfissional(profissional) {
+  return jwt.sign(
+    { tipo: 'perfil-whatsapp', id: profissional.id, whatsapp: profissional.whatsapp },
+    PROFISSIONAL_ACESSO_SECRET,
+    { expiresIn: '2h' }
+  );
+}
+
+function autenticarAcessoProfissionalWhatsApp(req, res, next) {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+
+  if (!token) {
+    return res.status(401).json({ erro: 'Código de acesso necessário.' });
+  }
+
+  try {
+    const dados = jwt.verify(token, PROFISSIONAL_ACESSO_SECRET);
+    if (dados.tipo !== 'perfil-whatsapp') {
+      return res.status(401).json({ erro: 'Acesso de perfil inválido.' });
+    }
+    req.profissionalAcesso = dados;
+    next();
+  } catch (_) {
+    return res.status(401).json({ erro: 'Acesso expirado. Solicite um novo código.' });
+  }
+}
+
+function profissionalCompletarPerfilParaFrontend(row) {
+  if (!row) return null;
+  return {
+    id: Number(row.id),
+    nome: row.nome || '',
+    whatsapp: row.whatsapp || '',
+    profissao: row.profissao || '',
+    servicos: row.servicos || '',
+    cidade: row.cidade || '',
+    bairro: row.bairro || '',
+    instagram: row.instagram || '',
+    descricao: row.descricao || '',
+    fotoPerfil: row.foto_perfil || '',
+    atendeOutrasCidades: row.atende_outras_cidades || '',
+    cidadesAtendidas: parseJsonArray(row.cidades_atendidas),
+    horarioAtendimento: row.horario_atendimento || '',
+    perfilCompleto: Boolean(row.perfil_completo),
+    perfilColetaPendente: row.perfil_coleta_pendente !== false
+  };
+}
 
 
 const adminLoginAttempts = new Map();
@@ -1540,6 +1972,363 @@ app.post('/api/admin/auth/logout', autenticarAdmin, async (req, res) => {
   res.setHeader('Set-Cookie', limparCookieAdmin());
   res.json({ ok: true });
 });
+
+
+app.get('/api/whatsapp/webhook', (req, res) => {
+  const mode = req.query['hub.mode'];
+  const token = req.query['hub.verify_token'];
+  const challenge = req.query['hub.challenge'];
+
+  if (mode === 'subscribe' && token && token === WHATSAPP_WEBHOOK_VERIFY_TOKEN) {
+    return res.status(200).send(challenge);
+  }
+
+  return res.status(403).send('Token de verificação inválido.');
+});
+
+app.post('/api/whatsapp/webhook', async (req, res) => {
+  try {
+    await garantirSistemaWhatsAppPerfil();
+
+    const body = req.body || {};
+    const entries = Array.isArray(body.entry) ? body.entry : [];
+
+    for (const entry of entries) {
+      const changes = Array.isArray(entry.changes) ? entry.changes : [];
+      for (const change of changes) {
+        const value = change.value || {};
+
+        const statuses = Array.isArray(value.statuses) ? value.statuses : [];
+        for (const status of statuses) {
+          await atualizarMensagemWhatsAppPorMessageId(status.id, status.status, status);
+        }
+
+        const messages = Array.isArray(value.messages) ? value.messages : [];
+        for (const message of messages) {
+          const from = numeroWhatsAppApi(message.from || '');
+          const texto = message.text?.body || message.button?.text || message.type || '';
+          await registrarMensagemWhatsApp({
+            whatsapp: from,
+            tipo: 'recebida',
+            mensagem: texto,
+            status: 'recebida',
+            messageId: message.id || null,
+            resposta: message
+          });
+        }
+      }
+    }
+
+    res.sendStatus(200);
+  } catch (error) {
+    console.error('Erro no webhook WhatsApp:', error.message);
+    res.sendStatus(200);
+  }
+});
+
+app.get('/api/admin/whatsapp/mensagens', autenticarAdmin, async (req, res) => {
+  try {
+    await garantirSistemaWhatsAppPerfil();
+    const status = String(req.query.status || '').trim();
+    const params = [];
+    let where = '';
+    if (status) {
+      params.push(status);
+      where = 'WHERE wm.status=$1';
+    }
+
+    const result = await pool.query(`
+      SELECT wm.*, p.nome AS profissional_nome, p.profissao AS profissional_profissao
+      FROM whatsapp_mensagens wm
+      LEFT JOIN profissionais p ON p.id = wm.profissional_id
+      ${where}
+      ORDER BY wm.criado_em DESC
+      LIMIT 200
+    `, params);
+
+    res.json(result.rows.map((row) => ({
+      id: Number(row.id),
+      profissionalId: row.profissional_id ? Number(row.profissional_id) : null,
+      profissionalNome: row.profissional_nome || '',
+      profissionalProfissao: row.profissional_profissao || '',
+      coletaId: row.coleta_id ? Number(row.coleta_id) : null,
+      whatsapp: row.whatsapp || '',
+      tipo: row.tipo || '',
+      templateNome: row.template_nome || '',
+      mensagem: row.mensagem || '',
+      status: row.status || '',
+      messageId: row.message_id || '',
+      erro: row.erro || '',
+      enviadoEm: row.enviado_em,
+      entregueEm: row.entregue_em,
+      lidoEm: row.lido_em,
+      respondidoEm: row.respondido_em,
+      criadoEm: row.criado_em
+    })));
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao listar mensagens WhatsApp.', detalhe: error.message });
+  }
+});
+
+app.post('/api/admin/whatsapp/teste', autenticarAdmin, async (req, res) => {
+  try {
+    const whatsapp = numeroWhatsAppApi(req.body.whatsapp || '');
+    const template = String(req.body.template || 'hello_world').trim();
+    const language = String(req.body.language || 'en_US').trim();
+
+    const registro = await enviarWhatsAppTemplate({
+      to: whatsapp,
+      templateName: template,
+      language,
+      parameters: [],
+      tipo: 'teste_admin',
+      mensagemResumo: `Teste WhatsApp template ${template}`
+    });
+
+    res.json({
+      ok: registro.status !== 'erro',
+      mensagem: registro.status === 'erro' ? 'Teste registrado com erro.' : 'Mensagem de teste enviada.',
+      registro: {
+        id: Number(registro.id),
+        status: registro.status,
+        erro: registro.erro || '',
+        messageId: registro.message_id || ''
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao testar WhatsApp.', detalhe: error.message });
+  }
+});
+
+app.post('/api/profissional-acesso/solicitar-codigo', async (req, res) => {
+  try {
+    await garantirSistemaWhatsAppPerfil();
+
+    const whatsapp = numeroWhatsAppApi(req.body.whatsapp || '');
+    if (!whatsapp || whatsapp.length < 12) {
+      return res.status(400).json({ erro: 'Informe um WhatsApp válido com DDD.' });
+    }
+
+    const profissionalResult = await pool.query(
+      `SELECT *
+       FROM profissionais
+       WHERE whatsapp=$1
+       ORDER BY id DESC
+       LIMIT 1`,
+      [whatsapp]
+    );
+
+    if (!profissionalResult.rows.length) {
+      return res.status(404).json({ erro: 'Não encontramos perfil vinculado a este WhatsApp.' });
+    }
+
+    const profissional = profissionalResult.rows[0];
+
+    const recentes = await pool.query(
+      `SELECT COUNT(*)::int AS total
+       FROM profissional_acessos_codigo
+       WHERE whatsapp=$1 AND criado_em > NOW() - INTERVAL '5 minutes'`,
+      [whatsapp]
+    );
+
+    if (Number(recentes.rows[0]?.total || 0) >= 3) {
+      return res.status(429).json({ erro: 'Muitas tentativas. Aguarde alguns minutos para solicitar outro código.' });
+    }
+
+    const codigo = gerarCodigoAcessoPerfil();
+    const codigoHash = await bcrypt.hash(codigo, 10);
+
+    await pool.query(
+      `INSERT INTO profissional_acessos_codigo (profissional_id, whatsapp, codigo_hash, expira_em, ip, user_agent)
+       VALUES ($1,$2,$3,NOW() + ($4 || ' minutes')::interval,$5,$6)`,
+      [
+        profissional.id,
+        whatsapp,
+        codigoHash,
+        WHATSAPP_CODIGO_EXPIRA_MINUTOS,
+        ipRequisicao(req),
+        String(req.headers['user-agent'] || '').slice(0, 500)
+      ]
+    );
+
+    const mensagemResumo = `Código de acesso Norte Servic: ${codigo}. Expira em ${WHATSAPP_CODIGO_EXPIRA_MINUTOS} minutos.`;
+    let envio;
+
+    if (WHATSAPP_TEMPLATE_CODIGO) {
+      envio = await enviarWhatsAppTemplate({
+        to: whatsapp,
+        templateName: WHATSAPP_TEMPLATE_CODIGO,
+        parameters: [codigo, String(WHATSAPP_CODIGO_EXPIRA_MINUTOS)],
+        tipo: 'codigo_acesso',
+        profissionalId: profissional.id,
+        mensagemResumo
+      });
+    } else {
+      envio = await enviarWhatsAppTextoLivre({
+        to: whatsapp,
+        body: mensagemResumo,
+        tipo: 'codigo_acesso',
+        profissionalId: profissional.id
+      });
+    }
+
+    res.json({
+      mensagem: envio.status === 'erro'
+        ? 'Código gerado, mas houve erro ao enviar pelo WhatsApp. Verifique a configuração da API.'
+        : 'Código enviado pelo WhatsApp.',
+      statusWhatsApp: envio.status,
+      erroWhatsApp: envio.erro || ''
+    });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao solicitar código.', detalhe: error.message });
+  }
+});
+
+app.post('/api/profissional-acesso/validar-codigo', async (req, res) => {
+  try {
+    await garantirSistemaWhatsAppPerfil();
+
+    const whatsapp = numeroWhatsAppApi(req.body.whatsapp || '');
+    const codigo = String(req.body.codigo || '').replace(/\D/g, '');
+
+    if (!whatsapp || !codigo || codigo.length !== 6) {
+      return res.status(400).json({ erro: 'Informe WhatsApp e código de 6 dígitos.' });
+    }
+
+    const result = await pool.query(
+      `SELECT pac.*, p.nome, p.whatsapp AS profissional_whatsapp
+       FROM profissional_acessos_codigo pac
+       JOIN profissionais p ON p.id = pac.profissional_id
+       WHERE pac.whatsapp=$1
+         AND pac.usado=FALSE
+         AND pac.expira_em > NOW()
+       ORDER BY pac.criado_em DESC
+       LIMIT 1`,
+      [whatsapp]
+    );
+
+    if (!result.rows.length) {
+      return res.status(401).json({ erro: 'Código expirado ou inexistente. Solicite um novo código.' });
+    }
+
+    const acesso = result.rows[0];
+
+    if (Number(acesso.tentativas || 0) >= 5) {
+      return res.status(429).json({ erro: 'Muitas tentativas incorretas. Solicite um novo código.' });
+    }
+
+    const ok = await bcrypt.compare(codigo, acesso.codigo_hash);
+    if (!ok) {
+      await pool.query('UPDATE profissional_acessos_codigo SET tentativas=tentativas+1 WHERE id=$1', [acesso.id]);
+      return res.status(401).json({ erro: 'Código incorreto.' });
+    }
+
+    await pool.query(
+      `UPDATE profissional_acessos_codigo SET usado=TRUE, usado_em=NOW() WHERE id=$1`,
+      [acesso.id]
+    );
+
+    await pool.query(
+      `UPDATE profissionais SET ultimo_acesso_perfil=NOW() WHERE id=$1`,
+      [acesso.profissional_id]
+    );
+
+    const profissional = { id: acesso.profissional_id, whatsapp };
+    const token = gerarTokenAcessoProfissional(profissional);
+
+    res.json({
+      mensagem: 'Código validado. Você já pode completar seu perfil.',
+      token
+    });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao validar código.', detalhe: error.message });
+  }
+});
+
+app.get('/api/profissional-acesso/me', autenticarAcessoProfissionalWhatsApp, async (req, res) => {
+  try {
+    await garantirSistemaWhatsAppPerfil();
+
+    const result = await pool.query('SELECT * FROM profissionais WHERE id=$1 AND whatsapp=$2 LIMIT 1', [
+      req.profissionalAcesso.id,
+      req.profissionalAcesso.whatsapp
+    ]);
+
+    if (!result.rows.length) {
+      return res.status(404).json({ erro: 'Perfil não encontrado.' });
+    }
+
+    res.json({ profissional: profissionalCompletarPerfilParaFrontend(result.rows[0]) });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao carregar perfil.', detalhe: error.message });
+  }
+});
+
+app.patch('/api/profissional-acesso/me', autenticarAcessoProfissionalWhatsApp, async (req, res) => {
+  try {
+    await garantirSistemaWhatsAppPerfil();
+
+    const atual = await pool.query('SELECT * FROM profissionais WHERE id=$1 AND whatsapp=$2 LIMIT 1', [
+      req.profissionalAcesso.id,
+      req.profissionalAcesso.whatsapp
+    ]);
+
+    if (!atual.rows.length) {
+      return res.status(404).json({ erro: 'Perfil não encontrado.' });
+    }
+
+    const dados = req.body || {};
+    const pasta = `profissionais/${req.profissionalAcesso.id}`;
+    const imagens = await processarImagensProfissional(dados, pasta, {
+      fotoPerfil: atual.rows[0].foto_perfil || '',
+      fotosTrabalhos: parseJsonArray(atual.rows[0].fotos_trabalhos)
+    });
+
+    const instagram = String(dados.instagram || '').trim().replace(/^https?:\/\/((www\.)?instagram\.com\/)?/i, '').replace(/^@?/, '@');
+    const cidadesAtendidas = Array.isArray(dados.cidadesAtendidas || dados.cidades_atendidas)
+      ? (dados.cidadesAtendidas || dados.cidades_atendidas)
+      : parseJsonArray(dados.cidadesAtendidas || dados.cidades_atendidas);
+
+    const result = await pool.query(
+      `UPDATE profissionais SET
+        descricao=$1,
+        instagram=$2,
+        servicos=$3,
+        bairro=$4,
+        atende_outras_cidades=$5,
+        cidades_atendidas=$6::jsonb,
+        horario_atendimento=$7,
+        foto_perfil=$8,
+        fotos_trabalhos=$9::jsonb,
+        perfil_completo=TRUE,
+        perfil_coleta_pendente=FALSE,
+        atualizado_em=NOW()
+       WHERE id=$10 AND whatsapp=$11
+       RETURNING *`,
+      [
+        String(dados.descricao || atual.rows[0].descricao || '').trim(),
+        instagram === '@' ? '' : instagram,
+        String(dados.servicos || atual.rows[0].servicos || '').trim(),
+        String(dados.bairro || atual.rows[0].bairro || '').trim(),
+        String(dados.atendeOutrasCidades || dados.atende_outras_cidades || atual.rows[0].atende_outras_cidades || 'Não'),
+        JSON.stringify(cidadesAtendidas.length ? cidadesAtendidas : parseJsonArray(atual.rows[0].cidades_atendidas)),
+        String(dados.horarioAtendimento || dados.horario_atendimento || '').trim(),
+        imagens.fotoPerfil || atual.rows[0].foto_perfil || '',
+        JSON.stringify(imagens.fotosTrabalhos || parseJsonArray(atual.rows[0].fotos_trabalhos)),
+        req.profissionalAcesso.id,
+        req.profissionalAcesso.whatsapp
+      ]
+    );
+
+    res.json({
+      mensagem: 'Perfil atualizado com segurança.',
+      profissional: profissionalCompletarPerfilParaFrontend(result.rows[0])
+    });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao atualizar perfil.', detalhe: error.message });
+  }
+});
+
 
 app.get('/api/health', async (_req, res) => {
   try {
@@ -2966,12 +3755,16 @@ app.get('/api/cidade/coleta/verificar-whatsapp', autenticarColetorCidade, async 
 app.post('/api/cidade/coleta/profissionais', autenticarColetorCidade, async (req, res) => {
   try {
     await garantirSistemaCidadeParceira();
+    await garantirSistemaWhatsAppPerfil();
 
     const dados = req.body || {};
     const nome = String(dados.nome || '').trim();
     const profissao = String(dados.profissao || '').trim();
     const whatsapp = limparNumero(dados.whatsapp || '');
     const aceitaSite = normalizarBooleanoCidade(dados.aceitaSite || dados.aceita_site);
+    const autorizaMensagem = dados.autorizouMensagem === undefined && dados.autorizou_receber_mensagem === undefined
+      ? true
+      : normalizarBooleanoCidade(dados.autorizouMensagem || dados.autorizou_receber_mensagem);
     const emailProfissional = String(dados.emailProfissional || dados.email_profissional || '').trim().toLowerCase() || null;
     const instagram = String(dados.instagram || '').trim() || null;
     const setor = req.coletorCidade.setor;
@@ -2983,8 +3776,8 @@ app.post('/api/cidade/coleta/profissionais', autenticarColetorCidade, async (req
     const coleta = await pool.query(`
       INSERT INTO cidade_coleta_profissionais (
         coletor_id, nome, whatsapp, email_profissional, instagram, categoria, profissao, servicos,
-        cidade, setor, bairro, descricao, aceita_site, status_coleta
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,'coletado')
+        cidade, setor, bairro, descricao, aceita_site, autorizou_receber_mensagem, status_coleta
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'coletado')
       RETURNING *
     `, [
       req.coletorCidade.id,
@@ -2999,7 +3792,8 @@ app.post('/api/cidade/coleta/profissionais', autenticarColetorCidade, async (req
       setor,
       dados.bairro || setor,
       dados.descricao || null,
-      aceitaSite
+      aceitaSite,
+      autorizaMensagem
     ]);
 
     let profissionalPublicado = null;
@@ -3012,12 +3806,46 @@ app.post('/api/cidade/coleta/profissionais', autenticarColetorCidade, async (req
       coleta.rows[0].profissional_site_id = profissionalPublicado.id;
     }
 
+    let whatsappCadastro = null;
+    if (aceitaSite && autorizaMensagem && profissionalPublicado && whatsapp) {
+      try {
+        whatsappCadastro = await enviarMensagemCadastroProfissional({
+          profissional: profissionalPublicado,
+          coleta: coleta.rows[0],
+          req
+        });
+      } catch (erroWhatsApp) {
+        whatsappCadastro = await registrarMensagemWhatsApp({
+          profissionalId: profissionalPublicado.id,
+          coletaId: coleta.rows[0].id,
+          whatsapp,
+          tipo: 'cadastro_profissional',
+          templateNome: WHATSAPP_TEMPLATE_CADASTRO,
+          status: 'erro',
+          erro: erroWhatsApp.message
+        });
+      }
+    }
+
+    let mensagem = aceitaSite
+      ? 'Profissional coletado e publicado no site oficial.'
+      : 'Profissional coletado apenas para o relatório da Cidade Parceira.';
+
+    if (aceitaSite && autorizaMensagem && whatsappCadastro) {
+      mensagem += whatsappCadastro.status === 'erro'
+        ? ' O cadastro foi salvo, mas o WhatsApp não foi enviado. Verifique a configuração da API.'
+        : ' Mensagem de WhatsApp enviada para o profissional completar o perfil.';
+    }
+
     res.status(201).json({
-      mensagem: aceitaSite
-        ? 'Profissional coletado e publicado no site oficial.'
-        : 'Profissional coletado apenas para o relatório da Cidade Parceira.',
+      mensagem,
       coleta: coletaParaFrontend(coleta.rows[0]),
       publicadoNoSite: Boolean(profissionalPublicado),
+      whatsappMensagem: whatsappCadastro ? {
+        id: Number(whatsappCadastro.id),
+        status: whatsappCadastro.status,
+        erro: whatsappCadastro.erro || ''
+      } : null,
       profissional: profissionalPublicado ? profissionalParaFrontend(profissionalPublicado) : null
     });
   } catch (error) {
