@@ -2076,14 +2076,19 @@ app.post('/api/admin/whatsapp/teste', autenticarAdmin, async (req, res) => {
     const template = String(req.body.template || 'hello_world').trim();
     const language = String(req.body.language || 'en_US').trim();
 
-    const registro = await enviarWhatsAppTemplate({
-      to: whatsapp,
-      templateName: template,
-      language,
-      parameters: [],
-      tipo: 'teste_admin',
-      mensagemResumo: `Teste WhatsApp template ${template}`
-    });
+    const templateCadastro = String(WHATSAPP_TEMPLATE_CADASTRO || '').trim();
+const usandoHelloWorld = templateCadastro.toLowerCase() === 'hello_world';
+
+const registro = await enviarWhatsAppTemplate({
+  to: whatsapp,
+  templateName: templateCadastro,
+  language: usandoHelloWorld ? 'en_US' : WHATSAPP_TEMPLATE_LANGUAGE,
+  parameters: usandoHelloWorld ? [] : [nome, municipio, profissao, setor, link],
+  tipo: 'cadastro_profissional',
+  profissionalId: profissional?.id || null,
+  coletaId: coleta?.id || null,
+  mensagemResumo
+});
 
     res.json({
       ok: registro.status !== 'erro',
