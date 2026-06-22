@@ -3674,3 +3674,111 @@ html.loading-travado {
     gap: 2px !important;
   }
 }
+
+
+/* V23 — correção do modal de sucesso do coletor no mobile */
+body.cidade-sucesso-aberto .cidade-form-acoes-mobile {
+  display: none !important;
+}
+
+.cidade-sucesso-card > div {
+  width: 100%;
+}
+
+.cidade-sucesso-card > div:not(.cidade-sucesso-status):not(.cidade-sucesso-acoes-extras):not(.cidade-sucesso-principais) {
+  display: block !important;
+}
+
+.cidade-sucesso-principais {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px !important;
+  width: 100%;
+  margin-top: 14px;
+}
+
+.cidade-sucesso-principais .cidade-btn {
+  width: 100%;
+  min-height: 50px;
+  justify-content: center;
+}
+
+#cidadeSucessoAcoesExtras {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px !important;
+  margin: 12px 0 0 !important;
+  width: 100%;
+}
+
+#cidadeSucessoAcoesExtras .cidade-btn,
+#cidadeSucessoAcoesExtras a.cidade-btn {
+  width: 100% !important;
+  flex: initial !important;
+  min-height: 46px !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+@media (max-width: 640px) {
+  #cidadeSucessoColeta {
+    padding: 12px !important;
+  }
+
+  #cidadeSucessoColeta > * {
+    width: min(430px, calc(100vw - 24px)) !important;
+    max-height: calc(100dvh - 24px) !important;
+  }
+
+  .cidade-sucesso-card {
+    padding: 20px 18px !important;
+    border-radius: 24px !important;
+  }
+
+  .cidade-sucesso-card .ns-logo-icon {
+    width: 50px !important;
+    height: 50px !important;
+    margin-bottom: 12px !important;
+    border-radius: 16px !important;
+    font-size: 24px !important;
+  }
+
+  .cidade-sucesso-card h3 {
+    font-size: clamp(20px, 7vw, 28px) !important;
+    line-height: 1.12 !important;
+    margin-bottom: 10px !important;
+  }
+
+  .cidade-sucesso-card p {
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    margin-bottom: 14px !important;
+  }
+
+  .cidade-sucesso-status.premium-v22,
+  #cidadeSucessoAcoesExtras,
+  .cidade-sucesso-principais {
+    grid-template-columns: 1fr !important;
+  }
+
+  .cidade-status-linha {
+    grid-template-columns: 1fr !important;
+    gap: 4px !important;
+    padding: 12px !important;
+  }
+
+  .cidade-status-linha strong {
+    font-size: 14px !important;
+  }
+
+  .cidade-status-linha span {
+    font-size: 13px !important;
+  }
+
+  .cidade-sucesso-principais .cidade-btn,
+  #cidadeSucessoAcoesExtras .cidade-btn,
+  #cidadeSucessoAcoesExtras a.cidade-btn {
+    min-height: 48px !important;
+    font-size: 15px !important;
+  }
+}

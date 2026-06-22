@@ -1101,17 +1101,14 @@ function mostrarSucessoColetaCidade(mensagem = 'O profissional foi enviado para 
   }
 
   if (acoes) {
+    const linkCopiar = profissionalId ? linkPerfil : linkCompletar;
     acoes.innerHTML = `
       ${profissionalId ? `<a class="cidade-btn cidade-btn-claro" href="${linkPerfil}" target="_blank">Ver perfil publicado</a>` : ''}
-      <button type="button" class="cidade-btn cidade-btn-claro" onclick="navigator.clipboard?.writeText('${profissionalId ? linkPerfil : linkCompletar}'); mostrarToastCidade('Link copiado.');">Copiar link do perfil</button>
-      <button type="button" class="cidade-btn" onclick="proximoCadastroColetaCidade()">Cadastrar próximo</button>
+      <button type="button" class="cidade-btn cidade-btn-claro" onclick="navigator.clipboard?.writeText('${linkCopiar}'); mostrarToastCidade('Link copiado.');">Copiar link do perfil</button>
     `;
   }
 
   if (!box) return;
   document.body?.classList.add('cidade-sucesso-aberto');
   box.classList.remove('escondido');
-  setTimeout(() => {
-    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, 80);
 }
