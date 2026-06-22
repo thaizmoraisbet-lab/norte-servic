@@ -1,12 +1,18 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+<meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>Painel Admin - Norte Servic</title>
 
-  <link rel="stylesheet" href="style.css?v=v20-coletor-premium-admin-footer-20260622">
+  <link rel="stylesheet" href="style.css?v=22-premium">
 </head>
 <body>
 
@@ -185,6 +191,11 @@
             <h3>Profissionais cadastrados pelos coletores</h3>
           </div>
           <small>Quando o profissional autoriza aparecer no site, o cadastro entra aprovado automaticamente.</small>
+        </div>
+        <div class="admin-internal-tabs cidade-parceira-tabs-v22" role="tablist" aria-label="Cidade Parceira">
+          <button class="ativo" type="button" data-cidade-tab="coletas" onclick="ativarAbaCidadeParceiraAdmin('coletas', this)">Coletas</button>
+          <button type="button" data-cidade-tab="publicados" onclick="ativarAbaCidadeParceiraAdmin('publicados', this)">Publicados</button>
+          <button type="button" data-cidade-tab="relatorio" onclick="ativarAbaCidadeParceiraAdmin('relatorio', this)">Relatório</button>
         </div>
         <div id="listaAdminCidadeColetas" class="admin-cidade-coletas-lista"></div>
       </section>
@@ -377,6 +388,6 @@
     <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
   </footer>
 
-  <script src="script.js?v=v20-coletor-premium-admin-footer-20260622"></script>
+  <script src="script.js?v=22-premium"></script>
 </body>
 </html>

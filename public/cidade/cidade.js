@@ -1015,3 +1015,103 @@ window.addEventListener('DOMContentLoaded', async () => {
     aplicarAnimacoesCidade(document);
   }
 });
+
+
+
+/* =========================================================
+   V22 — COLETOR MOBILE PREMIUM / LOADING / SUCESSO
+   ========================================================= */
+
+function travarTelaCidadeLoading() {
+  document.documentElement.classList.add('loading-travado');
+  document.body?.classList.add('loading-travado');
+  document.documentElement.style.overflow = 'hidden';
+  if (document.body) {
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+  }
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.mini-loading.ativo, .ns-page-loader.ativo').forEach((loader) => {
+      loader.style.position = 'fixed';
+      loader.style.inset = '0';
+      loader.style.width = '100vw';
+      loader.style.height = '100dvh';
+      loader.style.display = 'flex';
+      loader.style.alignItems = 'center';
+      loader.style.justifyContent = 'center';
+      loader.style.zIndex = '2147483647';
+    });
+  });
+}
+
+function liberarTelaCidadeLoading() {
+  document.documentElement.classList.remove('loading-travado');
+  document.body?.classList.remove('loading-travado');
+  document.documentElement.style.overflow = '';
+  if (document.body) {
+    document.body.style.overflow = '';
+    document.body.style.touchAction = '';
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.width = '';
+    delete document.body.dataset.nsCidadeLoadingTravado;
+    delete document.body.dataset.nsCidadeLoadingScrollY;
+  }
+}
+
+function garantirLoadingCidadePadrao(loading, texto = 'Carregando informações...') {
+  if (!loading) return;
+  loading.innerHTML = `
+    <div class="ns-loader-card ns-loader-card-v22" role="status" aria-live="polite">
+      <div class="ns-loader-logo ns-loader-logo-v22" aria-hidden="true"><span>NS</span></div>
+      <strong>Norte Servic</strong>
+      <p>${texto}</p>
+      <div class="ns-loader-bar"><span></span></div>
+    </div>
+  `;
+}
+
+function mostrarSucessoColetaCidade(mensagem = 'O profissional foi enviado para a base de dados.', resposta = {}) {
+  const box = $('cidadeSucessoColeta');
+  const texto = $('cidadeSucessoTexto');
+  const status = $('cidadeSucessoStatus');
+  const acoes = $('cidadeSucessoAcoesExtras');
+  const whatsappMsg = resposta?.whatsappMensagem || null;
+  const profissionalId = resposta?.profissional?.id || resposta?.coleta?.profissionalSiteId || null;
+  const linkPerfil = profissionalId ? `${window.location.origin}/perfil.html?id=${profissionalId}` : '';
+  const linkCompletar = `${window.location.origin}/completar-perfil.html`;
+
+  if (texto) texto.textContent = mensagem;
+  if (status) {
+    const linhas = [
+      '<p class="cidade-status-linha ok"><strong>Cadastro salvo</strong><span>Registro enviado para a base de dados.</span></p>',
+      profissionalId
+        ? '<p class="cidade-status-linha ok"><strong>Site oficial</strong><span>Profissional publicado/relacionado ao perfil.</span></p>'
+        : '<p class="cidade-status-linha neutro"><strong>Site oficial</strong><span>Cadastro salvo para relatório e acompanhamento.</span></p>',
+      whatsappMsg && whatsappMsg.status === 'erro'
+        ? '<p class="cidade-status-linha alerta"><strong>WhatsApp</strong><span>Não enviado. Confira API, token, template ou destinatário.</span></p>'
+        : whatsappMsg
+          ? '<p class="cidade-status-linha ok"><strong>WhatsApp</strong><span>Mensagem enviada para completar o perfil.</span></p>'
+          : '<p class="cidade-status-linha neutro"><strong>WhatsApp</strong><span>Envio não solicitado ou não configurado.</span></p>'
+    ];
+    status.className = 'cidade-sucesso-status premium-v22';
+    status.innerHTML = linhas.join('');
+  }
+
+  if (acoes) {
+    acoes.innerHTML = `
+      ${profissionalId ? `<a class="cidade-btn cidade-btn-claro" href="${linkPerfil}" target="_blank">Ver perfil publicado</a>` : ''}
+      <button type="button" class="cidade-btn cidade-btn-claro" onclick="navigator.clipboard?.writeText('${profissionalId ? linkPerfil : linkCompletar}'); mostrarToastCidade('Link copiado.');">Copiar link do perfil</button>
+      <button type="button" class="cidade-btn" onclick="proximoCadastroColetaCidade()">Cadastrar próximo</button>
+    `;
+  }
+
+  if (!box) return;
+  document.body?.classList.add('cidade-sucesso-aberto');
+  box.classList.remove('escondido');
+  setTimeout(() => {
+    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 80);
+}
