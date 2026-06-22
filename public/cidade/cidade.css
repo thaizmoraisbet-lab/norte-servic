@@ -3782,3 +3782,171 @@ body.cidade-sucesso-aberto .cidade-form-acoes-mobile {
     font-size: 15px !important;
   }
 }
+
+
+
+/* =========================================================
+   V24 — MODAL DE SUCESSO 100% TRAVADO NO MOBILE
+   ========================================================= */
+
+html.cidade-sucesso-aberto,
+body.cidade-sucesso-aberto {
+  overflow: hidden !important;
+  touch-action: none !important;
+  overscroll-behavior: none !important;
+  height: auto !important;
+}
+
+body.cidade-sucesso-aberto .cidade-form-acoes-mobile,
+body.cidade-sucesso-aberto #cidadeAcoesMobile,
+body.cidade-sucesso-aberto .cidade-toast {
+  display: none !important;
+}
+
+body > #cidadeSucessoColeta,
+body > #cidadeSucessoColeta.ativo,
+#cidadeSucessoColeta.cidade-sucesso-v24 {
+  position: fixed !important;
+  inset: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  width: 100dvw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: 100dvh !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)) !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(37, 99, 235, .22), transparent 28%),
+    linear-gradient(135deg, rgba(15,23,42,.88), rgba(15,23,42,.78)) !important;
+  backdrop-filter: blur(18px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(130%) !important;
+}
+
+body > #cidadeSucessoColeta.escondido,
+#cidadeSucessoColeta.escondido {
+  display: none !important;
+}
+
+body > #cidadeSucessoColeta .cidade-sucesso-card,
+#cidadeSucessoColeta.cidade-sucesso-v24 .cidade-sucesso-card {
+  width: min(430px, calc(100vw - 24px)) !important;
+  max-width: calc(100vw - 24px) !important;
+  max-height: calc(100dvh - 24px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  border-radius: 26px !important;
+  padding: 22px 18px 18px !important;
+  margin: auto !important;
+  transform: none !important;
+  text-align: center !important;
+  background: #ffffff !important;
+  box-shadow: 0 28px 90px rgba(0,0,0,.32) !important;
+  border: 1px solid rgba(37,99,235,.14) !important;
+}
+
+body > #cidadeSucessoColeta .cidade-sucesso-card .ns-logo-icon,
+#cidadeSucessoColeta.cidade-sucesso-v24 .ns-logo-icon {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  margin: 0 auto 10px !important;
+  border-radius: 16px !important;
+  font-size: 24px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+body > #cidadeSucessoColeta .cidade-sucesso-card h3,
+#cidadeSucessoColeta.cidade-sucesso-v24 .cidade-sucesso-card h3 {
+  font-size: clamp(22px, 7vw, 30px) !important;
+  line-height: 1.08 !important;
+  margin: 0 0 10px !important;
+  letter-spacing: -.04em !important;
+}
+
+body > #cidadeSucessoColeta #cidadeSucessoTexto,
+#cidadeSucessoColeta.cidade-sucesso-v24 #cidadeSucessoTexto {
+  font-size: 14px !important;
+  line-height: 1.42 !important;
+  margin: 0 0 12px !important;
+  color: #64748b !important;
+}
+
+#cidadeSucessoColeta .cidade-sucesso-status.premium-v24 {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 8px !important;
+  margin: 10px 0 14px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  text-align: left !important;
+}
+
+#cidadeSucessoColeta .cidade-status-linha {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 2px !important;
+  padding: 10px 12px !important;
+  margin: 0 !important;
+  border-radius: 15px !important;
+  line-height: 1.28 !important;
+}
+
+#cidadeSucessoColeta .cidade-status-linha strong {
+  display: block !important;
+  font-size: 13.5px !important;
+  font-weight: 950 !important;
+}
+
+#cidadeSucessoColeta .cidade-status-linha span {
+  display: block !important;
+  font-size: 12.5px !important;
+  font-weight: 800 !important;
+  opacity: .92 !important;
+}
+
+#cidadeSucessoColeta #cidadeSucessoAcoesExtras {
+  display: none !important;
+}
+
+#cidadeSucessoColeta .cidade-sucesso-principais {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 8px !important;
+  margin-top: 10px !important;
+  width: 100% !important;
+}
+
+#cidadeSucessoColeta .cidade-sucesso-principais .cidade-btn {
+  width: 100% !important;
+  min-height: 52px !important;
+  border-radius: 999px !important;
+  font-size: 16px !important;
+  font-weight: 950 !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+@media (max-height: 690px) {
+  body > #cidadeSucessoColeta .cidade-sucesso-card,
+  #cidadeSucessoColeta.cidade-sucesso-v24 .cidade-sucesso-card {
+    padding: 16px 14px 14px !important;
+  }
+  #cidadeSucessoColeta .cidade-status-linha {
+    padding: 8px 10px !important;
+  }
+  body > #cidadeSucessoColeta .cidade-sucesso-card h3 {
+    font-size: 22px !important;
+  }
+}
