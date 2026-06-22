@@ -1556,7 +1556,7 @@ function garantirLoadingNorteServicPadrao(loading, texto = "Carregando...") {
   if (!loading.querySelector(".ns-loader-card")) {
     loading.innerHTML = `
       <div class="ns-loader-card ns-loader-card-mini" role="status" aria-live="polite">
-        <div class="ns-loader-logo" aria-hidden="true"><span>✓</span></div>
+        <div class="ns-loader-logo"><img src="/logo-norte-servic.png" alt="Norte Servic" onerror="this.remove();this.parentElement.innerHTML='<span>✓</span>'"></div>
         <strong>Norte Servic</strong>
         <p>${texto}</p>
         <div class="ns-loader-bar"><span></span></div>
@@ -1566,43 +1566,13 @@ function garantirLoadingNorteServicPadrao(loading, texto = "Carregando...") {
 }
 
 function travarTelaDuranteLoading() {
-  const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
-  if (!document.body?.dataset.nsLoadingTravado) {
-    document.body.dataset.nsLoadingScrollY = String(scrollY);
-    document.body.dataset.nsLoadingTravado = "true";
-  }
-
   document.documentElement.classList.add("loading-travado");
   document.body?.classList.add("loading-travado");
-
-  if (document.body) {
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = "0";
-    document.body.style.right = "0";
-    document.body.style.width = "100%";
-  }
 }
 
 function liberarTelaDepoisLoading() {
-  const scrollY = Number(document.body?.dataset.nsLoadingScrollY || 0);
-
   document.documentElement.classList.remove("loading-travado");
   document.body?.classList.remove("loading-travado");
-
-  if (document.body) {
-    document.body.style.position = "";
-    document.body.style.top = "";
-    document.body.style.left = "";
-    document.body.style.right = "";
-    document.body.style.width = "";
-    delete document.body.dataset.nsLoadingTravado;
-    delete document.body.dataset.nsLoadingScrollY;
-  }
-
-  if (scrollY > 0) {
-    window.scrollTo(0, scrollY);
-  }
 }
 
 function moverLoadingParaBody(loading) {
@@ -1647,8 +1617,8 @@ function iniciarCarregamentoNorteServic() {
   const loader = document.createElement("div");
   loader.className = "ns-page-loader ativo";
   loader.innerHTML = `
-    <div class="ns-loader-card" role="status" aria-live="polite">
-      <div class="ns-loader-logo" aria-hidden="true"><span>✓</span></div>
+    <div class="ns-loader-card">
+      <div class="ns-loader-logo"><img src="/logo-norte-servic.png" alt="Norte Servic" onerror="this.remove();this.parentElement.innerHTML='<span>✓</span>'"></div>
       <strong>Norte Servic</strong>
       <p>Carregando informações...</p>
       <div class="ns-loader-bar"><span></span></div>
@@ -4135,140 +4105,38 @@ function mensagemSalaEmpreendedorAdmin(item) {
   return encodeURIComponent(`Olá ${item.nome || ''}! Aqui é da Norte Servic. Seu cadastro foi mapeado no projeto Cidade Parceira.\n\nA Sala do Empreendedor pode orientar sobre MEI, nota fiscal, cursos, divulgação e crescimento do seu serviço.\n\nPodemos encaminhar seu atendimento para a equipe responsável?`);
 }
 
-function pdfTextoSeguro(valor) {
-  return String(valor ?? '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[\u2013\u2014]/g, '-')
-    .replace(/[\u2018\u2019]/g, "'")
-    .replace(/[\u201c\u201d]/g, '"')
-    .replace(/[^\x20-\x7E]/g, ' ')
-    .replace(/\\/g, '\\\\')
-    .replace(/\(/g, '\\(')
-    .replace(/\)/g, '\\)');
-}
-
-function pdfLinha(texto, x, y, tamanho = 10, cor = '15 23 42', negrito = false) {
-  const [r, g, b] = cor.split(' ').map(n => (Number(n) / 255).toFixed(3));
-  return `BT ${r} ${g} ${b} rg /${negrito ? 'F2' : 'F1'} ${tamanho} Tf 1 0 0 1 ${x} ${y} Tm (${pdfTextoSeguro(texto)}) Tj ET`;
-}
-
-function pdfRetangulo(x, y, w, h, cor = '255 255 255') {
-  const [r, g, b] = cor.split(' ').map(n => (Number(n) / 255).toFixed(3));
-  return `q ${r} ${g} ${b} rg ${x} ${y} ${w} ${h} re f Q`;
-}
-
-function pdfBaixar(nomeArquivo, paginasConteudo) {
-  const objetos = [];
-  function add(obj) { objetos.push(obj); return objetos.length; }
-
-  const catalogId = add('');
-  const pagesId = add('');
-  const fontRegularId = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
-  const fontBoldId = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>');
-
-  const pageIds = [];
-  paginasConteudo.forEach(conteudo => {
-    const stream = conteudo.join('\n');
-    const contentId = add(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
-    const pageId = add(`<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ${fontRegularId} 0 R /F2 ${fontBoldId} 0 R >> >> /Contents ${contentId} 0 R >>`);
-    pageIds.push(pageId);
-  });
-
-  objetos[catalogId - 1] = `<< /Type /Catalog /Pages ${pagesId} 0 R >>`;
-  objetos[pagesId - 1] = `<< /Type /Pages /Kids [${pageIds.map(id => `${id} 0 R`).join(' ')}] /Count ${pageIds.length} >>`;
-
-  let pdf = '%PDF-1.4\n';
-  const offsets = [0];
-  objetos.forEach((obj, i) => {
-    offsets.push(pdf.length);
-    pdf += `${i + 1} 0 obj\n${obj}\nendobj\n`;
-  });
-  const xref = pdf.length;
-  pdf += `xref\n0 ${objetos.length + 1}\n0000000000 65535 f \n`;
-  for (let i = 1; i <= objetos.length; i++) pdf += `${String(offsets[i]).padStart(10, '0')} 00000 n \n`;
-  pdf += `trailer\n<< /Size ${objetos.length + 1} /Root ${catalogId} 0 R >>\nstartxref\n${xref}\n%%EOF`;
-
-  const blob = new Blob([pdf], { type: 'application/pdf' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = nomeArquivo.endsWith('.pdf') ? nomeArquivo : `${nomeArquivo}.pdf`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
 function baixarRelatorioSalaEmpreendedor() {
   const lista = cidadeColetasAdminCache || [];
   const total = lista.length;
+  setAdminBadge('badgeAdminSalaEmpreendedor', lista.filter(i => i.meiStatus === 'nao' || ['sim','talvez'].includes(i.interesseFormalizacao) || (i.necessidadesEmpreendedor || []).length).length);
   const mei = lista.filter(i => i.meiStatus === 'sim').length;
   const naoMei = lista.filter(i => i.meiStatus === 'nao').length;
   const querMei = lista.filter(i => ['sim','talvez'].includes(i.interesseFormalizacao)).length;
   const emitirNota = lista.filter(i => (i.necessidadesEmpreendedor || []).includes('emitir_nota')).length;
   const curso = lista.filter(i => (i.necessidadesEmpreendedor || []).includes('curso_capacitacao')).length;
-  const hoje = new Date().toLocaleDateString('pt-BR');
-  const paginas = [];
-  let linhas = [];
-
-  function cabecalho(titulo = 'Sala do Empreendedor Digital') {
-    return [
-      pdfRetangulo(0, 770, 595, 72, '15 23 42'),
-      pdfRetangulo(0, 750, 595, 20, '37 99 235'),
-      pdfLinha('Norte Servic', 42, 800, 22, '255 255 255', true),
-      pdfLinha('Cidade Parceira + Prefeitura', 42, 779, 10, '219 234 254'),
-      pdfLinha(titulo, 42, 722, 18, '15 23 42', true),
-      pdfLinha(`Relatorio gerado em ${hoje}`, 42, 704, 10, '100 116 139'),
-    ];
-  }
-
-  let pagina = cabecalho();
-  pagina.push(pdfRetangulo(42, 620, 108, 58, '219 234 254'));
-  pagina.push(pdfRetangulo(162, 620, 108, 58, '239 246 255'));
-  pagina.push(pdfRetangulo(282, 620, 108, 58, '240 253 244'));
-  pagina.push(pdfRetangulo(402, 620, 108, 58, '255 247 237'));
-  pagina.push(pdfLinha(String(total), 56, 648, 22, '37 99 235', true));
-  pagina.push(pdfLinha('Mapeados', 56, 632, 9, '15 23 42', true));
-  pagina.push(pdfLinha(String(naoMei), 176, 648, 22, '37 99 235', true));
-  pagina.push(pdfLinha('Informais', 176, 632, 9, '15 23 42', true));
-  pagina.push(pdfLinha(String(querMei), 296, 648, 22, '22 163 74', true));
-  pagina.push(pdfLinha('Querem MEI', 296, 632, 9, '15 23 42', true));
-  pagina.push(pdfLinha(String(emitirNota), 416, 648, 22, '234 88 12', true));
-  pagina.push(pdfLinha('Nota fiscal', 416, 632, 9, '15 23 42', true));
-  pagina.push(pdfLinha(`Profissionais ja MEI: ${mei}`, 42, 584, 11, '15 23 42'));
-  pagina.push(pdfLinha(`Precisam ou desejam cursos/capacitacao: ${curso}`, 42, 566, 11, '15 23 42'));
-  pagina.push(pdfLinha('Objetivo do relatorio', 42, 528, 14, '15 23 42', true));
-  pagina.push(pdfLinha('Organizar dados da coleta em campo para orientar MEI, nota fiscal, cursos, formalizacao', 42, 510, 10, '51 65 85'));
-  pagina.push(pdfLinha('e atendimento pela Sala do Empreendedor da prefeitura.', 42, 496, 10, '51 65 85'));
-  pagina.push(pdfLinha('Lista resumida de encaminhamento', 42, 454, 14, '15 23 42', true));
-  let y = 430;
-  lista.slice(0, 16).forEach((i, index) => {
-    const necessidades = (i.necessidadesEmpreendedor || []).map(rotuloNecessidadeEmpreendedor).join(', ') || 'Sem necessidade registrada';
-    pagina.push(pdfRetangulo(42, y - 18, 510, 30, index % 2 === 0 ? '248 250 252' : '255 255 255'));
-    pagina.push(pdfLinha(`${i.nome || '-'} | ${i.profissao || '-'} | ${i.setor || '-'}`, 52, y, 9, '15 23 42', true));
-    pagina.push(pdfLinha(`MEI: ${i.meiStatus || '-'} | Formalizacao: ${i.interesseFormalizacao || '-'} | ${necessidades}`.slice(0, 100), 52, y - 12, 8, '71 85 105'));
-    y -= 34;
-  });
-  pagina.push(pdfLinha('Norte Servic - inteligencia para economia local', 42, 36, 9, '100 116 139'));
-  paginas.push(pagina);
-
-  const restantes = lista.slice(16);
-  for (let i = 0; i < restantes.length; i += 22) {
-    const paginaExtra = cabecalho('Lista complementar de profissionais');
-    let yy = 672;
-    restantes.slice(i, i + 22).forEach((item, idx) => {
-      const necessidades = (item.necessidadesEmpreendedor || []).map(rotuloNecessidadeEmpreendedor).join(', ') || 'Sem necessidade registrada';
-      paginaExtra.push(pdfRetangulo(42, yy - 18, 510, 28, idx % 2 === 0 ? '248 250 252' : '255 255 255'));
-      paginaExtra.push(pdfLinha(`${item.nome || '-'} | ${item.profissao || '-'} | ${item.setor || '-'}`, 52, yy, 8.5, '15 23 42', true));
-      paginaExtra.push(pdfLinha(`MEI: ${item.meiStatus || '-'} | ${necessidades}`.slice(0, 104), 52, yy - 11, 7.6, '71 85 105'));
-      yy -= 30;
-    });
-    paginaExtra.push(pdfLinha('Norte Servic - Cidade Parceira', 42, 36, 9, '100 116 139'));
-    paginas.push(paginaExtra);
-  }
-
-  pdfBaixar(`relatorio-sala-empreendedor-${new Date().toISOString().slice(0,10)}.pdf`, paginas);
+  const linhas = [
+    'RELATÓRIO - SALA DO EMPREENDEDOR DIGITAL',
+    `Gerado em: ${new Date().toLocaleString('pt-BR')}`,
+    '',
+    `Total de profissionais mapeados: ${total}`,
+    `Já são MEI: ${mei}`,
+    `Ainda não são MEI: ${naoMei}`,
+    `Querem se formalizar ou precisam de orientação: ${querMei}`,
+    `Precisam emitir nota fiscal: ${emitirNota}`,
+    `Querem curso/capacitação: ${curso}`,
+    '',
+    'LISTA RESUMIDA',
+    ...lista.map(i => `${i.nome || '-'} | ${i.profissao || '-'} | ${i.setor || '-'} | MEI: ${i.meiStatus || '-'} | Formalização: ${i.interesseFormalizacao || '-'} | Necessidades: ${(i.necessidadesEmpreendedor || []).map(rotuloNecessidadeEmpreendedor).join(', ')}`)
+  ];
+  const blob = new Blob([linhas.join('\n')], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `relatorio-sala-empreendedor-${new Date().toISOString().slice(0,10)}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 function aplicarFiltroSalaEmpreendedor(tipo) {

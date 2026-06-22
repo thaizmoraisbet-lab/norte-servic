@@ -117,41 +117,13 @@ function dadosColetorCidade() {
 }
 
 function travarTelaCidadeLoading() {
-  const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
-  if (!document.body?.dataset.nsCidadeLoadingTravado) {
-    document.body.dataset.nsCidadeLoadingScrollY = String(scrollY);
-    document.body.dataset.nsCidadeLoadingTravado = "true";
-  }
-
   document.documentElement.classList.add('loading-travado');
   document.body?.classList.add('loading-travado');
-
-  if (document.body) {
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = '0';
-    document.body.style.right = '0';
-    document.body.style.width = '100%';
-  }
 }
 
 function liberarTelaCidadeLoading() {
-  const scrollY = Number(document.body?.dataset.nsCidadeLoadingScrollY || 0);
-
   document.documentElement.classList.remove('loading-travado');
   document.body?.classList.remove('loading-travado');
-
-  if (document.body) {
-    document.body.style.position = '';
-    document.body.style.top = '';
-    document.body.style.left = '';
-    document.body.style.right = '';
-    document.body.style.width = '';
-    delete document.body.dataset.nsCidadeLoadingTravado;
-    delete document.body.dataset.nsCidadeLoadingScrollY;
-  }
-
-  if (scrollY > 0) window.scrollTo(0, scrollY);
 }
 
 function moverLoadingCidadeParaBody(loading) {
@@ -174,7 +146,7 @@ function mostrarTransicaoCidade(texto = 'Carregando Cidade Parceira...') {
     loader.className = 'ns-page-loader cidade-loader ativo';
     loader.innerHTML = `
       <div class="ns-loader-card">
-        <div class="ns-loader-logo" aria-hidden="true"><span>✓</span></div>
+        <div class="ns-loader-logo"><img src="/logo-norte-servic.png" alt="Norte Servic" onerror="this.remove();this.parentElement.innerHTML='<span>✓</span>'"></div>
         <strong>Norte Servic</strong>
         <p>${texto}</p>
         <div class="ns-loader-bar"><span></span></div>
