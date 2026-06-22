@@ -126,13 +126,24 @@ function travarTelaCidadeLoading() {
   document.documentElement.classList.add('loading-travado');
   document.body?.classList.add('loading-travado');
 
+  // Mantém o carregamento preso ao viewport atual, sem jogar para o topo.
+  document.documentElement.style.overflow = 'hidden';
   if (document.body) {
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = '0';
-    document.body.style.right = '0';
-    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
   }
+
+  requestAnimationFrame(() => {
+    const ativos = document.querySelectorAll('.mini-loading.ativo, .ns-page-loader.ativo');
+    ativos.forEach((loader) => {
+      loader.style.position = 'fixed';
+      loader.style.inset = '0';
+      loader.style.top = '0';
+      loader.style.left = '0';
+      loader.style.width = '100vw';
+      loader.style.height = '100dvh';
+    });
+  });
 }
 
 function liberarTelaCidadeLoading() {
@@ -141,7 +152,10 @@ function liberarTelaCidadeLoading() {
   document.documentElement.classList.remove('loading-travado');
   document.body?.classList.remove('loading-travado');
 
+  document.documentElement.style.overflow = '';
   if (document.body) {
+    document.body.style.overflow = '';
+    document.body.style.touchAction = '';
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.left = '';

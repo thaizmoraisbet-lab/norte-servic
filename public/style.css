@@ -17698,3 +17698,109 @@ body.loading-travado > *:not(.mini-loading):not(.ns-page-loader) {
     border-radius: 30px !important;
   }
 }
+
+
+
+/* =========================================================
+   V19 — CORREÇÃO DEFINITIVA DO LOADING NO VIEWPORT
+   ========================================================= */
+
+/* O carregamento agora fica preso ao viewport atual, mesmo com a tela rolada. */
+html.loading-travado,
+body.loading-travado,
+body.cidade-body.loading-travado {
+  overflow: hidden !important;
+  height: auto !important;
+  min-height: 100% !important;
+  overscroll-behavior: none !important;
+}
+
+/* Força todo overlay de carregamento a cobrir a janela atual, não o topo do documento. */
+body > .mini-loading,
+body > .mini-loading.ativo,
+body > .ns-page-loader,
+body > .ns-page-loader.ativo,
+body > .ns-page-loader.cidade-loader,
+body > .ns-page-loader.cidade-loader.ativo,
+.mini-loading,
+.mini-loading.ativo,
+.ns-page-loader,
+.ns-page-loader.ativo,
+.ns-page-loader.cidade-loader,
+.ns-page-loader.cidade-loader.ativo {
+  position: fixed !important;
+  inset: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  width: 100dvw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+  translate: none !important;
+  contain: paint !important;
+  overflow: hidden !important;
+  z-index: 2147483647 !important;
+  pointer-events: all !important;
+}
+
+/* Visibilidade controlada somente pela classe ativo. */
+.mini-loading:not(.ativo),
+.ns-page-loader:not(.ativo) {
+  display: none !important;
+}
+
+.mini-loading.ativo,
+.ns-page-loader.ativo,
+.ns-page-loader.cidade-loader.ativo {
+  display: block !important;
+}
+
+/* Centralização real: o card fica no centro da janela atual, não no centro da página inteira. */
+.mini-loading .ns-loader-card,
+.ns-page-loader .ns-loader-card,
+.ns-page-loader.cidade-loader .ns-loader-card {
+  position: fixed !important;
+  top: 50dvh !important;
+  left: 50dvw !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: min(360px, calc(100dvw - 38px)) !important;
+  max-width: calc(100dvw - 38px) !important;
+  margin: 0 !important;
+  transform: translate3d(-50%, -50%, 0) !important;
+  translate: none !important;
+}
+
+/* Remove ícone duplicado: fica só o check normal dentro do quadrado azul. */
+.ns-loader-logo img,
+.ns-loader-logo::before,
+.ns-loader-logo::after {
+  display: none !important;
+  content: none !important;
+}
+
+.ns-loader-logo span {
+  display: block !important;
+  color: #ffffff !important;
+  font-size: 40px !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+  text-shadow: 0 8px 18px rgba(0,0,0,.20) !important;
+}
+
+/* Sem logo temporária até a marca final ficar pronta. */
+.ns-loader-logo {
+  overflow: hidden !important;
+  isolation: isolate !important;
+}
+
+/* Bloqueio de toque/rolagem enquanto carrega. */
+body.loading-travado {
+  touch-action: none !important;
+}
+
