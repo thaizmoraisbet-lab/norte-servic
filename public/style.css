@@ -17804,3 +17804,52 @@ body.loading-travado {
   touch-action: none !important;
 }
 
+
+/* =========================================================
+   V21 — RESPIRO ENTRE GRÁFICOS / RESUMOS E BOTÕES DO ADMIN
+   ========================================================= */
+
+/* Controle de assinaturas: cria respiro claro entre o gráfico e os filtros */
+.admin-pagamentos-content .admin-financeiro-dashboard {
+  margin-bottom: 30px !important;
+}
+
+.admin-pagamentos-content .admin-filtros-pagamentos {
+  margin-top: 6px !important;
+  margin-bottom: 20px !important;
+}
+
+/* Sala do Empreendedor: separa os cards de resumo dos botões de filtro */
+.admin-sala-empreendedor-content .admin-sala-resumo,
+#adminSalaEmpreendedorResumo {
+  margin-top: 22px !important;
+  margin-bottom: 28px !important;
+}
+
+.admin-sala-empreendedor-content .admin-filtros-sala {
+  margin-top: 4px !important;
+  margin-bottom: 24px !important;
+}
+
+/* Dá um pouco mais de respiro visual entre cabeçalhos e blocos */
+.admin-pagamentos-content .admin-section-title,
+.admin-sala-empreendedor-content .admin-section-title {
+  margin-bottom: 18px !important;
+}
+
+/* Em telas menores, aumenta levemente o espaçamento para não parecer apertado */
+@media (max-width: 900px) {
+  .admin-pagamentos-content .admin-financeiro-dashboard {
+    margin-bottom: 24px !important;
+  }
+
+  .admin-sala-empreendedor-content .admin-sala-resumo,
+  #adminSalaEmpreendedorResumo {
+    margin-bottom: 22px !important;
+  }
+
+  .admin-pagamentos-content .admin-filtros-pagamentos,
+  .admin-sala-empreendedor-content .admin-filtros-sala {
+    row-gap: 10px !important;
+  }
+}
