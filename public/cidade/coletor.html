@@ -157,6 +157,51 @@
             </label>
           </div>
 
+          <div class="cidade-bloco-form cidade-bloco-empreendedor-app">
+            <div class="cidade-bloco-header cidade-bloco-header-app">
+              <span>4</span>
+              <div>
+                <h4>Sala do Empreendedor</h4>
+                <p>Dados rápidos para a prefeitura orientar MEI, nota fiscal, cursos e formalização.</p>
+              </div>
+            </div>
+
+            <div class="cidade-form-grid cidade-form-grid-app">
+              <label>Esse profissional já é MEI?
+                <select name="meiStatus" id="meiStatusColetaCidade">
+                  <option value="nao_informado">Não informado</option>
+                  <option value="sim">Sim, já é MEI</option>
+                  <option value="nao">Não é MEI</option>
+                  <option value="nao_sabe">Não sabe informar</option>
+                </select>
+              </label>
+              <label>Tem interesse em se formalizar?
+                <select name="interesseFormalizacao" id="interesseFormalizacaoColetaCidade">
+                  <option value="nao_informado">Não informado</option>
+                  <option value="sim">Sim</option>
+                  <option value="talvez">Talvez / precisa de orientação</option>
+                  <option value="nao">Não no momento</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="cidade-checklist-empreendedor">
+              <strong>Precisa de ajuda com:</strong>
+              <label><input type="checkbox" name="necessidadesEmpreendedor" value="abrir_mei"> Abrir MEI</label>
+              <label><input type="checkbox" name="necessidadesEmpreendedor" value="emitir_nota"> Emitir nota fiscal</label>
+              <label><input type="checkbox" name="necessidadesEmpreendedor" value="pagar_das"> Pagar DAS / regularizar MEI</label>
+              <label><input type="checkbox" name="necessidadesEmpreendedor" value="declaracao_anual"> Declaração anual</label>
+              <label><input type="checkbox" name="necessidadesEmpreendedor" value="vender_prefeitura"> Vender para a prefeitura</label>
+              <label><input type="checkbox" name="necessidadesEmpreendedor" value="curso_capacitacao"> Curso / capacitação</label>
+              <label><input type="checkbox" name="necessidadesEmpreendedor" value="divulgacao"> Melhorar divulgação</label>
+              <label><input type="checkbox" name="necessidadesEmpreendedor" value="precificacao"> Precificação / organização do negócio</label>
+            </div>
+
+            <label class="cidade-detalhes-full">Observação para a Sala do Empreendedor
+              <input type="text" name="observacaoEmpreendedor" id="observacaoEmpreendedorColetaCidade" placeholder="Ex: quer abrir MEI, precisa aprender nota fiscal, deseja curso...">
+            </label>
+          </div>
+
           <details class="cidade-detalhes-opcionais cidade-card-transicao">
             <summary>+ Adicionar mais detalhes opcionais</summary>
             <div class="cidade-detalhes-grid">
@@ -200,9 +245,11 @@
             <span class="ns-logo-icon">✓</span>
             <h3>Cadastro enviado com sucesso!</h3>
             <p id="cidadeSucessoTexto">O profissional foi enviado para a base de dados.</p>
+            <div class="cidade-sucesso-status neutro" id="cidadeSucessoStatus"></div>
+            <div class="cidade-sucesso-acoes-extras" id="cidadeSucessoAcoesExtras"></div>
             <div>
               <button type="button" class="cidade-btn cidade-btn-azul" onclick="proximoCadastroColetaCidade()">Cadastrar próximo</button>
-              <button type="button" class="cidade-btn cidade-btn-claro" onclick="document.getElementById('cidadeSucessoColeta')?.classList.add('escondido')">Fechar</button>
+              <button type="button" class="cidade-btn cidade-btn-claro" onclick="fecharSucessoColetaCidade()">Fechar</button>
             </div>
           </div>
         </div>
@@ -234,6 +281,6 @@
     <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
   </footer>
 
-  <script src="cidade.js?v=v13-coletor-app-rapido-20260616"></script>
+  <script src="cidade.js?v=v17-sala-empreendedor-20260622"></script>
 </body>
 </html>

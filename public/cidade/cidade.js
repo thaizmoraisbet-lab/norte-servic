@@ -4,47 +4,97 @@ const CIDADE_COLETOR_DADOS_KEY = 'norteServicCidadeColetorDados';
 const CIDADE_WHATSAPP_SAQUE_PADRAO = '5563992472236';
 
 const PROFISSOES_CIDADE = [
-  { profissao: 'Pedreiro', categoria: 'Construção e Reforma', servicos: ['Construção', 'Reforma', 'Reboco', 'Piso'] },
-  { profissao: 'Pintor', categoria: 'Construção e Reforma', servicos: ['Pintura residencial', 'Textura', 'Massa corrida'] },
-  { profissao: 'Servente', categoria: 'Construção e Reforma', servicos: ['Ajudante de obra', 'Limpeza de obra', 'Carga e descarga'] },
-  { profissao: 'Eletricista', categoria: 'Elétrica', servicos: ['Instalação elétrica', 'Manutenção', 'Tomadas', 'Padrão de energia'] },
-  { profissao: 'Encanador', categoria: 'Hidráulica', servicos: ['Vazamento', 'Caixa d’água', 'Tubulação', 'Instalação hidráulica'] },
-  { profissao: 'Diarista', categoria: 'Limpeza', servicos: ['Faxina', 'Limpeza residencial', 'Organização'] },
-  { profissao: 'Doméstica', categoria: 'Limpeza', servicos: ['Limpeza da casa', 'Organização', 'Cozinha básica'] },
-  { profissao: 'Lavadeira', categoria: 'Limpeza', servicos: ['Lavar roupas', 'Passar roupas', 'Organização'] },
-  { profissao: 'Manicure', categoria: 'Beleza', servicos: ['Unhas', 'Pé e mão', 'Unha em gel'] },
-  { profissao: 'Cabeleireiro', categoria: 'Beleza', servicos: ['Corte', 'Escova', 'Coloração', 'Progressiva'] },
-  { profissao: 'Barbeiro', categoria: 'Beleza', servicos: ['Corte masculino', 'Barba', 'Sobrancelha'] },
-  { profissao: 'Maquiadora', categoria: 'Beleza', servicos: ['Maquiagem social', 'Maquiagem para eventos', 'Design'] },
-  { profissao: 'Mecânico', categoria: 'Automotivo', servicos: ['Manutenção', 'Troca de peças', 'Revisão'] },
-  { profissao: 'Borracheiro', categoria: 'Automotivo', servicos: ['Troca de pneu', 'Conserto de pneu', 'Calibragem'] },
-  { profissao: 'Lava-jato', categoria: 'Automotivo', servicos: ['Lavagem simples', 'Lavagem completa', 'Higienização'] },
-  { profissao: 'Mototaxista', categoria: 'Transporte', servicos: ['Corrida urbana', 'Entrega rápida'] },
-  { profissao: 'Entregador', categoria: 'Transporte', servicos: ['Entrega local', 'Motoboy', 'Retirada de encomenda'] },
-  { profissao: 'Costureira', categoria: 'Serviços Gerais', servicos: ['Ajustes', 'Consertos', 'Confecção'] },
-  { profissao: 'Jardineiro', categoria: 'Limpeza e Jardim', servicos: ['Roçagem', 'Poda', 'Limpeza de quintal'] },
-  { profissao: 'Horteiro', categoria: 'Rural e Quintal', servicos: ['Plantio de horta', 'Cuidado com canteiros', 'Colheita', 'Irrigação'] },
-  { profissao: 'Capinador', categoria: 'Limpeza e Jardim', servicos: ['Capina manual', 'Limpeza de quintal', 'Limpeza de lote', 'Retirada de mato'] },
-  { profissao: 'Roçador', categoria: 'Limpeza e Jardim', servicos: ['Roçagem', 'Limpeza de lote', 'Capina'] },
-  { profissao: 'Podador de árvores', categoria: 'Limpeza e Jardim', servicos: ['Poda', 'Limpeza de galhos', 'Manutenção de árvores'] },
-  { profissao: 'Limpador de lote', categoria: 'Limpeza e Jardim', servicos: ['Limpeza de terreno', 'Retirada de entulho leve', 'Capina', 'Roçagem'] },
-  { profissao: 'Trabalhador rural', categoria: 'Rural e Fazenda', servicos: ['Serviço rural', 'Plantio', 'Colheita', 'Cuidado com animais'] },
-  { profissao: 'Vaqueiro', categoria: 'Rural e Fazenda', servicos: ['Manejo de gado', 'Cuidado com animais', 'Serviço em fazenda'] },
-  { profissao: 'Tratorista', categoria: 'Rural e Fazenda', servicos: ['Serviço com trator', 'Gradagem', 'Roçagem mecanizada'] },
-  { profissao: 'Caseiro', categoria: 'Rural e Fazenda', servicos: ['Cuidado de chácara', 'Manutenção de quintal', 'Vigia de propriedade'] },
-  { profissao: 'Ajudante geral', categoria: 'Serviços Gerais', servicos: ['Carga e descarga', 'Serviços avulsos', 'Apoio em obra', 'Limpeza'] },
-  { profissao: 'Carroceiro', categoria: 'Serviços Gerais', servicos: ['Frete local', 'Retirada de entulho leve', 'Transporte de materiais'] },
-  { profissao: 'Feirante', categoria: 'Comércio Local', servicos: ['Venda em feira', 'Hortifruti', 'Produtos locais'] },
-  { profissao: 'Vendedor ambulante', categoria: 'Comércio Local', servicos: ['Venda ambulante', 'Produtos variados', 'Atendimento local'] },
-  { profissao: 'Artesão', categoria: 'Artesanato e Produção', servicos: ['Artesanato', 'Peças manuais', 'Decoração'] },
-  { profissao: 'Bordadeira', categoria: 'Artesanato e Produção', servicos: ['Bordado', 'Costura manual', 'Peças personalizadas'] },
-  { profissao: 'Soldador', categoria: 'Metalúrgica', servicos: ['Solda', 'Portões', 'Grades'] },
-  { profissao: 'Marceneiro', categoria: 'Móveis e Madeira', servicos: ['Móveis planejados', 'Reparo', 'Portas'] },
-  { profissao: 'Técnico de celular', categoria: 'Tecnologia', servicos: ['Troca de tela', 'Formatação', 'Manutenção'] },
-  { profissao: 'Cuidador', categoria: 'Cuidados', servicos: ['Acompanhamento', 'Cuidados diários', 'Plantão'] },
-  { profissao: 'Cozinheira', categoria: 'Alimentação', servicos: ['Comida caseira', 'Marmita', 'Eventos pequenos'] },
-  { profissao: 'Confeiteira', categoria: 'Alimentação', servicos: ['Bolos', 'Doces', 'Salgados'] },
-  { profissao: 'Outra profissão', categoria: '', servicos: [] }
+  { profissao: "Pedreiro", categoria: "Construção e Reforma", servicos: ["Construção", "Reforma", "Reboco", "Piso", "Calçada"] },
+  { profissao: "Servente", categoria: "Construção e Reforma", servicos: ["Ajudante de obra", "Limpeza de obra", "Carga e descarga"] },
+  { profissao: "Mestre de obras", categoria: "Construção e Reforma", servicos: ["Coordenação de obra", "Orçamento", "Acompanhamento"] },
+  { profissao: "Pintor", categoria: "Construção e Reforma", servicos: ["Pintura residencial", "Textura", "Massa corrida", "Grafiato"] },
+  { profissao: "Eletricista", categoria: "Elétrica", servicos: ["Instalação elétrica", "Manutenção", "Tomadas", "Padrão de energia"] },
+  { profissao: "Encanador", categoria: "Hidráulica", servicos: ["Vazamento", "Caixa d’água", "Tubulação", "Instalação hidráulica"] },
+  { profissao: "Gesseiro", categoria: "Construção e Reforma", servicos: ["Gesso", "Forro", "Sanca", "Acabamento"] },
+  { profissao: "Drywall", categoria: "Construção e Reforma", servicos: ["Parede drywall", "Forro drywall", "Divisórias"] },
+  { profissao: "Azulejista", categoria: "Construção e Reforma", servicos: ["Azulejo", "Cerâmica", "Porcelanato", "Revestimento"] },
+  { profissao: "Carpinteiro", categoria: "Construção e Reforma", servicos: ["Madeiramento", "Telhado", "Forma de obra"] },
+  { profissao: "Marceneiro", categoria: "Móveis e Madeira", servicos: ["Móveis", "Portas", "Armários", "Reparos em madeira"] },
+  { profissao: "Serralheiro", categoria: "Metalúrgica", servicos: ["Portões", "Grades", "Estruturas metálicas", "Solda"] },
+  { profissao: "Soldador", categoria: "Metalúrgica", servicos: ["Solda", "Reparo metálico", "Portões", "Grades"] },
+  { profissao: "Telhadista", categoria: "Construção e Reforma", servicos: ["Telhado", "Goteira", "Calha", "Reparo de cobertura"] },
+  { profissao: "Calheiro", categoria: "Construção e Reforma", servicos: ["Calhas", "Rufos", "Condutores", "Manutenção"] },
+  { profissao: "Vidraceiro", categoria: "Construção e Reforma", servicos: ["Vidros", "Box", "Janelas", "Espelhos"] },
+  { profissao: "Instalador de forro", categoria: "Construção e Reforma", servicos: ["Forro PVC", "Forro gesso", "Acabamento"] },
+  { profissao: "Montador de móveis", categoria: "Casa e Manutenção", servicos: ["Montagem", "Desmontagem", "Reparos em móveis"] },
+  { profissao: "Diarista", categoria: "Limpeza", servicos: ["Faxina", "Limpeza residencial", "Organização"] },
+  { profissao: "Faxineira", categoria: "Limpeza", servicos: ["Faxina", "Limpeza pesada", "Organização"] },
+  { profissao: "Doméstica", categoria: "Limpeza", servicos: ["Limpeza da casa", "Organização", "Cozinha básica"] },
+  { profissao: "Lavadeira", categoria: "Limpeza", servicos: ["Lavar roupas", "Passar roupas", "Organização"] },
+  { profissao: "Passadeira", categoria: "Limpeza", servicos: ["Passar roupas", "Organização de peças"] },
+  { profissao: "Jardineiro", categoria: "Limpeza e Jardim", servicos: ["Roçagem", "Poda", "Limpeza de quintal", "Jardinagem"] },
+  { profissao: "Horteiro", categoria: "Rural e Quintal", servicos: ["Plantio de horta", "Cuidado com canteiros", "Colheita", "Irrigação"] },
+  { profissao: "Capinador", categoria: "Limpeza e Jardim", servicos: ["Capina manual", "Limpeza de quintal", "Limpeza de lote", "Retirada de mato"] },
+  { profissao: "Roçador", categoria: "Limpeza e Jardim", servicos: ["Roçagem", "Limpeza de lote", "Capina"] },
+  { profissao: "Podador de árvores", categoria: "Limpeza e Jardim", servicos: ["Poda", "Limpeza de galhos", "Manutenção de árvores"] },
+  { profissao: "Limpador de lote", categoria: "Limpeza e Jardim", servicos: ["Limpeza de terreno", "Retirada de entulho leve", "Capina", "Roçagem"] },
+  { profissao: "Piscineiro", categoria: "Casa e Manutenção", servicos: ["Limpeza de piscina", "Tratamento de água", "Manutenção"] },
+  { profissao: "Dedetizador", categoria: "Casa e Manutenção", servicos: ["Dedetização", "Controle de pragas", "Limpeza técnica"] },
+  { profissao: "Chaveiro", categoria: "Casa e Manutenção", servicos: ["Cópia de chave", "Abertura de fechadura", "Troca de segredo"] },
+  { profissao: "Marido de aluguel", categoria: "Casa e Manutenção", servicos: ["Pequenos reparos", "Instalação", "Manutenção doméstica"] },
+  { profissao: "Técnico de ar-condicionado", categoria: "Casa e Manutenção", servicos: ["Instalação", "Limpeza", "Manutenção", "Carga de gás"] },
+  { profissao: "Técnico de geladeira", categoria: "Casa e Manutenção", servicos: ["Conserto de geladeira", "Freezer", "Manutenção"] },
+  { profissao: "Técnico de máquina de lavar", categoria: "Casa e Manutenção", servicos: ["Conserto", "Instalação", "Manutenção"] },
+  { profissao: "Técnico de celular", categoria: "Tecnologia", servicos: ["Troca de tela", "Formatação", "Manutenção", "Acessórios"] },
+  { profissao: "Técnico de computador", categoria: "Tecnologia", servicos: ["Formatação", "Manutenção", "Rede", "Instalação de programas"] },
+  { profissao: "Instalador de internet", categoria: "Tecnologia", servicos: ["Roteador", "Cabo de rede", "Wi-Fi", "Configuração"] },
+  { profissao: "Instalador de câmera", categoria: "Segurança", servicos: ["Câmeras", "DVR", "Monitoramento", "Cerca elétrica"] },
+  { profissao: "Manicure", categoria: "Beleza", servicos: ["Unhas", "Pé e mão", "Unha em gel"] },
+  { profissao: "Pedicure", categoria: "Beleza", servicos: ["Pé", "Mão", "Cuidados com unhas"] },
+  { profissao: "Nail designer", categoria: "Beleza", servicos: ["Alongamento", "Fibra", "Gel", "Decoração"] },
+  { profissao: "Cabeleireiro", categoria: "Beleza", servicos: ["Corte", "Escova", "Coloração", "Progressiva"] },
+  { profissao: "Cabeleireira", categoria: "Beleza", servicos: ["Corte", "Escova", "Coloração", "Progressiva"] },
+  { profissao: "Barbeiro", categoria: "Beleza", servicos: ["Corte masculino", "Barba", "Sobrancelha"] },
+  { profissao: "Maquiadora", categoria: "Beleza", servicos: ["Maquiagem social", "Maquiagem para eventos", "Design"] },
+  { profissao: "Designer de sobrancelhas", categoria: "Beleza", servicos: ["Sobrancelha", "Design", "Henna"] },
+  { profissao: "Depiladora", categoria: "Beleza", servicos: ["Depilação", "Cuidados estéticos"] },
+  { profissao: "Trancista", categoria: "Beleza", servicos: ["Tranças", "Penteados", "Mega hair"] },
+  { profissao: "Costureira", categoria: "Serviços Gerais", servicos: ["Ajustes", "Consertos", "Confecção"] },
+  { profissao: "Bordadeira", categoria: "Artesanato e Produção", servicos: ["Bordado", "Costura manual", "Peças personalizadas"] },
+  { profissao: "Artesão", categoria: "Artesanato e Produção", servicos: ["Artesanato", "Peças manuais", "Decoração"] },
+  { profissao: "Cozinheira", categoria: "Alimentação", servicos: ["Comida caseira", "Marmita", "Eventos pequenos"] },
+  { profissao: "Confeiteira", categoria: "Alimentação", servicos: ["Bolos", "Doces", "Salgados"] },
+  { profissao: "Salgadeira", categoria: "Alimentação", servicos: ["Salgados", "Encomendas", "Festas"] },
+  { profissao: "Padeiro", categoria: "Alimentação", servicos: ["Pães", "Bolos", "Produção artesanal"] },
+  { profissao: "Churrasqueiro", categoria: "Alimentação", servicos: ["Churrasco", "Eventos", "Assados"] },
+  { profissao: "Dono de boteco", categoria: "Comércio Local", servicos: ["Bar", "Bebidas", "Petiscos", "Atendimento local"] },
+  { profissao: "Bar e lanchonete", categoria: "Comércio Local", servicos: ["Lanches", "Bebidas", "Atendimento local"] },
+  { profissao: "Restaurante", categoria: "Comércio Local", servicos: ["Refeições", "Marmitas", "Comida caseira"] },
+  { profissao: "Comerciante", categoria: "Comércio Local", servicos: ["Comércio varejista", "Venda local", "Atendimento ao público"] },
+  { profissao: "Mercearia", categoria: "Comércio Local", servicos: ["Alimentos", "Bebidas", "Produtos de casa"] },
+  { profissao: "Sacoleira", categoria: "Comércio Local", servicos: ["Roupas", "Acessórios", "Venda por encomenda"] },
+  { profissao: "Vendedor ambulante", categoria: "Comércio Local", servicos: ["Venda ambulante", "Produtos variados", "Atendimento local"] },
+  { profissao: "Feirante", categoria: "Comércio Local", servicos: ["Venda em feira", "Hortifruti", "Produtos locais"] },
+  { profissao: "Dono de comércio", categoria: "Comércio Local", servicos: ["Loja", "Vendas", "Atendimento local"] },
+  { profissao: "Mecânico", categoria: "Automotivo", servicos: ["Manutenção", "Troca de peças", "Revisão"] },
+  { profissao: "Mecânico de moto", categoria: "Automotivo", servicos: ["Manutenção de moto", "Revisão", "Peças"] },
+  { profissao: "Borracheiro", categoria: "Automotivo", servicos: ["Troca de pneu", "Conserto de pneu", "Calibragem"] },
+  { profissao: "Lava-jato", categoria: "Automotivo", servicos: ["Lavagem simples", "Lavagem completa", "Higienização"] },
+  { profissao: "Funileiro", categoria: "Automotivo", servicos: ["Funilaria", "Pintura automotiva", "Reparos"] },
+  { profissao: "Mototaxista", categoria: "Transporte", servicos: ["Corrida urbana", "Entrega rápida"] },
+  { profissao: "Entregador", categoria: "Transporte", servicos: ["Entrega local", "Motoboy", "Retirada de encomenda"] },
+  { profissao: "Motorista particular", categoria: "Transporte", servicos: ["Viagens", "Corridas", "Transporte local"] },
+  { profissao: "Freteiro", categoria: "Transporte", servicos: ["Frete local", "Mudança pequena", "Carga"] },
+  { profissao: "Carroceiro", categoria: "Transporte", servicos: ["Frete local", "Retirada de entulho leve", "Transporte de materiais"] },
+  { profissao: "Trabalhador rural", categoria: "Rural e Fazenda", servicos: ["Serviço rural", "Plantio", "Colheita", "Cuidado com animais"] },
+  { profissao: "Vaqueiro", categoria: "Rural e Fazenda", servicos: ["Manejo de gado", "Cuidado com animais", "Serviço em fazenda"] },
+  { profissao: "Tratorista", categoria: "Rural e Fazenda", servicos: ["Serviço com trator", "Gradagem", "Roçagem mecanizada"] },
+  { profissao: "Caseiro", categoria: "Rural e Fazenda", servicos: ["Cuidado de chácara", "Manutenção de quintal", "Vigia de propriedade"] },
+  { profissao: "Ajudante geral", categoria: "Serviços Gerais", servicos: ["Carga e descarga", "Serviços avulsos", "Apoio em obra", "Limpeza"] },
+  { profissao: "Cuidador de idosos", categoria: "Cuidados", servicos: ["Acompanhamento", "Cuidados diários", "Plantão"] },
+  { profissao: "Cuidador infantil", categoria: "Cuidados", servicos: ["Cuidado infantil", "Acompanhamento", "Apoio familiar"] },
+  { profissao: "Professor particular", categoria: "Educação", servicos: ["Aulas particulares", "Reforço escolar", "Acompanhamento"] },
+  { profissao: "Babá", categoria: "Cuidados", servicos: ["Cuidado infantil", "Acompanhamento", "Rotina da criança"] },
+  { profissao: "Fotógrafo", categoria: "Eventos e Comunicação", servicos: ["Fotos", "Eventos", "Ensaios"] },
+  { profissao: "Decorador de eventos", categoria: "Eventos e Comunicação", servicos: ["Decoração", "Festa", "Montagem"] },
+  { profissao: "Diarista de evento", categoria: "Eventos e Comunicação", servicos: ["Limpeza de evento", "Apoio", "Organização"] },
+  { profissao: "Locutor", categoria: "Eventos e Comunicação", servicos: ["Locução", "Som", "Eventos"] },
+  { profissao: "Outra profissão", categoria: "", servicos: [] }
 ];
 
 function $(id) { return document.getElementById(id); }
@@ -96,7 +146,7 @@ function mostrarTransicaoCidade(texto = 'Carregando Cidade Parceira...') {
     loader.className = 'ns-page-loader cidade-loader ativo';
     loader.innerHTML = `
       <div class="ns-loader-card">
-        <div class="ns-loader-logo"><span>✓</span></div>
+        <div class="ns-loader-logo"><img src="/logo-norte-servic.png" alt="Norte Servic" onerror="this.remove();this.parentElement.innerHTML='<span>✓</span>'"></div>
         <strong>Norte Servic</strong>
         <p>${texto}</p>
         <div class="ns-loader-bar"><span></span></div>
@@ -555,17 +605,45 @@ function atualizarBotaoMobileSalvando(ativo = false) {
   botao.innerHTML = ativo ? '<span class="spinner-botao"></span><span>Salvando...</span>' : 'Salvar cadastro';
 }
 
-function mostrarSucessoColetaCidade(mensagem = 'O profissional foi enviado para a base de dados.') {
+function mostrarSucessoColetaCidade(mensagem = 'O profissional foi enviado para a base de dados.', resposta = {}) {
   const box = $('cidadeSucessoColeta');
   const texto = $('cidadeSucessoTexto');
+  const status = $('cidadeSucessoStatus');
+  const acoes = $('cidadeSucessoAcoesExtras');
+  const whatsappMsg = resposta?.whatsappMensagem || null;
+  const profissionalId = resposta?.profissional?.id || resposta?.coleta?.profissionalSiteId || null;
+
   if (texto) texto.textContent = mensagem;
+  if (status) {
+    if (whatsappMsg && whatsappMsg.status === 'erro') {
+      status.className = 'cidade-sucesso-status alerta';
+      status.innerHTML = '<strong>Cadastro salvo.</strong><span>WhatsApp não enviado. Confira API, token, template ou destinatário permitido.</span>';
+    } else if (whatsappMsg) {
+      status.className = 'cidade-sucesso-status ok';
+      status.innerHTML = '<strong>Cadastro salvo e WhatsApp enviado.</strong><span>O profissional recebeu o link para completar o perfil.</span>';
+    } else {
+      status.className = 'cidade-sucesso-status neutro';
+      status.innerHTML = '<strong>Cadastro salvo.</strong><span>Registro criado para relatório e acompanhamento da Cidade Parceira.</span>';
+    }
+  }
+  if (acoes) {
+    acoes.innerHTML = profissionalId
+      ? `<a class="cidade-btn cidade-btn-claro" href="../perfil.html?id=${profissionalId}" target="_blank">Ver perfil publicado</a>`
+      : '';
+  }
   if (!box) return;
+  document.body?.classList.add('cidade-sucesso-aberto');
   box.classList.remove('escondido');
 }
 
-function proximoCadastroColetaCidade() {
+function fecharSucessoColetaCidade() {
   const box = $('cidadeSucessoColeta');
   if (box) box.classList.add('escondido');
+  document.body?.classList.remove('cidade-sucesso-aberto');
+}
+
+function proximoCadastroColetaCidade() {
+  fecharSucessoColetaCidade();
   const nome = $('nomeColetaCidade');
   if (nome) {
     nome.focus();
@@ -574,6 +652,7 @@ function proximoCadastroColetaCidade() {
 }
 
 let cidadeDuplicadoTimer = null;
+let coletaCidadeEnviando = false;
 async function verificarWhatsappDuplicadoCidade() {
   const campo = $('whatsappColetaCidade');
   const alerta = $('alertaWhatsappDuplicado');
@@ -627,6 +706,7 @@ function prepararFormularioColetaCidade() {
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (coletaCidadeEnviando) return;
     const msg = $('msgColetaCidade');
     const botao = $('btnSalvarColetaCidade');
     if (msg) { msg.textContent = ''; msg.classList.remove('erro'); }
@@ -644,13 +724,18 @@ function prepararFormularioColetaCidade() {
     const fd = new FormData(form);
     const payload = Object.fromEntries(fd.entries());
     payload.aceitaSite = fd.get('aceitaSite') === 'true';
+    payload.autorizouMensagem = fd.get('autorizouMensagem') === 'true';
+    payload.necessidadesEmpreendedor = fd.getAll('necessidadesEmpreendedor');
     payload.whatsapp = String(payload.whatsapp || '').replace(/\D/g, '');
     payload.instagram = String(payload.instagram || '').trim().replace(/^https?:\/\/((www\.)?instagram\.com\/)?/i, '').replace(/^@?/, '@');
     if (payload.instagram === '@') payload.instagram = '';
 
     const original = ativarBotaoCidade(botao, 'Salvando...');
+    coletaCidadeEnviando = true;
+    if ($('cidadeSucessoColeta')) $('cidadeSucessoColeta').classList.add('escondido');
+    document.body?.classList.remove('cidade-sucesso-aberto');
     atualizarBotaoMobileSalvando(true);
-    mostrarTransicaoCidade('Enviando cadastro para a base de dados...');
+    mostrarTransicaoCidade('Enviando cadastro para análise...');
 
     try {
       const resposta = await cidadeFetch('/api/cidade/coleta/profissionais', {
@@ -660,12 +745,11 @@ function prepararFormularioColetaCidade() {
       limparFormularioColetaCidade(false);
       if (msg) msg.textContent = resposta.mensagem;
       mostrarToastCidade(resposta.mensagem);
-      mostrarSucessoColetaCidade(resposta.mensagem || 'Cadastro enviado para a base de dados.');
+      mostrarSucessoColetaCidade(resposta.mensagem || 'Cadastro enviado para a base de dados.', resposta);
       if ($('cidadeTotalProfissionais')) await carregarResumoCidade();
       await carregarMinhasColetasCidade();
       await carregarComissaoColetorCidade();
-      mostrarTransicaoCidade('Cadastro enviado para a base de dados.');
-      setTimeout(() => $('nomeColetaCidade')?.focus(), 250);
+      mostrarTransicaoCidade('Cadastro enviado com sucesso.');
     } catch (error) {
       if (msg) { msg.textContent = error.message; msg.classList.add('erro'); }
       mostrarToastCidade(error.message, 'erro');
@@ -673,6 +757,7 @@ function prepararFormularioColetaCidade() {
       fecharTransicaoCidade(250);
       restaurarBotaoCidade(botao, original);
       atualizarBotaoMobileSalvando(false);
+      coletaCidadeEnviando = false;
     }
   });
 }

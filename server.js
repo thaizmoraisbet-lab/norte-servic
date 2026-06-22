@@ -1239,6 +1239,10 @@ function coletaParaFrontend(row) {
     bairro: row.bairro || '',
     descricao: row.descricao || '',
     aceitaSite: Boolean(row.aceita_site),
+    meiStatus: row.mei_status || 'nao_informado',
+    interesseFormalizacao: row.interesse_formalizacao || 'nao_informado',
+    necessidadesEmpreendedor: parseJsonArray(row.necessidades_empreendedor),
+    observacaoEmpreendedor: row.observacao_empreendedor || '',
     profissionalSiteId: row.profissional_site_id ? Number(row.profissional_site_id) : null,
     statusColeta: row.status_coleta || 'coletado',
     criadoEm: row.criado_em,
@@ -1383,6 +1387,10 @@ async function garantirSistemaWhatsAppPerfil() {
 
   await pool.query(`ALTER TABLE cidade_coleta_profissionais ADD COLUMN IF NOT EXISTS autorizou_receber_mensagem BOOLEAN DEFAULT TRUE`);
   await pool.query(`ALTER TABLE cidade_coleta_profissionais ADD COLUMN IF NOT EXISTS whatsapp_mensagem_cadastro_id BIGINT`);
+  await pool.query(`ALTER TABLE cidade_coleta_profissionais ADD COLUMN IF NOT EXISTS mei_status TEXT DEFAULT 'nao_informado'`);
+  await pool.query(`ALTER TABLE cidade_coleta_profissionais ADD COLUMN IF NOT EXISTS interesse_formalizacao TEXT DEFAULT 'nao_informado'`);
+  await pool.query(`ALTER TABLE cidade_coleta_profissionais ADD COLUMN IF NOT EXISTS necessidades_empreendedor JSONB DEFAULT '[]'::jsonb`);
+  await pool.query(`ALTER TABLE cidade_coleta_profissionais ADD COLUMN IF NOT EXISTS observacao_empreendedor TEXT`);
 
   await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS origem_cadastro TEXT DEFAULT 'site'`);
   await pool.query(`ALTER TABLE profissionais ADD COLUMN IF NOT EXISTS perfil_completo BOOLEAN DEFAULT FALSE`);
@@ -3403,6 +3411,78 @@ app.patch('/api/admin/profissionais/:id/aprovar', autenticarAdmin, async (req, r
   }
 });
 
+
+app.patch('/api/admin/profissionais/:id', autenticarAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ erro: 'ID do profissional inválido.' });
+    }
+
+    const dados = req.body || {};
+    const campos = {
+      nome: String(dados.nome || '').trim(),
+      tipo_profissional: String(dados.tipoProfissional || dados.tipo_profissional || '').trim(),
+      categoria: String(dados.categoria || '').trim(),
+      profissao: String(dados.profissao || '').trim(),
+      servicos: String(dados.servicos || '').trim(),
+      cidade: String(dados.cidade || '').trim(),
+      bairro: String(dados.bairro || '').trim(),
+      forma_atendimento: String(dados.formaAtendimento || dados.forma_atendimento || '').trim(),
+      whatsapp: limparNumero(dados.whatsapp || ''),
+      instagram: String(dados.instagram || '').trim(),
+      descricao: String(dados.descricao || '').trim(),
+      horario_atendimento: String(dados.horarioAtendimento || dados.horario_atendimento || '').trim()
+    };
+
+    if (!campos.nome || !campos.profissao) {
+      return res.status(400).json({ erro: 'Nome e profissão são obrigatórios para salvar o perfil.' });
+    }
+
+    const result = await pool.query(
+      `UPDATE profissionais SET
+        nome=$1,
+        tipo_profissional=$2,
+        categoria=$3,
+        profissao=$4,
+        servicos=$5,
+        cidade=$6,
+        bairro=$7,
+        forma_atendimento=$8,
+        whatsapp=$9,
+        instagram=$10,
+        descricao=$11,
+        horario_atendimento=$12,
+        atualizado_em=NOW()
+       WHERE id=$13
+       RETURNING *`,
+      [
+        campos.nome,
+        campos.tipo_profissional || 'Profissional local',
+        campos.categoria || 'Profissionais locais',
+        campos.profissao,
+        campos.servicos || campos.profissao,
+        campos.cidade || CIDADE_MUNICIPIO_PADRAO,
+        campos.bairro,
+        campos.forma_atendimento || 'Presencial',
+        campos.whatsapp,
+        campos.instagram,
+        campos.descricao,
+        campos.horario_atendimento,
+        id
+      ]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ erro: 'Profissional não encontrado.' });
+    }
+
+    res.json({ mensagem: 'Perfil do profissional atualizado pelo administrador.', profissional: profissionalParaFrontend(result.rows[0]) });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao editar profissional.', detalhe: error.message });
+  }
+});
+
 app.patch('/api/admin/profissionais/:id/plano', autenticarAdmin, async (req, res) => {
   try {
     const { planoAtual = 'Gratuito', planoStatus = 'ativo', planoVencimento = null } = req.body;
@@ -3784,6 +3864,12 @@ app.post('/api/cidade/coleta/profissionais', autenticarColetorCidade, async (req
       : normalizarBooleanoCidade(dados.autorizouMensagem || dados.autorizou_receber_mensagem);
     const emailProfissional = String(dados.emailProfissional || dados.email_profissional || '').trim().toLowerCase() || null;
     const instagram = String(dados.instagram || '').trim() || null;
+    const meiStatus = String(dados.meiStatus || dados.mei_status || 'nao_informado').trim() || 'nao_informado';
+    const interesseFormalizacao = String(dados.interesseFormalizacao || dados.interesse_formalizacao || 'nao_informado').trim() || 'nao_informado';
+    const necessidadesEmpreendedor = Array.isArray(dados.necessidadesEmpreendedor || dados.necessidades_empreendedor)
+      ? (dados.necessidadesEmpreendedor || dados.necessidades_empreendedor).map((item) => String(item || '').trim()).filter(Boolean)
+      : [];
+    const observacaoEmpreendedor = String(dados.observacaoEmpreendedor || dados.observacao_empreendedor || '').trim() || null;
     const setor = req.coletorCidade.setor;
 
     if (!nome || !profissao) {
@@ -3793,8 +3879,9 @@ app.post('/api/cidade/coleta/profissionais', autenticarColetorCidade, async (req
     const coleta = await pool.query(`
       INSERT INTO cidade_coleta_profissionais (
         coletor_id, nome, whatsapp, email_profissional, instagram, categoria, profissao, servicos,
-        cidade, setor, bairro, descricao, aceita_site, autorizou_receber_mensagem, status_coleta
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'coletado')
+        cidade, setor, bairro, descricao, aceita_site, autorizou_receber_mensagem,
+        mei_status, interesse_formalizacao, necessidades_empreendedor, observacao_empreendedor, status_coleta
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17::jsonb,$18,'coletado')
       RETURNING *
     `, [
       req.coletorCidade.id,
@@ -3810,7 +3897,11 @@ app.post('/api/cidade/coleta/profissionais', autenticarColetorCidade, async (req
       dados.bairro || setor,
       dados.descricao || null,
       aceitaSite,
-      autorizaMensagem
+      autorizaMensagem,
+      meiStatus,
+      interesseFormalizacao,
+      JSON.stringify(necessidadesEmpreendedor),
+      observacaoEmpreendedor
     ]);
 
     let profissionalPublicado = null;

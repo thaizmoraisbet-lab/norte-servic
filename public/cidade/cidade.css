@@ -3082,3 +3082,91 @@ body.cidade-body .mini-loading.ativo .ns-loader-card {
   width: min(360px, 90vw) !important;
   max-width: 90vw !important;
 }
+
+
+/* ================================================= */
+/* V17 — coletor, sucesso travado e Sala Empreendedor */
+/* ================================================= */
+body.cidade-sucesso-aberto {
+  overflow: hidden !important;
+  touch-action: none !important;
+}
+
+.cidade-sucesso-coleta {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  z-index: 2147483000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 18px !important;
+  background: rgba(15,23,42,.68) !important;
+  backdrop-filter: blur(14px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(130%) !important;
+}
+
+.cidade-sucesso-coleta.escondido {
+  display: none !important;
+}
+
+.cidade-sucesso-card {
+  width: min(520px, 94vw) !important;
+  max-height: 88dvh !important;
+  overflow: auto !important;
+  border-radius: 32px !important;
+  box-shadow: 0 30px 90px rgba(15,23,42,.32) !important;
+  animation: cidadeSucessoPop .34s ease both;
+}
+
+@keyframes cidadeSucessoPop {
+  from { opacity: 0; transform: translate3d(0, 20px, 0) scale(.97); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+.cidade-sucesso-status {
+  margin: 14px 0;
+  padding: 12px 14px;
+  border-radius: 18px;
+  display: grid;
+  gap: 3px;
+  text-align: left;
+}
+.cidade-sucesso-status.ok { background: #ecfdf5; color: #065f46; border: 1px solid rgba(16,185,129,.25); }
+.cidade-sucesso-status.alerta { background: #fff7ed; color: #9a3412; border: 1px solid rgba(249,115,22,.28); }
+.cidade-sucesso-status.neutro { background: #eff6ff; color: #1d4ed8; border: 1px solid rgba(37,99,235,.22); }
+.cidade-sucesso-status span { font-size: .88rem; opacity: .88; }
+.cidade-sucesso-acoes-extras { display: flex; justify-content: center; margin: 8px 0 4px; }
+
+.cidade-bloco-empreendedor-app {
+  border-color: rgba(249,115,22,.24) !important;
+  background: linear-gradient(135deg, rgba(255,247,237,.96), rgba(239,246,255,.94)) !important;
+}
+
+.cidade-checklist-empreendedor {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  margin: 14px 0;
+}
+.cidade-checklist-empreendedor strong { grid-column: 1 / -1; color: #0f172a; }
+.cidade-checklist-empreendedor label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.78);
+  border: 1px solid rgba(37,99,235,.1);
+  color: #334155;
+  font-weight: 700;
+  font-size: .9rem;
+}
+
+body.cidade-body .ns-loader-logo img {
+  width: 54px !important;
+  height: 54px !important;
+  object-fit: contain !important;
+  display: block !important;
+}

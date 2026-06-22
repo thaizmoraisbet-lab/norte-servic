@@ -17157,3 +17157,142 @@ body.loading-travado > *:not(.mini-loading):not(.ns-page-loader) {
     border-radius: 16px;
   }
 }
+
+
+/* ================================================= */
+/* V17 — acabamento premium, admin e Sala Empreendedor */
+/* ================================================= */
+.ns-loader-logo img {
+  width: 54px !important;
+  height: 54px !important;
+  object-fit: contain !important;
+  display: block !important;
+  filter: drop-shadow(0 12px 24px rgba(37,99,235,.35));
+}
+
+.admin-modulo-section,
+.legal-panel,
+.admin-prof-card,
+.admin-pagamento-card,
+.admin-cidade-coleta-card,
+.admin-sala-card {
+  animation: nsFadeUpPremium .38s ease both;
+}
+
+@keyframes nsFadeUpPremium {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+.admin-cidade-coletas-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  max-height: 620px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.admin-cidade-coleta-card.compacto {
+  padding: 14px !important;
+  border-radius: 18px !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-cidade-coleta-card.compacto h3 {
+  font-size: .98rem;
+  margin: 6px 0 3px;
+}
+
+.admin-cidade-coleta-info.compacto {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+  white-space: nowrap;
+}
+
+.admin-sala-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 14px;
+  max-height: 680px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.admin-sala-card {
+  background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(239,246,255,.9));
+  border: 1px solid rgba(37,99,235,.12);
+  box-shadow: 0 16px 38px rgba(15,23,42,.08);
+  border-radius: 22px;
+  padding: 16px;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.admin-sala-card h3 { margin: 6px 0 4px; color: #0f172a; }
+.admin-sala-card p { margin: 0 0 6px; color: #334155; }
+.admin-sala-card small { color: #64748b; line-height: 1.45; }
+.admin-sala-acoes { display: flex; flex-direction: column; gap: 8px; min-width: 110px; }
+.admin-sala-acoes a,
+.admin-cidade-coleta-info.compacto a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 8px 11px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: .8rem;
+}
+
+.admin-filtros-sala button:last-child {
+  background: linear-gradient(135deg, #f97316, #2563eb);
+  color: #fff;
+  border-color: transparent;
+}
+
+.pagamento-acoes button,
+.admin-acoes button {
+  cursor: pointer;
+}
+
+body.loading-travado .botao-cadastro-premium,
+body.loading-travado .cidade-btn {
+  pointer-events: none;
+}
+
+.legal-panel h3 {
+  margin-top: 22px;
+  color: #0f172a;
+}
+
+.legal-panel p,
+.legal-panel li {
+  line-height: 1.72;
+}
+
+@media (max-width: 720px) {
+  .admin-cidade-coletas-lista,
+  .admin-sala-lista {
+    grid-template-columns: 1fr;
+    max-height: none;
+  }
+  .admin-sala-card,
+  .admin-cidade-coleta-card.compacto {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .admin-sala-acoes,
+  .admin-cidade-coleta-info.compacto {
+    align-items: stretch;
+  }
+}

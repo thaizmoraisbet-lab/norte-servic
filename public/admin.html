@@ -121,6 +121,13 @@
           <em class="admin-badge" id="badgeAdminColetores">0</em>
         </button>
 
+        <button type="button" class="admin-modulo-btn" data-admin-modulo="salaempreendedor" onclick="navegarModuloAdmin('salaempreendedor')">
+          <span class="admin-modulo-icone">🏢</span>
+          <strong>Sala do Empreendedor</strong>
+          <small>MEI, nota fiscal, cursos e formalização</small>
+          <em class="admin-badge" id="badgeAdminSalaEmpreendedor">0</em>
+        </button>
+
         <button type="button" class="admin-modulo-btn" data-admin-modulo="lgpd" onclick="navegarModuloAdmin('lgpd')">
           <span class="admin-modulo-icone">🛡️</span>
           <strong>LGPD e dados</strong>
@@ -300,6 +307,36 @@
         <div id="listaAdminSaquesColetores" class="admin-pagamentos-lista"></div>
       </section>
 
+      <section class="admin-ultra-content admin-modulo-section admin-sala-empreendedor-content" data-admin-section="salaempreendedor">
+        <div class="admin-section-title">
+          <div>
+            <span>Cidade Parceira + Sala do Empreendedor</span>
+            <h2>MEI, nota fiscal, cursos e formalização</h2>
+          </div>
+          <p>Use os dados coletados em campo para orientar pequenos negócios, autônomos e profissionais locais.</p>
+        </div>
+
+        <div class="admin-financeiro-grid admin-sala-resumo" id="adminSalaEmpreendedorResumo"></div>
+
+        <div class="admin-filtros admin-filtros-sala">
+          <button class="ativo" onclick="aplicarFiltroSalaEmpreendedor('todos')">Todos</button>
+          <button onclick="aplicarFiltroSalaEmpreendedor('informal')">Informais</button>
+          <button onclick="aplicarFiltroSalaEmpreendedor('quer_mei')">Quer MEI</button>
+          <button onclick="aplicarFiltroSalaEmpreendedor('nota')">Precisa emitir nota</button>
+          <button onclick="aplicarFiltroSalaEmpreendedor('curso')">Curso/capacitação</button>
+          <button onclick="baixarRelatorioSalaEmpreendedor()">Baixar relatório</button>
+        </div>
+
+        <div class="admin-subarea-topo admin-subarea-cidade">
+          <div>
+            <span>Atendimento orientado</span>
+            <h3>Profissionais para encaminhamento</h3>
+          </div>
+          <small>Botão de convocação abre WhatsApp com mensagem pronta para atendimento da Sala do Empreendedor.</small>
+        </div>
+        <div id="listaAdminSalaEmpreendedor" class="admin-sala-lista"></div>
+      </section>
+
       <section class="admin-ultra-content admin-modulo-section admin-lgpd-content" data-admin-section="lgpd">
         <div class="admin-section-title">
           <div>
@@ -334,12 +371,12 @@
       <a href="documentos-legais.html#lgpd">LGPD</a>
       <a href="admin.html">Painel Admin</a>
       <a href="cidade/index.html">Cidade Parceira</a>
-      <a href="login.html">Contato</a>
+      <a href="https://wa.me/5563992472236" target="_blank" rel="noopener">Contato Norte Servic</a>
     </nav>
     <p>Norte Servic — CNPJ 63.906.559/0001-03</p>
     <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
   </footer>
 
-  <script src="script.js?v=v15-loading-global-20260618"></script>
+  <script src="script.js?v=v17-sala-empreendedor-20260622"></script>
 </body>
 </html>

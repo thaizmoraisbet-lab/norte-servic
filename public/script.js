@@ -1556,7 +1556,7 @@ function garantirLoadingNorteServicPadrao(loading, texto = "Carregando...") {
   if (!loading.querySelector(".ns-loader-card")) {
     loading.innerHTML = `
       <div class="ns-loader-card ns-loader-card-mini" role="status" aria-live="polite">
-        <div class="ns-loader-logo"><span>✓</span></div>
+        <div class="ns-loader-logo"><img src="/logo-norte-servic.png" alt="Norte Servic" onerror="this.remove();this.parentElement.innerHTML='<span>✓</span>'"></div>
         <strong>Norte Servic</strong>
         <p>${texto}</p>
         <div class="ns-loader-bar"><span></span></div>
@@ -1618,7 +1618,7 @@ function iniciarCarregamentoNorteServic() {
   loader.className = "ns-page-loader ativo";
   loader.innerHTML = `
     <div class="ns-loader-card">
-      <div class="ns-loader-logo"><span>✓</span></div>
+      <div class="ns-loader-logo"><img src="/logo-norte-servic.png" alt="Norte Servic" onerror="this.remove();this.parentElement.innerHTML='<span>✓</span>'"></div>
       <strong>Norte Servic</strong>
       <p>Carregando informações...</p>
       <div class="ns-loader-bar"><span></span></div>
@@ -2398,12 +2398,15 @@ function mostrarAvisoIndicacaoCadastro() {
   topo.appendChild(aviso);
 }
 
+let cadastroProfissionalEnviando = false;
+
 function iniciarCadastroBackend() {
   const formCadastro = document.getElementById("formCadastro");
   if (!formCadastro) return;
 
   formCadastro.addEventListener("submit", async function(e) {
     e.preventDefault();
+    if (cadastroProfissionalEnviando) return;
 
     const botao = formCadastro.querySelector("button[type='submit']") || formCadastro.querySelector("button");
     const textoOriginal = botao ? botao.innerText : "";
@@ -2438,6 +2441,7 @@ function iniciarCadastroBackend() {
     }
 
     try {
+      cadastroProfissionalEnviando = true;
       const textoBotaoLoading = ativarEstadoCarregandoBotao(botao, "Enviando cadastro...");
       mostrarLoading("Otimizando fotos e enviando cadastro...");
       await aguardarPinturaTela(120);
@@ -2477,6 +2481,7 @@ function iniciarCadastroBackend() {
       if (mensagemCadastro) mensagemCadastro.innerText = error.message;
     } finally {
       esconderLoading();
+      cadastroProfissionalEnviando = false;
       restaurarEstadoBotao(botao, typeof textoBotaoLoading !== "undefined" ? textoBotaoLoading : textoOriginal);
     }
   });
@@ -3525,6 +3530,7 @@ function htmlAdminPagamentoCard(p) {
       <div class="pagamento-acoes">
         ${whatsapp ? `<a href="${criarLinkWhatsApp(whatsapp)}" target="_blank">WhatsApp</a>` : ""}
         ${status === "expirado" && whatsapp ? `<a class="alerta" href="${linkExpirado}" target="_blank">Cobrar assinatura</a>` : ""}
+        ${status === "pago" && whatsapp ? `<button type="button" onclick="enviarNotaFiscalWhatsAppAdmin(${p.id})">Enviar nota fiscal</button>` : ""}
         ${p.profissional_id ? `<a href="perfil.html?id=${p.profissional_id}" target="_blank">Ver perfil</a>` : ""}
       </div>
     </article>
@@ -3881,6 +3887,12 @@ async function carregarModuloAdminIsolado(modulo) {
     return true;
   }
 
+  if (modulo === "salaempreendedor") {
+    const coletas = await buscarAdminCidadeColetas();
+    renderizarAdminCidadeColetas(coletas);
+    return true;
+  }
+
   if (modulo === "lgpd") {
     await mostrarAdminExclusoes();
     return true;
@@ -3912,6 +3924,7 @@ async function mostrarAdmin(opcoes = {}) {
     }
 
     const salvos = await buscarAdminProfissionais();
+    profissionaisAdminCache = salvos;
     mostrarAdminAvaliacoes().catch(() => {});
     mostrarAdminPagamentos(salvos).catch(() => {});
     mostrarAdminIndicacoes().catch(() => {});
@@ -3983,6 +3996,7 @@ async function mostrarAdmin(opcoes = {}) {
           </div>
           <div class="admin-acoes">
             <button class="aprovar" onclick="aprovarProfissional(${p.id})">Aprovar</button>
+            <button onclick="editarProfissionalAdmin(${p.id})">Editar</button>
             <a class="ver-whatsapp" href="${linkWhatsApp}" target="_blank">WhatsApp</a>
             <button onclick="atualizarPlanoAdmin(${p.id})">Plano</button>
             <button class="senha" onclick="redefinirSenhaAdmin(${p.id})">Senha</button>
@@ -4005,6 +4019,179 @@ async function mostrarAdmin(opcoes = {}) {
     }
   } finally {
     if (!silent) esconderLoading();
+  }
+}
+
+
+function obterProfissionalAdmin(id) {
+  return profissionaisAdminCache.find(p => Number(p.id) === Number(id)) || null;
+}
+
+async function editarProfissionalAdmin(id) {
+  const p = obterProfissionalAdmin(id);
+  if (!p) {
+    alert('Profissional não encontrado no painel. Atualize a lista e tente novamente.');
+    return;
+  }
+
+  const campos = {
+    nome: prompt('Nome do profissional:', p.nome || '') ?? p.nome,
+    profissao: prompt('Profissão:', p.profissao || '') ?? p.profissao,
+    categoria: prompt('Categoria:', p.categoria || '') ?? p.categoria,
+    servicos: prompt('Serviços principais:', p.servicos || '') ?? p.servicos,
+    cidade: prompt('Cidade:', p.cidade || '') ?? p.cidade,
+    bairro: prompt('Bairro / setor:', p.bairro || '') ?? p.bairro,
+    whatsapp: prompt('WhatsApp:', p.whatsapp || '') ?? p.whatsapp,
+    instagram: prompt('Instagram:', p.instagram || '') ?? p.instagram,
+    descricao: prompt('Descrição do perfil:', p.descricao || '') ?? p.descricao,
+    formaAtendimento: prompt('Forma de atendimento:', p.formaAtendimento || 'Presencial') ?? p.formaAtendimento
+  };
+
+  if (!campos.nome || !campos.profissao) {
+    alert('Nome e profissão são obrigatórios.');
+    return;
+  }
+
+  try {
+    mostrarLoading('Salvando edição do profissional...');
+    const resposta = await apiFetch(`/api/admin/profissionais/${id}`, {
+      method: 'PATCH',
+      headers: headersAdmin(),
+      body: JSON.stringify(campos)
+    });
+    alert(resposta.mensagem || 'Perfil atualizado.');
+    mostrarAdmin({ silent: true, carregarCompleto: true });
+  } catch (error) {
+    alert(error.message || 'Erro ao editar perfil.');
+  } finally {
+    esconderLoading();
+  }
+}
+
+function enviarNotaFiscalWhatsAppAdmin(id) {
+  const p = pagamentosAdminCache.find(item => Number(item.id) === Number(id));
+  if (!p) {
+    alert('Pagamento não encontrado. Atualize a aba de pagamentos.');
+    return;
+  }
+  const whatsapp = p.profissional_whatsapp || p.whatsapp || '';
+  if (!whatsapp) {
+    alert('Este profissional não possui WhatsApp cadastrado.');
+    return;
+  }
+  const linkNota = prompt('Cole o link da nota fiscal ou deixe vazio para avisar que será enviada em anexo pelo atendimento:', '');
+  const nome = p.profissional_nome || 'profissional';
+  const plano = p.plano_nome || p.planoName || p.plano_key || 'plano Norte Servic';
+  const valor = formatarMoedaBR(valorPagamentoNumero(p));
+  const mensagem = `Olá ${nome}! Aqui é da Norte Servic. Referente ao pagamento do ${plano} no valor de ${valor}, segue a nota fiscal/recibo do seu plano.${linkNota ? '\n\nAcesse: ' + linkNota : '\n\nNossa equipe enviará o documento por este atendimento.'}`;
+  window.open(linkWhatsappNumeroMensagem(whatsapp, encodeURIComponent(mensagem)), '_blank');
+}
+
+function rotuloNecessidadeEmpreendedor(valor) {
+  const mapa = {
+    abrir_mei: 'Abrir MEI',
+    emitir_nota: 'Emitir nota fiscal',
+    pagar_das: 'Pagar DAS',
+    declaracao_anual: 'Declaração anual',
+    vender_prefeitura: 'Vender para prefeitura',
+    curso_capacitacao: 'Curso/capacitação',
+    divulgacao: 'Divulgação',
+    precificacao: 'Precificação'
+  };
+  return mapa[valor] || valor || 'Não informado';
+}
+
+function mensagemSalaEmpreendedorAdmin(item) {
+  return encodeURIComponent(`Olá ${item.nome || ''}! Aqui é da Norte Servic. Seu cadastro foi mapeado no projeto Cidade Parceira.\n\nA Sala do Empreendedor pode orientar sobre MEI, nota fiscal, cursos, divulgação e crescimento do seu serviço.\n\nPodemos encaminhar seu atendimento para a equipe responsável?`);
+}
+
+function baixarRelatorioSalaEmpreendedor() {
+  const lista = cidadeColetasAdminCache || [];
+  const total = lista.length;
+  setAdminBadge('badgeAdminSalaEmpreendedor', lista.filter(i => i.meiStatus === 'nao' || ['sim','talvez'].includes(i.interesseFormalizacao) || (i.necessidadesEmpreendedor || []).length).length);
+  const mei = lista.filter(i => i.meiStatus === 'sim').length;
+  const naoMei = lista.filter(i => i.meiStatus === 'nao').length;
+  const querMei = lista.filter(i => ['sim','talvez'].includes(i.interesseFormalizacao)).length;
+  const emitirNota = lista.filter(i => (i.necessidadesEmpreendedor || []).includes('emitir_nota')).length;
+  const curso = lista.filter(i => (i.necessidadesEmpreendedor || []).includes('curso_capacitacao')).length;
+  const linhas = [
+    'RELATÓRIO - SALA DO EMPREENDEDOR DIGITAL',
+    `Gerado em: ${new Date().toLocaleString('pt-BR')}`,
+    '',
+    `Total de profissionais mapeados: ${total}`,
+    `Já são MEI: ${mei}`,
+    `Ainda não são MEI: ${naoMei}`,
+    `Querem se formalizar ou precisam de orientação: ${querMei}`,
+    `Precisam emitir nota fiscal: ${emitirNota}`,
+    `Querem curso/capacitação: ${curso}`,
+    '',
+    'LISTA RESUMIDA',
+    ...lista.map(i => `${i.nome || '-'} | ${i.profissao || '-'} | ${i.setor || '-'} | MEI: ${i.meiStatus || '-'} | Formalização: ${i.interesseFormalizacao || '-'} | Necessidades: ${(i.necessidadesEmpreendedor || []).map(rotuloNecessidadeEmpreendedor).join(', ')}`)
+  ];
+  const blob = new Blob([linhas.join('\n')], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `relatorio-sala-empreendedor-${new Date().toISOString().slice(0,10)}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function aplicarFiltroSalaEmpreendedor(tipo) {
+  renderizarSalaEmpreendedorAdmin(cidadeColetasAdminCache, tipo);
+}
+
+function renderizarSalaEmpreendedorAdmin(coletas = cidadeColetasAdminCache, filtro = 'todos') {
+  const resumo = document.getElementById('adminSalaEmpreendedorResumo');
+  const listaBox = document.getElementById('listaAdminSalaEmpreendedor');
+  if (!listaBox && !resumo) return;
+  cidadeColetasAdminCache = coletas || [];
+
+  const lista = cidadeColetasAdminCache;
+  const total = lista.length;
+  setAdminBadge('badgeAdminSalaEmpreendedor', lista.filter(i => i.meiStatus === 'nao' || ['sim','talvez'].includes(i.interesseFormalizacao) || (i.necessidadesEmpreendedor || []).length).length);
+  const mei = lista.filter(i => i.meiStatus === 'sim').length;
+  const informais = lista.filter(i => i.meiStatus === 'nao').length;
+  const querMei = lista.filter(i => ['sim','talvez'].includes(i.interesseFormalizacao)).length;
+  const nota = lista.filter(i => (i.necessidadesEmpreendedor || []).includes('emitir_nota')).length;
+  const cursos = lista.filter(i => (i.necessidadesEmpreendedor || []).includes('curso_capacitacao')).length;
+
+  if (resumo) {
+    resumo.innerHTML = `
+      <article class="finance-card destaque"><span>Mapeados</span><strong>${total}</strong><small>profissionais e pequenos negócios</small></article>
+      <article class="finance-card"><span>Informais</span><strong>${informais}</strong><small>ainda não são MEI</small></article>
+      <article class="finance-card"><span>Querem MEI</span><strong>${querMei}</strong><small>formalização/orientação</small></article>
+      <article class="finance-card"><span>Nota fiscal</span><strong>${nota}</strong><small>precisam de orientação</small></article>
+      <article class="finance-card"><span>Cursos</span><strong>${cursos}</strong><small>capacitação/divulgação</small></article>
+    `;
+  }
+
+  let filtrados = lista;
+  if (filtro === 'informal') filtrados = lista.filter(i => i.meiStatus === 'nao');
+  if (filtro === 'quer_mei') filtrados = lista.filter(i => ['sim','talvez'].includes(i.interesseFormalizacao));
+  if (filtro === 'curso') filtrados = lista.filter(i => (i.necessidadesEmpreendedor || []).includes('curso_capacitacao'));
+  if (filtro === 'nota') filtrados = lista.filter(i => (i.necessidadesEmpreendedor || []).includes('emitir_nota'));
+
+  if (listaBox) {
+    listaBox.innerHTML = filtrados.length ? filtrados.slice(0, 160).map(item => {
+      const necessidades = (item.necessidadesEmpreendedor || []).map(rotuloNecessidadeEmpreendedor);
+      const whats = item.whatsapp || '';
+      return `
+        <article class="admin-sala-card">
+          <div>
+            <span class="admin-status ${item.meiStatus === 'sim' ? 'status-aprovado' : 'status-pendente'}">MEI: ${item.meiStatus || 'não informado'}</span>
+            <h3>${item.nome || 'Profissional'}</h3>
+            <p><strong>${item.profissao || 'Profissão'}</strong> • ${item.setor || 'Setor'} • ${item.bairro || ''}</p>
+            <small>${necessidades.length ? necessidades.join(' • ') : 'Sem necessidade registrada'}${item.observacaoEmpreendedor ? ' • ' + item.observacaoEmpreendedor : ''}</small>
+          </div>
+          <div class="admin-sala-acoes">
+            ${whats ? `<a href="${linkWhatsappNumeroMensagem(whats, mensagemSalaEmpreendedorAdmin(item))}" target="_blank">Convocar no WhatsApp</a>` : ''}
+            ${item.profissionalSiteId ? `<a href="perfil.html?id=${item.profissionalSiteId}" target="_blank">Ver perfil</a>` : ''}
+          </div>
+        </article>`;
+    }).join('') : `<div class="admin-vazio admin-vazio-menor"><h3>Nenhum perfil neste filtro</h3><p>Use outro filtro ou aguarde novas coletas.</p></div>`;
   }
 }
 
@@ -4704,6 +4891,7 @@ const ADMIN_MODULOS_INFO = {
   pagamentos: { titulo: "Pagamentos dos planos", descricao: "Pix gerados por data e status", icone: "💳" },
   indicacoes: { titulo: "Programa de indicação", descricao: "Indicações, comissões e saques", icone: "🔗" },
   coletores: { titulo: "Coletores Cidade Parceira", descricao: "Credenciamento, setor e comissão", icone: "📍" },
+  salaempreendedor: { titulo: "Sala do Empreendedor", descricao: "MEI, nota fiscal, cursos e formalização", icone: "🏢" },
   lgpd: { titulo: "LGPD e dados", descricao: "Solicitações de exclusão de conta", icone: "🛡️" },
   avaliacoes: { titulo: "Avaliações pendentes", descricao: "Controle das avaliações enviadas", icone: "⭐" }
 };
@@ -4778,6 +4966,8 @@ function buscarAdminSaquesColetores() {
 }
 
 function renderizarAdminCidadeColetas(coletas = []) {
+  cidadeColetasAdminCache = coletas || [];
+  renderizarSalaEmpreendedorAdmin(cidadeColetasAdminCache);
   const box = document.getElementById("listaAdminCidadeColetas");
   if (!box) return;
   if (!coletas.length) {
@@ -4786,16 +4976,16 @@ function renderizarAdminCidadeColetas(coletas = []) {
   }
 
   box.innerHTML = coletas.slice(0, 120).map(item => `
-    <article class="admin-cidade-coleta-card">
+    <article class="admin-cidade-coleta-card compacto">
       <div>
-        <span class="admin-status ${item.aceitaSite ? "status-aprovado" : "status-pendente"}">${item.aceitaSite ? "Publicado automático" : "Somente relatório"}</span>
+        <span class="admin-status ${item.aceitaSite ? "status-aprovado" : "status-pendente"}">${item.aceitaSite ? "Publicado" : "Relatório"}</span>
         <h3>${item.nome || "Profissional"}</h3>
-        <p><strong>${item.profissao || "Profissão"}</strong> • ${item.setor || "Setor"}${item.bairro ? " • " + item.bairro : ""}</p>
-        <small>Coletor: ${item.coletorNome || "Não informado"}${item.coletorTelefone ? " • " + item.coletorTelefone : ""} • ${formatarDataHoraCurta(item.criadoEm)}</small>
+        <p><strong>${item.profissao || "Profissão"}</strong> • ${item.setor || "Setor"}</p>
+        <small>${item.meiStatus && item.meiStatus !== 'nao_informado' ? 'MEI: ' + item.meiStatus + ' • ' : ''}${formatarDataHoraCurta(item.criadoEm)}</small>
       </div>
-      <div class="admin-cidade-coleta-info">
+      <div class="admin-cidade-coleta-info compacto">
         <strong>${item.whatsapp || "Sem WhatsApp"}</strong>
-        ${item.profissionalSiteId ? `<a href="perfil.html?id=${item.profissionalSiteId}" target="_blank">Ver no site</a>` : ""}
+        ${item.profissionalSiteId ? `<a href="perfil.html?id=${item.profissionalSiteId}" target="_blank">Ver</a>` : ""}
       </div>
     </article>
   `).join("");
