@@ -289,7 +289,7 @@ async function entrarCidadeParceira() {
       body: JSON.stringify({ senha })
     });
     sessionStorage.setItem(CIDADE_TOKEN_KEY, dados.token);
-    setTimeout(() => { window.location.href = 'home.html'; }, 520);
+    setTimeout(() => { window.location.href = '/cidade/home'; }, 520);
   } catch (error) {
     fecharTransicaoCidade(0);
     restaurarBotaoCidade(botao, original);
@@ -301,18 +301,18 @@ function sairCidadeParceira() {
   sessionStorage.removeItem(CIDADE_TOKEN_KEY);
   sessionStorage.removeItem(CIDADE_COLETOR_TOKEN_KEY);
   sessionStorage.removeItem(CIDADE_COLETOR_DADOS_KEY);
-  navegarCidade('index.html', 'Saindo da Cidade Parceira...');
+  navegarCidade('/', 'Saindo da Cidade Parceira...');
 }
 
 function protegerPaginaCidade() {
   const pagina = paginaCidadeAtual();
   if ((pagina === 'home' || pagina === 'profissionais' || pagina === 'coletor') && !tokenCidade()) {
-    navegarCidade('index.html', 'Acesso privado. Informe a senha...');
+    navegarCidade('/', 'Acesso privado. Informe a senha...');
     return false;
   }
 
   if (pagina === 'login' && tokenCidade()) {
-    navegarCidade('home.html', 'Acesso já liberado. Abrindo home...');
+    navegarCidade('/cidade/home', 'Acesso já liberado. Abrindo home...');
     return false;
   }
 
@@ -670,7 +670,7 @@ function mostrarSucessoColetaCidade(mensagem = 'O profissional foi enviado para 
   }
   if (acoes) {
     acoes.innerHTML = profissionalId
-      ? `<a class="cidade-btn cidade-btn-claro" href="../perfil.html?id=${profissionalId}" target="_blank">Ver perfil publicado</a>`
+      ? `<a class="cidade-btn cidade-btn-claro" href="/perfil?id=${profissionalId}" target="_blank">Ver perfil publicado</a>`
       : '';
   }
   if (!box) return;
@@ -911,7 +911,7 @@ function prepararLinksTransicaoCidade() {
     link.addEventListener('click', (event) => {
       const destino = link.getAttribute('href');
       if (!destino || destino === '#') return;
-      const atual = window.location.pathname.split('/').pop() || 'index.html';
+      const atual = window.location.pathname.split('/').pop() || '/';
       const destinoLimpo = destino.split('#')[0].split('?')[0];
       if (destinoLimpo === atual) return;
       event.preventDefault();
@@ -1080,8 +1080,8 @@ function mostrarSucessoColetaCidade(mensagem = 'O profissional foi enviado para 
   const acoes = $('cidadeSucessoAcoesExtras');
   const whatsappMsg = resposta?.whatsappMensagem || null;
   const profissionalId = resposta?.profissional?.id || resposta?.coleta?.profissionalSiteId || null;
-  const linkPerfil = profissionalId ? `${window.location.origin}/perfil.html?id=${profissionalId}` : '';
-  const linkCompletar = `${window.location.origin}/completar-perfil.html`;
+  const linkPerfil = profissionalId ? `${window.location.origin}//perfil?id=${profissionalId}` : '';
+  const linkCompletar = `${window.location.origin}//completar-perfil`;
 
   if (texto) texto.textContent = mensagem;
   if (status) {

@@ -102,7 +102,60 @@ app.use((req, res, next) => {
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ extended: true, limit: '25mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+
+// ===============================
+// ROTAS LIMPAS SEM .HTML
+// ===============================
+const publicDir = path.join(__dirname, 'public');
+
+// Redireciona automaticamente URLs antigas com .html para URLs limpas.
+// Ex.: /login.html -> /login | /planos.html -> /planos
+app.use((req, res, next) => {
+  if (req.method === 'GET' && req.path.endsWith('.html')) {
+    let cleanPath = req.path
+      .replace(/\/index\.html$/i, '/')
+      .replace(/\/cidade\/index\.html$/i, '/cidade')
+      .replace(/\.html$/i, '');
+
+    if (cleanPath === '') cleanPath = '/';
+
+    const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+    return res.redirect(301, cleanPath + query);
+  }
+
+  next();
+});
+
+const paginasLimpas = {
+  '/': 'index.html',
+  '/home': 'index.html',
+  '/login': 'login.html',
+  '/cadastro': 'cadastro.html',
+  '/planos': 'planos.html',
+  '/perfil': 'perfil.html',
+  '/painel-profissional': 'painel-profissional.html',
+  '/editar-perfil': 'editar-perfil.html',
+  '/completar-perfil': 'completar-perfil.html',
+  '/recuperar-senha': 'recuperar-senha.html',
+  '/documentos-legais': 'documentos-legais.html',
+  '/admin': 'admin.html',
+
+  // Cidade Parceira
+  '/cidade': 'cidade/index.html',
+  '/cidade/': 'cidade/index.html',
+  '/cidade/home': 'cidade/home.html',
+  '/cidade/coletor': 'cidade/coletor.html',
+  '/cidade/profissionais': 'cidade/profissionais.html'
+};
+
+Object.entries(paginasLimpas).forEach(([rota, arquivo]) => {
+  app.get(rota, (req, res) => {
+    res.sendFile(path.join(publicDir, arquivo));
+  });
+});
+
+
+app.use(express.static(publicDir));
 
 function limparNumero(valor) {
   return String(valor || '').replace(/\D/g, '');

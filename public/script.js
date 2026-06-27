@@ -1548,7 +1548,7 @@ async function sairAdminSeguro() {
     await apiFetch("/api/admin/auth/logout", { method: "POST" });
   } catch (_) {}
   removerAdminPassword();
-  window.location.href = "admin.html";
+  window.location.href = "/admin";
 }
 
 function garantirLoadingNorteServicPadrao(loading, texto = "Carregando...") {
@@ -2069,7 +2069,7 @@ function cardProfissionalHTML(p, index = 0) {
         </div>
 
         <div class="acoes-card">
-          <a href="perfil.html?id=${p.id}">Ver detalhes</a>
+          <a href="/perfil?id=${p.id}">Ver detalhes</a>
           <a class="whatsapp" href="${linkWhatsApp}" target="_blank">Chamar no WhatsApp</a>
         </div>
       </div>
@@ -2697,7 +2697,7 @@ async function carregarPerfilProfissional() {
       : `<p>Este profissional ainda não adicionou fotos dos trabalhos. Mesmo assim, você pode entrar em contato e solicitar referências.</p>`;
 
     container.innerHTML = `
-      <a class="botao-voltar-perfil" href="index.html">← Voltar para a busca</a>
+      <a class="botao-voltar-perfil" href="/">← Voltar para a busca</a>
       <div class="perfil-premium">
         <aside class="perfil-lateral">
           <div class="perfil-capa"></div>
@@ -2778,7 +2778,7 @@ async function carregarPerfilProfissional() {
     iniciarFormularioAvaliacao(profissional.id);
   } catch (error) {
     container.innerHTML = `
-      <a class="botao-voltar-perfil" href="index.html">← Voltar para a busca</a>
+      <a class="botao-voltar-perfil" href="/">← Voltar para a busca</a>
       <div class="perfil-conteudo"><div class="perfil-hero-texto"><span>Perfil indisponível</span><h2>Profissional não encontrado</h2><p>${error.message}</p></div></div>
     `;
   }
@@ -2908,7 +2908,7 @@ function iniciarLoginProfissional() {
       setTokenProfissional(dados.token);
       const paramsLogin = new URLSearchParams(window.location.search);
       const voltar = paramsLogin.get("voltar");
-      window.location.href = voltar === "planos" ? "planos.html?origem=login" : "painel-profissional.html";
+      window.location.href = voltar === "planos" ? "/planos?origem=login" : "/painel-profissional";
     } catch (error) {
       if (mensagem) mensagem.innerText = error.message;
     } finally {
@@ -2932,12 +2932,12 @@ async function carregarMinhaConta() {
 
 function sairProfissional() {
   removerTokenProfissional();
-  window.location.href = "login.html";
+  window.location.href = "/login";
 }
 
 function exigirLoginRedirect() {
   if (!getTokenProfissional()) {
-    window.location.href = "login.html";
+    window.location.href = "/login";
     return false;
   }
   return true;
@@ -3173,7 +3173,7 @@ async function carregarPainelProfissional() {
         <h3>${planoAtual}</h3>
         <p>Status: <strong>${planoStatus}</strong> · Força do perfil: <strong>${forcaPerfil}%</strong>.</p>
         <div class="painel-forca-perfil"><div style="width: ${forcaPerfil}%"></div></div>
-        <a href="planos.html?origem=painel" class="painel-plano-cta">Ver planos</a>
+        <a href="/planos?origem=painel" class="painel-plano-cta">Ver planos</a>
       `;
     }
 
@@ -3201,7 +3201,7 @@ async function carregarPainelProfissional() {
 
     if (linkPerfil) {
       if (perfilDisponivel) {
-        linkPerfil.href = `perfil.html?id=${profissional.id}`;
+        linkPerfil.href = `/perfil?id=${profissional.id}`;
       } else {
         linkPerfil.href = "#";
         linkPerfil.addEventListener("click", e => {
@@ -3212,7 +3212,7 @@ async function carregarPainelProfissional() {
     }
   } catch (error) {
     removerTokenProfissional();
-    window.location.href = "login.html";
+    window.location.href = "/login";
   }
 }
 
@@ -3326,7 +3326,7 @@ function iniciarEditarPerfil() {
     })
     .catch(() => {
       removerTokenProfissional();
-      window.location.href = "login.html";
+      window.location.href = "/login";
     });
 
   form.addEventListener("submit", async function(e) {
@@ -3389,7 +3389,7 @@ function iniciarEditarPerfil() {
       });
 
       if (mensagem) mensagem.innerText = "Alterações salvas. Se dados importantes mudaram, seu perfil voltou para análise.";
-      setTimeout(() => window.location.href = "painel-profissional.html", 900);
+      setTimeout(() => window.location.href = "/painel-profissional", 900);
     } catch (error) {
       if (mensagem) mensagem.innerText = error.message;
     } finally {
@@ -3574,7 +3574,7 @@ function htmlAdminPagamentoCard(p) {
         ${whatsapp ? `<a href="${criarLinkWhatsApp(whatsapp)}" target="_blank">WhatsApp</a>` : ""}
         ${status === "expirado" && whatsapp ? `<a class="alerta" href="${linkExpirado}" target="_blank">Cobrar assinatura</a>` : ""}
         ${status === "pago" && whatsapp ? `<button type="button" onclick="enviarNotaFiscalWhatsAppAdmin(${p.id})">Enviar nota fiscal</button>` : ""}
-        ${p.profissional_id ? `<a href="perfil.html?id=${p.profissional_id}" target="_blank">Ver perfil</a>` : ""}
+        ${p.profissional_id ? `<a href="/perfil?id=${p.profissional_id}" target="_blank">Ver perfil</a>` : ""}
       </div>
     </article>
   `;
@@ -4333,7 +4333,7 @@ function renderizarSalaEmpreendedorAdmin(coletas = cidadeColetasAdminCache, filt
           </div>
           <div class="admin-sala-acoes">
             ${whats ? `<a href="${linkWhatsappNumeroMensagem(whats, mensagemSalaEmpreendedorAdmin(item))}" target="_blank">Convocar no WhatsApp</a>` : ''}
-            ${item.profissionalSiteId ? `<a href="perfil.html?id=${item.profissionalSiteId}" target="_blank">Ver perfil</a>` : ''}
+            ${item.profissionalSiteId ? `<a href="/perfil?id=${item.profissionalSiteId}" target="_blank">Ver perfil</a>` : ''}
           </div>
         </article>`;
     }).join('') : `<div class="admin-vazio admin-vazio-menor"><h3>Nenhum perfil neste filtro</h3><p>Use outro filtro ou aguarde novas coletas.</p></div>`;
@@ -4517,7 +4517,7 @@ function adicionarAdminNoRodape() {
     if (rodape.querySelector(".rodape-admin-link")) return;
 
     const link = document.createElement("a");
-    link.href = "admin.html";
+    link.href = "/admin";
     link.className = "rodape-admin-link";
     link.setAttribute("aria-label", "Acessar área administrativa");
     link.textContent = "Área administrativa";
@@ -4613,7 +4613,7 @@ async function contratarPlanoEfi(plano) {
   if (!token) {
     localStorage.setItem("norteServicPlanoPendente", plano);
     alert('Para contratar um plano, entre primeiro na Área Profissional. Depois você volta automaticamente para os planos.');
-    window.location.href = 'login.html?voltar=planos';
+    window.location.href = '/login?voltar=planos';
     return;
   }
 
@@ -4646,7 +4646,7 @@ function prepararPaginaPlanosEfi() {
   aviso.className = token ? "planos-login-aviso conectado" : "planos-login-aviso";
   aviso.innerHTML = token
     ? `<strong>✓ Profissional conectado.</strong><span>O plano será vinculado ao seu perfil.</span>`
-    : `<strong>Entre na Área Profissional para contratar.</strong><span>Assim o pagamento fica vinculado ao perfil correto.</span><a href="login.html?voltar=planos">Entrar agora</a>`;
+    : `<strong>Entre na Área Profissional para contratar.</strong><span>Assim o pagamento fica vinculado ao perfil correto.</span><a href="/login?voltar=planos">Entrar agora</a>`;
   hero.appendChild(aviso);
 }
 
@@ -4705,7 +4705,7 @@ async function consultarStatusPagamentoEfi() {
   const token = getTokenProfissional();
   if (!token) {
     alert("Entre novamente na Área Profissional para confirmar o pagamento.");
-    window.location.href = "login.html?voltar=planos";
+    window.location.href = "/login?voltar=planos";
     return;
   }
 
@@ -4730,7 +4730,7 @@ async function consultarStatusPagamentoEfi() {
     if (pagamentoEfiAtual.status === 'pago') {
       clearInterval(pagamentoEfiTimer);
       if (statusEl) statusEl.innerText = 'Pagamento confirmado! Seu plano foi ativado.';
-      setTimeout(() => { window.location.href = 'painel-profissional.html?v=pagamento-confirmado'; }, 1600);
+      setTimeout(() => { window.location.href = '/painel-profissional?v=pagamento-confirmado'; }, 1600);
       return;
     }
 
@@ -4760,10 +4760,10 @@ function obterIniciaisProfissional(nome = "") {
 }
 
 function paginaPermitePerfilLogadoCabecalho() {
-  const pagina = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  const pagina = (window.location.pathname.split('/').pop() || '/').toLowerCase();
   // Evita que links públicos enviados para clientes apareçam como se estivessem logados.
   // O perfil no cabeçalho só aparece nas áreas realmente profissionais.
-  return ['painel-profissional.html', 'editar-perfil.html', 'planos.html'].includes(pagina);
+  return ['/painel-profissional', '/editar-perfil', '/planos'].includes(pagina);
 }
 
 async function inserirPerfilLogadoCabecalho() {
@@ -4784,7 +4784,7 @@ async function inserirPerfilLogadoCabecalho() {
 
     const perfil = document.createElement("a");
     perfil.className = "ns-header-profile";
-    perfil.href = "painel-profissional.html";
+    perfil.href = "/painel-profissional";
     perfil.title = `Perfil logado: ${profissional.nome || "Profissional"}`;
 
     const foto = profissional.fotoPerfil || profissional.foto_perfil || "";
@@ -5048,7 +5048,7 @@ function moduloAdminAtualURL() {
 }
 
 function navegarModuloAdmin(nome) {
-  const destino = ADMIN_MODULOS_INFO[nome] ? `admin.html?modulo=${encodeURIComponent(nome)}` : "admin.html";
+  const destino = ADMIN_MODULOS_INFO[nome] ? `/admin?modulo=${encodeURIComponent(nome)}` : "/admin";
   mostrarLoading(ADMIN_MODULOS_INFO[nome] ? `Abrindo ${ADMIN_MODULOS_INFO[nome].titulo}...` : "Voltando aos módulos...");
   setTimeout(() => { window.location.href = destino; }, 90);
 }
@@ -5130,7 +5130,7 @@ function renderizarAdminCidadeColetas(coletas = []) {
       </div>
       <div class="admin-cidade-coleta-info compacto">
         <strong>${item.whatsapp || "Sem WhatsApp"}</strong>
-        ${item.profissionalSiteId ? `<a href="perfil.html?id=${item.profissionalSiteId}" target="_blank">Ver</a>` : ""}
+        ${item.profissionalSiteId ? `<a href="/perfil?id=${item.profissionalSiteId}" target="_blank">Ver</a>` : ""}
       </div>
     </article>
   `).join("");
@@ -5542,8 +5542,8 @@ function renderizarAdminCidadeColetas(coletas = []) {
         </div>
         <div class="admin-cidade-coleta-info compacto">
           <strong>${whatsapp || "Sem WhatsApp"}</strong>
-          ${perfilId ? `<a href="perfil.html?id=${perfilId}" target="_blank">Ver perfil</a>` : ""}
-          ${perfilId ? `<a href="editar-perfil.html?id=${perfilId}&admin=1" target="_blank">Editar</a>` : ""}
+          ${perfilId ? `<a href="/perfil?id=${perfilId}" target="_blank">Ver perfil</a>` : ""}
+          ${perfilId ? `<a href="/editar-perfil?id=${perfilId}&admin=1" target="_blank">Editar</a>` : ""}
           ${whatsapp ? `<a href="${criarLinkWhatsApp(whatsapp)}" target="_blank">WhatsApp</a>` : ""}
         </div>
       </article>
@@ -5589,8 +5589,8 @@ function htmlAdminPagamentoCard(p) {
         ${whatsapp ? `<a href="${criarLinkWhatsApp(whatsapp)}" target="_blank">WhatsApp</a>` : ""}
         ${status === "expirado" && whatsapp ? `<a class="alerta" href="${linkExpirado}" target="_blank">Cobrar</a>` : ""}
         ${status === "pago" && whatsapp ? `<button type="button" onclick="enviarNotaFiscalWhatsAppAdmin(${p.id})">Enviar NF</button>` : ""}
-        ${p.profissional_id ? `<a href="perfil.html?id=${p.profissional_id}" target="_blank">Perfil</a>` : ""}
-        ${p.profissional_id ? `<a class="destaque" href="editar-perfil.html?id=${p.profissional_id}&admin=1" target="_blank">Editar</a>` : ""}
+        ${p.profissional_id ? `<a href="/perfil?id=${p.profissional_id}" target="_blank">Perfil</a>` : ""}
+        ${p.profissional_id ? `<a class="destaque" href="/editar-perfil?id=${p.profissional_id}&admin=1" target="_blank">Editar</a>` : ""}
       </div>
     </article>
   `;
@@ -5648,8 +5648,8 @@ function renderizarSalaEmpreendedorAdmin(coletas = cidadeColetasAdminCache, filt
           </div>
           <div class="admin-sala-acoes">
             ${whats ? `<a href="${linkWhatsappNumeroMensagem(whats, mensagemSalaEmpreendedorAdmin(item))}" target="_blank">Convocar</a>` : ''}
-            ${item.profissionalSiteId ? `<a href="perfil.html?id=${item.profissionalSiteId}" target="_blank">Perfil</a>` : ''}
-            ${item.profissionalSiteId ? `<a href="editar-perfil.html?id=${item.profissionalSiteId}&admin=1" target="_blank">Editar</a>` : ''}
+            ${item.profissionalSiteId ? `<a href="/perfil?id=${item.profissionalSiteId}" target="_blank">Perfil</a>` : ''}
+            ${item.profissionalSiteId ? `<a href="/editar-perfil?id=${item.profissionalSiteId}&admin=1" target="_blank">Editar</a>` : ''}
           </div>
         </article>`;
     }).join('') : `<div class="admin-vazio admin-vazio-menor"><h3>Nenhum perfil neste filtro</h3><p>Use outro filtro ou aguarde novas coletas.</p></div>`;
@@ -5768,7 +5768,7 @@ function reenviarWhatsAppCadastroAdmin(coletaId) {
   if (!item) return alert('Cadastro da coleta não encontrado.');
   const whats = item.whatsapp || '';
   if (!whats) return alert('Este cadastro não possui WhatsApp.');
-  const link = item.profissionalSiteId ? `${window.location.origin}/completar-perfil.html` : `${window.location.origin}/cidade/coletor.html`;
+  const link = item.profissionalSiteId ? `${window.location.origin}//completar-perfil` : `${window.location.origin}//cidade/coletor`;
   const msg = encodeURIComponent(`Olá, ${item.nome || 'profissional'}! Aqui é da Norte Servic.\n\nSeu cadastro foi registrado no projeto Cidade Parceira. Para revisar e completar seu perfil, acesse:\n${link}`);
   window.open(`https://wa.me/${limparNumero(whats)}?text=${msg}`, '_blank');
 }

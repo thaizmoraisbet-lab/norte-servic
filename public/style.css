@@ -6838,8 +6838,8 @@ img {
 /* Foco: celular, cards compactos, menos flicker e admin escondido */
 /* ================================================= */
 
-/* Admin continua acessível digitando /admin.html, mas não aparece no menu */
-a[href="admin.html"] {
+/* Admin continua acessível digitando /admin, mas não aparece no menu */
+a[href="/admin"] {
   display: none !important;
 }
 
@@ -11270,7 +11270,7 @@ footer:not(.rodape-minimo) .rodape-admin-link {
 }
 
 .ns-nav a:first-child,
-.ns-nav a[href="cadastro.html"] {
+.ns-nav a[href="/cadastro"] {
   background: rgba(37, 99, 235, 0.20) !important;
   border-color: rgba(37, 99, 235, 0.28) !important;
 }
