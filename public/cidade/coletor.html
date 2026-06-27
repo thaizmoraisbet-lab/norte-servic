@@ -87,7 +87,48 @@
             <small id="cidadeComissaoDetalhe">0 cadastros hoje • R$ 2,00 por cadastro</small>
           </div>
           <div class="cidade-comissao-barra"><i id="cidadeComissaoBarra" style="width:0%"></i></div>
+          <p class="cidade-saque-status" id="cidadeStatusSaqueColetor">Aguardando cadastros para liberar saque.</p>
           <a id="btnSolicitarSaqueColetor" class="cidade-btn cidade-btn-premium cidade-btn-saque" href="#">Saque libera em R$ 50,00</a>
+        </div>
+
+        <div class="cidade-pix-card cidade-card-transicao" id="cidadePixCard">
+          <div class="cidade-pix-topo">
+            <div>
+              <span class="cidade-tag">Dados para saque</span>
+              <h3>Chave Pix do coletor</h3>
+              <p>Preencha uma vez. Quando atingir a meta, o Admin usa estes dados para pagar com segurança.</p>
+            </div>
+            <span class="cidade-pix-status" id="cidadePixStatus">Pendente</span>
+          </div>
+
+          <form id="formDadosPixColetor" class="cidade-pix-form" autocomplete="off">
+            <div class="cidade-form-grid cidade-pix-grid">
+              <label>Nome completo do titular
+                <input type="text" name="nomeTitular" id="pixNomeTitularColetor" placeholder="Nome igual ao Pix">
+              </label>
+              <label>CPF/CNPJ do titular
+                <input type="text" name="cpfCnpj" id="pixCpfCnpjColetor" inputmode="numeric" placeholder="Somente números">
+              </label>
+              <label>Tipo da chave Pix
+                <select name="tipoChavePix" id="pixTipoChaveColetor">
+                  <option value="">Selecione</option>
+                  <option value="cpf">CPF</option>
+                  <option value="cnpj">CNPJ</option>
+                  <option value="telefone">Telefone</option>
+                  <option value="email">E-mail</option>
+                  <option value="aleatoria">Chave aleatória</option>
+                </select>
+              </label>
+              <label>Chave Pix
+                <input type="text" name="chavePix" id="pixChaveColetor" placeholder="Digite a chave Pix">
+              </label>
+              <label>Banco <small>opcional</small>
+                <input type="text" name="banco" id="pixBancoColetor" placeholder="Ex: Nubank, Caixa, Banco do Brasil">
+              </label>
+            </div>
+            <button type="submit" class="cidade-btn cidade-btn-claro cidade-btn-pix-salvar" id="btnSalvarPixColetor">Salvar dados Pix</button>
+            <p class="cidade-msg" id="msgDadosPixColetor"></p>
+          </form>
         </div>
 
         <form id="formColetaCidade" class="cidade-form-coleta-rapida cidade-form-app" autocomplete="off">

@@ -423,6 +423,8 @@ function prepararColetorCidade() {
     if ($('coletorSetorTitulo')) $('coletorSetorTitulo').textContent = coletor.setor || '---';
     if ($('cidadeSucessoColeta')) $('cidadeSucessoColeta').classList.add('escondido');
     carregarMinhasColetasCidade();
+    prepararFormularioPixColetorCidade();
+    carregarDadosPagamentoColetorCidade();
     carregarComissaoColetorCidade();
   }
 }
@@ -1215,3 +1217,193 @@ function proximoCadastroColetaCidade() {
     if (nome) nome.focus();
   }, 80);
 }
+
+
+
+/* =========================================================
+   V27 — SAQUE DO COLETOR COM DADOS PIX (ETAPA 1)
+   ========================================================= */
+
+function normalizarCpfCnpjCidade(valor = '') {
+  return String(valor || '').replace(/\D/g, '');
+}
+
+function tipoPixRotuloCidade(tipo = '') {
+  return {
+    cpf: 'CPF',
+    cnpj: 'CNPJ',
+    telefone: 'Telefone',
+    email: 'E-mail',
+    aleatoria: 'Chave aleatória'
+  }[String(tipo || '').toLowerCase()] || 'Não informado';
+}
+
+function preencherFormularioPixColetor(dados = {}) {
+  const form = $('formDadosPixColetor');
+  if (!form) return;
+  if ($('pixNomeTitularColetor')) $('pixNomeTitularColetor').value = dados.nomeTitular || '';
+  if ($('pixCpfCnpjColetor')) $('pixCpfCnpjColetor').value = dados.cpfCnpj || '';
+  if ($('pixTipoChaveColetor')) $('pixTipoChaveColetor').value = dados.tipoChavePix || '';
+  if ($('pixChaveColetor')) $('pixChaveColetor').value = dados.chavePix || '';
+  if ($('pixBancoColetor')) $('pixBancoColetor').value = dados.banco || '';
+  atualizarStatusPixColetor(dados.completo);
+}
+
+function atualizarStatusPixColetor(completo = false) {
+  const status = $('cidadePixStatus');
+  if (!status) return;
+  status.textContent = completo ? 'Pix cadastrado' : 'Pendente';
+  status.classList.toggle('ok', Boolean(completo));
+}
+
+async function carregarDadosPagamentoColetorCidade() {
+  if (!tokenColetorCidade() || !$('formDadosPixColetor')) return;
+  try {
+    const resposta = await cidadeFetch('/api/cidade/coletor/dados-pagamento', {}, true);
+    preencherFormularioPixColetor(resposta.dadosPagamento || {});
+  } catch (error) {
+    const msg = $('msgDadosPixColetor');
+    if (msg) {
+      msg.textContent = error.message;
+      msg.classList.add('erro');
+    }
+  }
+}
+
+function prepararFormularioPixColetorCidade() {
+  const form = $('formDadosPixColetor');
+  if (!form || form.dataset.pronto === 'true') return;
+  form.dataset.pronto = 'true';
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const msg = $('msgDadosPixColetor');
+    const botao = $('btnSalvarPixColetor');
+    const textoOriginal = botao?.textContent || 'Salvar dados Pix';
+    if (msg) { msg.textContent = ''; msg.classList.remove('erro'); }
+    try {
+      if (botao) { botao.disabled = true; botao.textContent = 'Salvando...'; }
+      const fd = new FormData(form);
+      const payload = Object.fromEntries(fd.entries());
+      payload.cpfCnpj = normalizarCpfCnpjCidade(payload.cpfCnpj);
+      const resposta = await cidadeFetch('/api/cidade/coletor/dados-pagamento', {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+      }, true);
+      preencherFormularioPixColetor(resposta.dadosPagamento || {});
+      if (msg) msg.textContent = resposta.mensagem || 'Dados Pix salvos.';
+      mostrarToastCidade(resposta.mensagem || 'Dados Pix salvos.', 'ok');
+      await carregarComissaoColetorCidade();
+    } catch (error) {
+      if (msg) { msg.textContent = error.message; msg.classList.add('erro'); }
+      mostrarToastCidade(error.message, 'erro');
+    } finally {
+      if (botao) { botao.disabled = false; botao.textContent = textoOriginal; }
+    }
+  });
+}
+
+async function carregarComissaoColetorCidade() {
+  if (!tokenColetorCidade() || !$('cidadeComissaoValor')) return;
+
+  try {
+    const dados = await cidadeFetch('/api/cidade/coletor/comissao', {}, true);
+    const valor = Number(dados.valorDisponivel || 0);
+    const cadastrosHoje = Number(dados.cadastrosHoje || 0);
+    const cadastrosDisponiveis = Number(dados.cadastrosDisponiveis || cadastrosHoje || 0);
+    const limite = Number(dados.metaSaque || dados.limiteDiario || 50);
+    const valorCadastro = Number(dados.valorPorCadastro || 2);
+    const percentual = Math.max(0, Math.min(100, Number(dados.percentualLimite || 0)));
+    const saqueLiberado = Boolean(dados.saqueLiberado || valor >= limite);
+    const dadosPixOk = Boolean(dados.dadosPagamentoCompleto);
+    const saquePendente = Boolean(dados.saquePendente);
+    const ultimo = dados.ultimoSaque || null;
+
+    if (dados.dadosPagamento) preencherFormularioPixColetor(dados.dadosPagamento);
+
+    $('cidadeComissaoValor').textContent = formatarDinheiroCidade(valor);
+    $('cidadeComissaoDetalhe').textContent = `${cadastrosDisponiveis} cadastro(s) disponível(is) • ${formatarDinheiroCidade(valorCadastro)} por cadastro • meta ${formatarDinheiroCidade(limite)}`;
+    $('cidadeComissaoBarra').style.width = `${percentual}%`;
+    if ($('cidadeCadastrosHojeCompacto')) $('cidadeCadastrosHojeCompacto').textContent = cadastrosHoje;
+    if ($('cidadeComissaoCompacta')) $('cidadeComissaoCompacta').textContent = formatarDinheiroCidade(valor);
+    if ($('cidadeMetaCompacta')) $('cidadeMetaCompacta').textContent = `${cadastrosDisponiveis} disp.`;
+
+    const resumo = $('cidadeComissaoResumo');
+    if (resumo) {
+      resumo.textContent = dados.mensagem || `Complete a meta de ${formatarDinheiroCidade(limite)} para solicitar o saque. Os cadastros ficam reservados para análise do Admin.`;
+    }
+
+    const status = $('cidadeStatusSaqueColetor');
+    if (status) {
+      if (saquePendente) {
+        status.textContent = 'Saque solicitado e aguardando análise do Admin.';
+        status.className = 'cidade-saque-status aguardando';
+      } else if (ultimo && ultimo.status === 'pago') {
+        status.textContent = `Pagamento enviado com sucesso em ${formatarDataHoraCidade(ultimo.pagoEm || ultimo.atualizadoEm)}.`;
+        status.className = 'cidade-saque-status pago';
+      } else if (!dadosPixOk) {
+        status.textContent = 'Preencha os dados Pix para liberar o saque quando atingir a meta.';
+        status.className = 'cidade-saque-status alerta';
+      } else if (saqueLiberado) {
+        status.textContent = 'Meta atingida. Você já pode solicitar o saque para análise.';
+        status.className = 'cidade-saque-status ok';
+      } else {
+        status.textContent = `Faltam ${dados.faltamCadastrosParaSaque || 0} cadastro(s) para liberar o saque.`;
+        status.className = 'cidade-saque-status';
+      }
+    }
+
+    const link = $('btnSolicitarSaqueColetor');
+    if (link) {
+      link.href = '#';
+      let texto = `Saque libera em ${formatarDinheiroCidade(limite)}`;
+      let desativado = true;
+      if (saquePendente) {
+        texto = 'Saque aguardando análise';
+      } else if (!dadosPixOk) {
+        texto = 'Preencha os dados Pix';
+      } else if (saqueLiberado) {
+        texto = 'Solicitar saque para análise';
+        desativado = false;
+      }
+
+      link.textContent = texto;
+      link.classList.toggle('cidade-btn-desativado', desativado);
+      link.setAttribute('aria-disabled', desativado ? 'true' : 'false');
+      link.onclick = async (evento) => {
+        evento.preventDefault();
+        if (saquePendente) {
+          mostrarToastCidade('Sua solicitação já está aguardando análise do Admin.', 'ok');
+          return false;
+        }
+        if (!dadosPixOk) {
+          mostrarToastCidade('Preencha e salve seus dados Pix antes de solicitar o saque.', 'erro');
+          $('pixNomeTitularColetor')?.focus();
+          return false;
+        }
+        if (!saqueLiberado) {
+          mostrarToastCidade(`Ainda faltam ${dados.faltamCadastrosParaSaque || 0} cadastro(s) para liberar o saque.`, 'erro');
+          return false;
+        }
+        try {
+          mostrarTransicaoCidade('Enviando solicitação de saque para o Painel Admin...');
+          const resposta = await cidadeFetch('/api/cidade/coletor/saques', { method: 'POST', body: JSON.stringify({}) }, true);
+          mostrarToastCidade(resposta.mensagem || 'Solicitação enviada para análise.', 'ok');
+          await carregarComissaoColetorCidade();
+        } catch (error) {
+          mostrarToastCidade(error.message, 'erro');
+        } finally {
+          fecharTransicaoCidade(300);
+        }
+        return false;
+      };
+    }
+  } catch (error) {
+    const detalhe = $('cidadeComissaoDetalhe');
+    if (detalhe) detalhe.textContent = error.message;
+  }
+}
+
+// Reforça inicialização do formulário Pix sem mexer nas funções antigas.
+document.addEventListener('DOMContentLoaded', () => {
+  prepararFormularioPixColetorCidade();
+});

@@ -5779,3 +5779,75 @@ function aplicarFiltroSalaEmpreendedor(filtro = 'todos') {
   if (botao) botao.classList.add('ativo');
   renderizarSalaEmpreendedorAdmin(cidadeColetasAdminCache || [], filtro);
 }
+
+
+
+/* =========================================================
+   V27 — ADMIN SAQUES DOS COLETORES COM DADOS PIX
+   ========================================================= */
+
+function mascararPixAdmin(valor = '') {
+  const texto = String(valor || '');
+  if (texto.length <= 6) return texto || '-';
+  return `${texto.slice(0, 3)}***${texto.slice(-3)}`;
+}
+
+function statusSaqueColetorLabel(status = '') {
+  return {
+    aguardando: 'Aguardando análise',
+    pago: 'Pagamento enviado',
+    recusado: 'Recusado'
+  }[status] || status || 'aguardando';
+}
+
+function renderizarAdminSaquesColetores(saques = []) {
+  const box = document.getElementById("listaAdminSaquesColetores");
+  if (!box) return;
+  const pendentes = saques.filter(s => s.status === "aguardando").length;
+  setAdminBadge("badgeAdminColetores", pendentes);
+
+  box.innerHTML = saques.length ? saques.map(s => `
+    <article class="admin-pagamento-card admin-saque-coletor-v27 status-${s.status === "pago" ? "pago" : s.status === "recusado" ? "expirado" : "aguardando"}">
+      <div class="pagamento-card-topo">
+        <div>
+          <span class="pagamento-status ${s.status === "pago" ? "pago" : "aguardando"}">${statusSaqueColetorLabel(s.status)}</span>
+          <h3>${s.coletorNome}</h3>
+          <p>${s.setor || "Setor não informado"} • ${formatarDataCurta(s.dataReferencia)}</p>
+        </div>
+        <strong>${formatarMoedaBR(s.valor)}</strong>
+      </div>
+      <div class="pagamento-metricas admin-saque-pix-grid">
+        <p><span>Cadastros reservados</span><strong>${s.cadastrosContados}</strong></p>
+        <p><span>Telefone</span><strong>${s.coletorTelefone || "-"}</strong></p>
+        <p><span>Titular Pix</span><strong>${s.pixNomeTitular || "-"}</strong></p>
+        <p><span>CPF/CNPJ</span><strong>${s.pixCpfCnpj || "-"}</strong></p>
+        <p><span>Tipo Pix</span><strong>${s.pixTipoChave || "-"}</strong></p>
+        <p><span>Chave Pix</span><strong>${mascararPixAdmin(s.pixChave)}</strong></p>
+        <p><span>Banco</span><strong>${s.bancoNome || "-"}</strong></p>
+        <p><span>Solicitado</span><strong>${formatarDataHoraCurta(s.criadoEm)}</strong></p>
+        <p><span>Pago em</span><strong>${formatarDataHoraCurta(s.pagoEm) || "-"}</strong></p>
+        <p><span>Observação</span><strong>${s.observacaoAdmin || "Aguardando análise"}</strong></p>
+      </div>
+      <div class="pagamento-acoes">
+        ${s.coletorTelefone ? `<a href="${criarLinkWhatsApp(s.coletorTelefone)}" target="_blank">WhatsApp</a>` : ""}
+        ${s.pixChave ? `<button type="button" onclick="navigator.clipboard?.writeText('${String(s.pixChave).replace(/'/g, "\\'")}'); alert('Chave Pix copiada.')">Copiar Pix</button>` : ""}
+        ${s.status === "aguardando" ? `<button onclick="marcarSaqueColetorPago(${s.id})">Confirmar pagamento</button><button class="alerta" onclick="recusarSaqueColetor(${s.id})">Recusar</button>` : ""}
+      </div>
+    </article>
+  `).join("") : `<div class="admin-vazio admin-vazio-menor"><h3>Nenhum saque de coletor solicitado</h3><p>Quando o coletor completar a meta e pedir saque, a notificação aparecerá aqui.</p></div>`;
+}
+
+async function marcarSaqueColetorPago(id) {
+  const senhaAutorizacao = prompt("Digite a senha de autorização do pagamento. Se ainda não configurou CIDADE_SAQUE_ADMIN_PIN, deixe em branco:");
+  if (senhaAutorizacao === null) return;
+  const observacao = prompt("Observação do pagamento:", "Pagamento Pix confirmado pelo Admin.") || "Pagamento Pix confirmado pelo Admin.";
+  try {
+    await apiFetch(`/api/admin/cidade/saques/${id}/pagar`, {
+      method: "PATCH",
+      headers: headersAdmin(),
+      body: JSON.stringify({ observacao, senhaAutorizacao })
+    });
+    alert("Pagamento registrado com sucesso. Na próxima etapa, este botão será ligado ao Pix automático da Efí.");
+    await mostrarAdminColetores();
+  } catch (error) { alert(error.message); }
+}

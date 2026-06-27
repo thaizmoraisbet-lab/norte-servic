@@ -3950,3 +3950,183 @@ body > #cidadeSucessoColeta #cidadeSucessoTexto,
     font-size: 22px !important;
   }
 }
+
+
+
+/* =========================================================
+   V27 — COLETOR: SAQUE PIX E CABEÇALHO DE COMISSÃO
+   ========================================================= */
+
+.cidade-coletor-appbar {
+  align-items: stretch !important;
+}
+
+.cidade-coletor-app-stats article {
+  overflow: hidden !important;
+}
+
+.cidade-coletor-app-stats strong {
+  word-break: keep-all !important;
+  white-space: nowrap !important;
+}
+
+.cidade-comissao-card-compacta {
+  display: grid !important;
+  grid-template-columns: 1.15fr .85fr;
+  gap: 16px !important;
+  align-items: center !important;
+}
+
+.cidade-comissao-card-compacta.escondido {
+  display: none !important;
+}
+
+.cidade-comissao-barra,
+.cidade-saque-status,
+.cidade-btn-saque {
+  grid-column: 1 / -1;
+}
+
+.cidade-saque-status {
+  margin: 2px 0 0;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: #eff6ff;
+  border: 1px solid rgba(37,99,235,.18);
+  color: #1d4ed8;
+  font-weight: 850;
+  font-size: .9rem;
+}
+
+.cidade-saque-status.ok,
+.cidade-saque-status.pago {
+  background: #ecfdf5;
+  border-color: rgba(16,185,129,.22);
+  color: #047857;
+}
+
+.cidade-saque-status.alerta,
+.cidade-saque-status.aguardando {
+  background: #fff7ed;
+  border-color: rgba(249,115,22,.25);
+  color: #9a3412;
+}
+
+.cidade-pix-card {
+  margin: 14px 0 18px;
+  padding: 18px;
+  border-radius: 28px;
+  background: linear-gradient(145deg, rgba(255,255,255,.96), rgba(239,246,255,.82));
+  border: 1px solid rgba(37,99,235,.14);
+  box-shadow: 0 18px 44px rgba(15,23,42,.08);
+}
+
+.cidade-pix-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.cidade-pix-topo h3 {
+  margin: 6px 0 4px;
+  color: #0f172a;
+  letter-spacing: -.03em;
+}
+
+.cidade-pix-topo p {
+  margin: 0;
+  color: #64748b;
+  font-weight: 750;
+}
+
+.cidade-pix-status {
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #9a3412;
+  border: 1px solid rgba(249,115,22,.22);
+  font-size: .78rem;
+  font-weight: 950;
+}
+
+.cidade-pix-status.ok {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: rgba(16,185,129,.22);
+}
+
+.cidade-pix-form {
+  display: grid;
+  gap: 12px;
+}
+
+.cidade-pix-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.cidade-pix-form input,
+.cidade-pix-form select {
+  min-height: 48px !important;
+  border-radius: 15px !important;
+}
+
+.cidade-btn-pix-salvar {
+  justify-self: start;
+  min-height: 44px;
+}
+
+.cidade-btn-desativado {
+  opacity: .58 !important;
+  cursor: not-allowed !important;
+  filter: grayscale(.1);
+}
+
+@media (max-width: 760px) {
+  .cidade-coletor-appbar {
+    gap: 12px !important;
+  }
+
+  .cidade-coletor-app-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .cidade-coletor-app-stats article {
+    min-height: 74px !important;
+    padding: 12px !important;
+  }
+
+  .cidade-coletor-app-stats strong {
+    font-size: clamp(20px, 6vw, 28px) !important;
+  }
+
+  .cidade-comissao-card-compacta {
+    grid-template-columns: 1fr !important;
+    padding: 16px !important;
+  }
+
+  .cidade-pix-card {
+    padding: 15px;
+    border-radius: 22px;
+  }
+
+  .cidade-pix-topo {
+    flex-direction: column;
+  }
+
+  .cidade-pix-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .cidade-btn-pix-salvar {
+    width: 100%;
+  }
+}
+
+@media (max-width: 430px) {
+  .cidade-coletor-app-stats {
+    grid-template-columns: 1fr !important;
+  }
+}

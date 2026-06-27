@@ -18253,3 +18253,35 @@ body > .ns-page-loader.ativo,
 
 /* Favicon não aparece via CSS, mas esta classe marca a versão de cache */
 body::after { content: ""; display: none; }
+
+
+
+/* =========================================================
+   V27 — ADMIN SAQUES COLETORES PIX
+   ========================================================= */
+
+.admin-saque-coletor-v27 {
+  border-left: 4px solid #2563eb !important;
+}
+
+.admin-saque-coletor-v27.status-pago {
+  border-left-color: #16a34a !important;
+}
+
+.admin-saque-coletor-v27.status-expirado {
+  border-left-color: #ef4444 !important;
+}
+
+.admin-saque-pix-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.admin-saque-pix-grid p strong {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .admin-saque-pix-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

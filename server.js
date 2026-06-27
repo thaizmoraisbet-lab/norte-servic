@@ -27,6 +27,7 @@ const CIDADE_WHATSAPP_SAQUE = (process.env.CIDADE_WHATSAPP_SAQUE || process.env.
 const CIDADE_COMISSAO_VALOR_CADASTRO = Number(process.env.CIDADE_COMISSAO_VALOR_CADASTRO || 2);
 const CIDADE_COMISSAO_META_SAQUE = Number(process.env.CIDADE_COMISSAO_META_SAQUE || process.env.CIDADE_COMISSAO_LIMITE_DIARIO || 50);
 const CIDADE_COMISSAO_LIMITE_DIARIO = CIDADE_COMISSAO_META_SAQUE;
+const CIDADE_SAQUE_ADMIN_PIN = process.env.CIDADE_SAQUE_ADMIN_PIN || process.env.ADMIN_PAYMENT_PIN || '';
 
 
 const WHATSAPP_API_VERSION = process.env.WHATSAPP_API_VERSION || 'v25.0';
@@ -964,7 +965,14 @@ function profissionalParaFrontend(row, opcoes = {}) {
     stripeCustomerId: row.stripe_customer_id || '',
     stripeSubscriptionId: row.stripe_subscription_id || '',
     criadoEm: row.criado_em,
-    atualizadoEm: row.atualizado_em
+    atualizadoEm: row.atualizado_em,
+    dadosPagamento: {
+      nomeTitular: row.pix_nome_titular || '',
+      cpfCnpj: row.pix_cpf_cnpj || '',
+      tipoChavePix: row.pix_tipo_chave || '',
+      chavePix: row.pix_chave || '',
+      banco: row.banco_nome || ''
+    }
   };
 }
 
@@ -1155,6 +1163,12 @@ async function garantirSistemaCidadeParceira() {
   await pool.query(`ALTER TABLE cidade_coleta_profissionais ADD COLUMN IF NOT EXISTS instagram TEXT`);
   await pool.query(`ALTER TABLE cidade_coletores ADD COLUMN IF NOT EXISTS telefone TEXT`);
   await pool.query(`ALTER TABLE cidade_coletores ADD COLUMN IF NOT EXISTS valor_comissao_cadastro NUMERIC(10,2) DEFAULT ${CIDADE_COMISSAO_VALOR_CADASTRO}`);
+  await pool.query(`ALTER TABLE cidade_coletores ADD COLUMN IF NOT EXISTS pix_nome_titular TEXT`);
+  await pool.query(`ALTER TABLE cidade_coletores ADD COLUMN IF NOT EXISTS pix_cpf_cnpj TEXT`);
+  await pool.query(`ALTER TABLE cidade_coletores ADD COLUMN IF NOT EXISTS pix_tipo_chave TEXT`);
+  await pool.query(`ALTER TABLE cidade_coletores ADD COLUMN IF NOT EXISTS pix_chave TEXT`);
+  await pool.query(`ALTER TABLE cidade_coletores ADD COLUMN IF NOT EXISTS banco_nome TEXT`);
+
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS cidade_saques_coletores (
@@ -1182,6 +1196,19 @@ async function garantirSistemaCidadeParceira() {
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_cidade_coleta_aceita_site ON cidade_coleta_profissionais(aceita_site)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_cidade_saques_coletores_status ON cidade_saques_coletores(status)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_cidade_saques_coletores_coletor_data ON cidade_saques_coletores(coletor_id, data_referencia)`);
+  await pool.query(`ALTER TABLE cidade_saques_coletores ADD COLUMN IF NOT EXISTS pix_nome_titular TEXT`);
+  await pool.query(`ALTER TABLE cidade_saques_coletores ADD COLUMN IF NOT EXISTS pix_cpf_cnpj TEXT`);
+  await pool.query(`ALTER TABLE cidade_saques_coletores ADD COLUMN IF NOT EXISTS pix_tipo_chave TEXT`);
+  await pool.query(`ALTER TABLE cidade_saques_coletores ADD COLUMN IF NOT EXISTS pix_chave TEXT`);
+  await pool.query(`ALTER TABLE cidade_saques_coletores ADD COLUMN IF NOT EXISTS banco_nome TEXT`);
+  await pool.query(`ALTER TABLE cidade_saques_coletores ADD COLUMN IF NOT EXISTS pago_em TIMESTAMPTZ`);
+  await pool.query(`ALTER TABLE cidade_saques_coletores ADD COLUMN IF NOT EXISTS pago_por_admin_id INTEGER`);
+  await pool.query(`ALTER TABLE cidade_saques_coletores ADD COLUMN IF NOT EXISTS metodo_pagamento TEXT`);
+  await pool.query(`ALTER TABLE cidade_saques_coletores ADD COLUMN IF NOT EXISTS status_transacao TEXT`);
+  await pool.query(`ALTER TABLE cidade_saques_coletores ADD COLUMN IF NOT EXISTS comprovante TEXT`);
+  await pool.query(`ALTER TABLE cidade_coleta_profissionais ADD COLUMN IF NOT EXISTS saque_coletor_id BIGINT`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_cidade_coleta_saque_coletor ON cidade_coleta_profissionais(saque_coletor_id)`);
+
 
   const coletoresPadrao = [
     { nome: 'Coletor Nova Canaã', email: 'coletor.novacanaa@norteservic.com.br', senha: 'Nova123', setor: 'Nova Canaã' },
@@ -1352,6 +1379,15 @@ function saqueColetorParaFrontend(row) {
     dataReferencia: row.data_referencia,
     status: row.status || 'aguardando',
     observacaoAdmin: row.observacao_admin || '',
+    pixNomeTitular: row.pix_nome_titular || '',
+    pixCpfCnpj: row.pix_cpf_cnpj || '',
+    pixTipoChave: row.pix_tipo_chave || '',
+    pixChave: row.pix_chave || '',
+    bancoNome: row.banco_nome || '',
+    pagoEm: row.pago_em,
+    metodoPagamento: row.metodo_pagamento || '',
+    statusTransacao: row.status_transacao || '',
+    comprovante: row.comprovante || '',
     criadoEm: row.criado_em,
     atualizadoEm: row.atualizado_em
   };
@@ -3785,42 +3821,89 @@ app.get('/api/cidade/profissoes', autenticarCidadeParceira, async (req, res) => 
   }
 });
 
+
+function normalizarTipoChavePixCidade(valor) {
+  const tipo = String(valor || '').trim().toLowerCase();
+  const permitidos = ['cpf', 'cnpj', 'telefone', 'email', 'aleatoria'];
+  return permitidos.includes(tipo) ? tipo : '';
+}
+
+function dadosPagamentoColetorCompletos(row) {
+  return Boolean(
+    String(row?.pix_nome_titular || '').trim() &&
+    String(row?.pix_cpf_cnpj || '').replace(/\D/g, '').length >= 11 &&
+    normalizarTipoChavePixCidade(row?.pix_tipo_chave) &&
+    String(row?.pix_chave || '').trim()
+  );
+}
+
+function dadosPagamentoColetorParaFrontend(row = {}) {
+  return {
+    nomeTitular: row.pix_nome_titular || '',
+    cpfCnpj: row.pix_cpf_cnpj || '',
+    tipoChavePix: row.pix_tipo_chave || '',
+    chavePix: row.pix_chave || '',
+    banco: row.banco_nome || '',
+    completo: dadosPagamentoColetorCompletos(row)
+  };
+}
+
 app.get('/api/cidade/coletor/comissao', autenticarColetorCidade, async (req, res) => {
   try {
     await garantirSistemaCidadeParceira();
 
-    const result = await pool.query(`
+    const valorPorCadastro = await buscarComissaoColetorCidade(req.coletorCidade.id);
+    const coletorResult = await pool.query('SELECT * FROM cidade_coletores WHERE id=$1 LIMIT 1', [req.coletorCidade.id]);
+    const coletor = coletorResult.rows[0] || {};
+
+    const hojeResult = await pool.query(`
       SELECT COUNT(*)::int AS total
       FROM cidade_coleta_profissionais
       WHERE coletor_id=$1
         AND criado_em >= (date_trunc('day', now() AT TIME ZONE 'America/Sao_Paulo') AT TIME ZONE 'America/Sao_Paulo')
     `, [req.coletorCidade.id]);
 
-    const cadastrosHoje = Number(result.rows[0]?.total || 0);
-    const valorPorCadastro = await buscarComissaoColetorCidade(req.coletorCidade.id);
-    const valorCalculado = cadastrosHoje * valorPorCadastro;
-    const valorDisponivel = Math.min(valorCalculado, CIDADE_COMISSAO_META_SAQUE);
-    const percentualLimite = CIDADE_COMISSAO_META_SAQUE > 0
-      ? Math.round((valorDisponivel / CIDADE_COMISSAO_META_SAQUE) * 100)
-      : 0;
-    const faltamParaSaque = Math.max(0, CIDADE_COMISSAO_META_SAQUE - valorDisponivel);
-    const faltamCadastrosParaSaque = valorPorCadastro > 0
-      ? Math.ceil(faltamParaSaque / valorPorCadastro)
-      : 0;
-    const saqueLiberado = valorDisponivel >= CIDADE_COMISSAO_META_SAQUE;
-    const saquePendente = await pool.query(`
-      SELECT id, status FROM cidade_saques_coletores
+    const disponiveisResult = await pool.query(`
+      SELECT COUNT(*)::int AS total
+      FROM cidade_coleta_profissionais
       WHERE coletor_id=$1
-        AND data_referencia=(now() AT TIME ZONE 'America/Sao_Paulo')::date
-        AND status='aguardando'
+        AND saque_coletor_id IS NULL
+    `, [req.coletorCidade.id]);
+
+    const cadastrosHoje = Number(hojeResult.rows[0]?.total || 0);
+    const cadastrosDisponiveis = Number(disponiveisResult.rows[0]?.total || 0);
+    const valorDisponivel = cadastrosDisponiveis * valorPorCadastro;
+    const metaSaque = CIDADE_COMISSAO_META_SAQUE;
+    const percentualLimite = metaSaque > 0 ? Math.round((Math.min(valorDisponivel, metaSaque) / metaSaque) * 100) : 0;
+    const faltamParaSaque = Math.max(0, metaSaque - valorDisponivel);
+    const faltamCadastrosParaSaque = valorPorCadastro > 0 ? Math.ceil(faltamParaSaque / valorPorCadastro) : 0;
+    const saqueLiberado = valorDisponivel >= metaSaque;
+
+    const saquePendente = await pool.query(`
+      SELECT *
+      FROM cidade_saques_coletores
+      WHERE coletor_id=$1 AND status='aguardando'
+      ORDER BY criado_em DESC
       LIMIT 1
     `, [req.coletorCidade.id]);
 
+    const ultimoSaque = await pool.query(`
+      SELECT *
+      FROM cidade_saques_coletores
+      WHERE coletor_id=$1
+      ORDER BY criado_em DESC
+      LIMIT 1
+    `, [req.coletorCidade.id]);
+
+    const dadosPagamento = dadosPagamentoColetorParaFrontend(coletor);
+    const faltamDadosPix = !dadosPagamento.completo;
+
     res.json({
       cadastrosHoje,
+      cadastrosDisponiveis,
       valorPorCadastro,
-      metaSaque: CIDADE_COMISSAO_META_SAQUE,
-      limiteDiario: CIDADE_COMISSAO_META_SAQUE,
+      metaSaque,
+      limiteDiario: metaSaque,
       valorDisponivel,
       percentualLimite: Math.max(0, Math.min(100, percentualLimite)),
       faltamParaSaque,
@@ -3828,14 +3911,66 @@ app.get('/api/cidade/coletor/comissao', autenticarColetorCidade, async (req, res
       saqueLiberado,
       saquePendente: saquePendente.rowCount > 0,
       saquePendenteId: saquePendente.rows[0]?.id || null,
+      ultimoSaque: ultimoSaque.rowCount ? saqueColetorParaFrontend(ultimoSaque.rows[0]) : null,
+      dadosPagamento,
+      dadosPagamentoCompleto: dadosPagamento.completo,
+      faltamDadosPix,
       whatsappSaque: CIDADE_WHATSAPP_SAQUE,
-      regraSaque: 'O saque só é liberado ao completar R$ 50,00 no dia. Todos os cadastros são avaliados pelo time da Norte Servic antes do pagamento.',
-      mensagem: saqueLiberado
-        ? 'Meta diária de R$ 50,00 atingida. Solicite o saque. Os cadastros serão avaliados pelo time antes do pagamento.'
-        : `${cadastrosHoje} cadastro(s) hoje. Cada cadastro finalizado soma R$ ${valorPorCadastro.toFixed(2).replace('.', ',')}. Faltam ${faltamCadastrosParaSaque} cadastro(s) para liberar o saque de R$ ${CIDADE_COMISSAO_META_SAQUE.toFixed(2).replace('.', ',')}.`
+      regraSaque: 'O saque é liberado ao completar a meta de R$ 50,00 em cadastros disponíveis. Após solicitar, os cadastros ficam reservados para análise do Admin.',
+      mensagem: saquePendente.rowCount > 0
+        ? 'Sua solicitação de saque já está aguardando análise no Painel Admin.'
+        : faltamDadosPix
+          ? 'Preencha seus dados Pix para liberar a solicitação quando atingir a meta.'
+          : saqueLiberado
+            ? 'Meta de saque atingida. Solicite o saque para análise do Admin.'
+            : `${cadastrosDisponiveis} cadastro(s) disponível(is). Cada cadastro soma R$ ${valorPorCadastro.toFixed(2).replace('.', ',')}. Faltam ${faltamCadastrosParaSaque} cadastro(s) para liberar o saque.`
     });
   } catch (error) {
     res.status(500).json({ erro: 'Erro ao calcular comissão do coletor.', detalhe: error.message });
+  }
+});
+
+app.get('/api/cidade/coletor/dados-pagamento', autenticarColetorCidade, async (req, res) => {
+  try {
+    await garantirSistemaCidadeParceira();
+    const result = await pool.query('SELECT * FROM cidade_coletores WHERE id=$1 LIMIT 1', [req.coletorCidade.id]);
+    res.json({ dadosPagamento: dadosPagamentoColetorParaFrontend(result.rows[0] || {}) });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao carregar dados Pix.', detalhe: error.message });
+  }
+});
+
+app.put('/api/cidade/coletor/dados-pagamento', autenticarColetorCidade, async (req, res) => {
+  try {
+    await garantirSistemaCidadeParceira();
+    const nomeTitular = String(req.body.nomeTitular || req.body.pix_nome_titular || '').trim();
+    const cpfCnpj = String(req.body.cpfCnpj || req.body.pix_cpf_cnpj || '').replace(/\D/g, '');
+    const tipoChave = normalizarTipoChavePixCidade(req.body.tipoChavePix || req.body.pix_tipo_chave);
+    const chavePix = String(req.body.chavePix || req.body.pix_chave || '').trim();
+    const banco = String(req.body.banco || req.body.banco_nome || '').trim();
+
+    if (!nomeTitular || cpfCnpj.length < 11 || !tipoChave || !chavePix) {
+      return res.status(400).json({ erro: 'Preencha nome completo, CPF/CNPJ, tipo de chave Pix e chave Pix.' });
+    }
+
+    const result = await pool.query(`
+      UPDATE cidade_coletores
+      SET pix_nome_titular=$1,
+          pix_cpf_cnpj=$2,
+          pix_tipo_chave=$3,
+          pix_chave=$4,
+          banco_nome=$5,
+          atualizado_em=NOW()
+      WHERE id=$6
+      RETURNING *
+    `, [nomeTitular, cpfCnpj, tipoChave, chavePix, banco || null, req.coletorCidade.id]);
+
+    res.json({
+      mensagem: 'Dados Pix salvos com segurança.',
+      dadosPagamento: dadosPagamentoColetorParaFrontend(result.rows[0])
+    });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao salvar dados Pix.', detalhe: error.message });
   }
 });
 
@@ -4040,42 +4175,76 @@ app.post('/api/cidade/coleta/profissionais', autenticarColetorCidade, async (req
 app.post('/api/cidade/coletor/saques', autenticarColetorCidade, async (req, res) => {
   try {
     await garantirSistemaCidadeParceira();
+
     const valorPorCadastro = await buscarComissaoColetorCidade(req.coletorCidade.id);
-    const dataRef = await pool.query(`SELECT (now() AT TIME ZONE 'America/Sao_Paulo')::date AS data_ref`);
-    const dataReferencia = dataRef.rows[0].data_ref;
+    const coletorResult = await pool.query('SELECT * FROM cidade_coletores WHERE id=$1 LIMIT 1', [req.coletorCidade.id]);
+    const coletor = coletorResult.rows[0] || {};
 
-    const contagem = await pool.query(`
-      SELECT COUNT(*)::int AS total
-      FROM cidade_coleta_profissionais
-      WHERE coletor_id=$1
-        AND criado_em >= (date_trunc('day', now() AT TIME ZONE 'America/Sao_Paulo') AT TIME ZONE 'America/Sao_Paulo')
-    `, [req.coletorCidade.id]);
-
-    const cadastrosHoje = Number(contagem.rows[0]?.total || 0);
-    const valorCalculado = Math.min(cadastrosHoje * valorPorCadastro, CIDADE_COMISSAO_META_SAQUE);
-
-    if (valorCalculado < CIDADE_COMISSAO_META_SAQUE) {
-      return res.status(400).json({ erro: 'O saque só é liberado ao completar R$ 50,00 no dia. Todos os cadastros são avaliados pelo time da Norte Servic antes do pagamento.' });
+    if (!dadosPagamentoColetorCompletos(coletor)) {
+      return res.status(400).json({ erro: 'Antes de solicitar saque, preencha seus dados Pix: nome completo, CPF/CNPJ, tipo de chave e chave Pix.' });
     }
 
     const pendente = await pool.query(`
       SELECT id FROM cidade_saques_coletores
-      WHERE coletor_id=$1 AND data_referencia=$2 AND status='aguardando'
+      WHERE coletor_id=$1 AND status='aguardando'
       LIMIT 1
-    `, [req.coletorCidade.id, dataReferencia]);
+    `, [req.coletorCidade.id]);
 
     if (pendente.rowCount > 0) {
-      return res.status(400).json({ erro: 'Já existe uma solicitação de saque aguardando análise para hoje.' });
+      return res.status(400).json({ erro: 'Já existe uma solicitação de saque aguardando análise.' });
     }
 
+    const elegiveis = await pool.query(`
+      SELECT id
+      FROM cidade_coleta_profissionais
+      WHERE coletor_id=$1
+        AND saque_coletor_id IS NULL
+      ORDER BY criado_em ASC
+    `, [req.coletorCidade.id]);
+
+    const cadastrosDisponiveis = elegiveis.rowCount;
+    const valorCalculado = cadastrosDisponiveis * valorPorCadastro;
+
+    if (valorCalculado < CIDADE_COMISSAO_META_SAQUE) {
+      const faltam = Math.ceil((CIDADE_COMISSAO_META_SAQUE - valorCalculado) / Math.max(valorPorCadastro, 1));
+      return res.status(400).json({ erro: `O saque só é liberado ao completar ${CIDADE_COMISSAO_META_SAQUE.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}. Faltam ${faltam} cadastro(s).` });
+    }
+
+    const dataRef = await pool.query(`SELECT (now() AT TIME ZONE 'America/Sao_Paulo')::date AS data_ref`);
+    const dataReferencia = dataRef.rows[0].data_ref;
+
     const result = await pool.query(`
-      INSERT INTO cidade_saques_coletores (coletor_id, valor, cadastros_contados, data_referencia, status)
-      VALUES ($1,$2,$3,$4,'aguardando')
+      INSERT INTO cidade_saques_coletores (
+        coletor_id, valor, cadastros_contados, data_referencia, status,
+        pix_nome_titular, pix_cpf_cnpj, pix_tipo_chave, pix_chave, banco_nome,
+        metodo_pagamento, status_transacao
+      )
+      VALUES ($1,$2,$3,$4,'aguardando',$5,$6,$7,$8,$9,'pix_manual_admin','aguardando_admin')
       RETURNING *
-    `, [req.coletorCidade.id, valorCalculado, cadastrosHoje, dataReferencia]);
+    `, [
+      req.coletorCidade.id,
+      valorCalculado,
+      cadastrosDisponiveis,
+      dataReferencia,
+      coletor.pix_nome_titular,
+      coletor.pix_cpf_cnpj,
+      coletor.pix_tipo_chave,
+      coletor.pix_chave,
+      coletor.banco_nome || null
+    ]);
+
+    const saqueId = result.rows[0].id;
+    const ids = elegiveis.rows.map((r) => Number(r.id)).filter(Boolean);
+    if (ids.length) {
+      await pool.query(`
+        UPDATE cidade_coleta_profissionais
+        SET saque_coletor_id=$1, atualizado_em=NOW()
+        WHERE id = ANY($2::bigint[])
+      `, [saqueId, ids]);
+    }
 
     res.status(201).json({
-      mensagem: 'Solicitação de saque enviada para o Painel Admin. Os cadastros serão avaliados pelo time da Norte Servic antes do pagamento.',
+      mensagem: 'Solicitação de saque enviada para o Painel Admin. Os cadastros foram reservados para análise e pagamento.',
       saque: saqueColetorParaFrontend(result.rows[0])
     });
   } catch (error) {
@@ -4212,15 +4381,30 @@ app.get('/api/admin/cidade/saques', autenticarAdmin, async (_req, res) => {
 
 app.patch('/api/admin/cidade/saques/:id/pagar', autenticarAdmin, async (req, res) => {
   try {
-    const observacao = String(req.body.observacao || 'Pago após avaliação dos cadastros.').trim();
+    await garantirSistemaCidadeParceira();
+    const senhaAutorizacao = String(req.body.senhaAutorizacao || '').trim();
+    if (CIDADE_SAQUE_ADMIN_PIN && senhaAutorizacao !== CIDADE_SAQUE_ADMIN_PIN) {
+      return res.status(403).json({ erro: 'Senha de autorização do pagamento incorreta.' });
+    }
+
+    const observacao = String(req.body.observacao || 'Pagamento Pix confirmado pelo Admin.').trim();
     const result = await pool.query(`
       UPDATE cidade_saques_coletores
-      SET status='pago', observacao_admin=$1, atualizado_em=NOW()
-      WHERE id=$2
+      SET status='pago',
+          observacao_admin=$1,
+          pago_em=NOW(),
+          pago_por_admin_id=$2,
+          metodo_pagamento=COALESCE(metodo_pagamento, 'pix_manual_admin'),
+          status_transacao='pagamento_confirmado',
+          atualizado_em=NOW()
+      WHERE id=$3 AND status='aguardando'
       RETURNING *
-    `, [observacao, req.params.id]);
-    if (result.rowCount === 0) return res.status(404).json({ erro: 'Saque não encontrado.' });
-    res.json({ mensagem: 'Saque marcado como pago.', saque: saqueColetorParaFrontend(result.rows[0]) });
+    `, [observacao, req.adminUser?.id || null, req.params.id]);
+
+    if (result.rowCount === 0) return res.status(404).json({ erro: 'Saque não encontrado ou já finalizado.' });
+
+    await registrarAuditoria(req, 'cidade_saque_coletor_pago', { saqueId: Number(req.params.id), observacao });
+    res.json({ mensagem: 'Saque marcado como pago. Na próxima etapa, este botão será ligado ao Pix automático da Efí.', saque: saqueColetorParaFrontend(result.rows[0]) });
   } catch (error) {
     res.status(500).json({ erro: 'Erro ao marcar saque como pago.', detalhe: error.message });
   }
@@ -4228,15 +4412,28 @@ app.patch('/api/admin/cidade/saques/:id/pagar', autenticarAdmin, async (req, res
 
 app.patch('/api/admin/cidade/saques/:id/recusar', autenticarAdmin, async (req, res) => {
   try {
+    await garantirSistemaCidadeParceira();
     const observacao = String(req.body.observacao || 'Recusado após avaliação dos cadastros.').trim();
     const result = await pool.query(`
       UPDATE cidade_saques_coletores
-      SET status='recusado', observacao_admin=$1, atualizado_em=NOW()
-      WHERE id=$2
+      SET status='recusado',
+          observacao_admin=$1,
+          status_transacao='recusado_admin',
+          atualizado_em=NOW()
+      WHERE id=$2 AND status='aguardando'
       RETURNING *
     `, [observacao, req.params.id]);
-    if (result.rowCount === 0) return res.status(404).json({ erro: 'Saque não encontrado.' });
-    res.json({ mensagem: 'Saque recusado.', saque: saqueColetorParaFrontend(result.rows[0]) });
+
+    if (result.rowCount === 0) return res.status(404).json({ erro: 'Saque não encontrado ou já finalizado.' });
+
+    await pool.query(`
+      UPDATE cidade_coleta_profissionais
+      SET saque_coletor_id=NULL, atualizado_em=NOW()
+      WHERE saque_coletor_id=$1
+    `, [req.params.id]);
+
+    await registrarAuditoria(req, 'cidade_saque_coletor_recusado', { saqueId: Number(req.params.id), observacao });
+    res.json({ mensagem: 'Saque recusado. Os cadastros foram liberados para nova solicitação.', saque: saqueColetorParaFrontend(result.rows[0]) });
   } catch (error) {
     res.status(500).json({ erro: 'Erro ao recusar saque.', detalhe: error.message });
   }
