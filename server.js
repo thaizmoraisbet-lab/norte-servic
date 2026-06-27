@@ -148,6 +148,9 @@ const paginasLimpas = {
   '/cidade/profissionais': 'cidade/profissionais.html'
 };
 
+
+app.get('/cidade/index', (req, res) => res.redirect(301, '/cidade'));
+
 Object.entries(paginasLimpas).forEach(([rota, arquivo]) => {
   app.get(rota, (req, res) => {
     res.sendFile(path.join(publicDir, arquivo));
