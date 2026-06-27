@@ -155,6 +155,21 @@ Object.entries(paginasLimpas).forEach(([rota, arquivo]) => {
 });
 
 
+
+// ===============================
+// SEO: SITEMAP E ROBOTS
+// ===============================
+app.get('/sitemap.xml', (req, res) => {
+  res.type('application/xml');
+  res.sendFile(path.join(__dirname, 'public', 'sitemap.xml'));
+});
+
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.sendFile(path.join(__dirname, 'public', 'robots.txt'));
+});
+
+
 app.use(express.static(publicDir));
 
 function limparNumero(valor) {
