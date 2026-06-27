@@ -5851,3 +5851,76 @@ async function marcarSaqueColetorPago(id) {
     await mostrarAdminColetores();
   } catch (error) { alert(error.message); }
 }
+
+
+
+/* =========================================================
+   V28 — ADMIN MAIS COMPACTO E PREMIUM
+   ========================================================= */
+
+function renderizarAdminColetores(coletores = []) {
+  const box = document.getElementById("listaAdminColetores");
+  if (!box) return;
+  if (!coletores.length) {
+    box.innerHTML = `<div class="admin-vazio admin-vazio-menor"><h3>Nenhum coletor cadastrado</h3><p>Cadastre o primeiro coletor no formulário ao lado.</p></div>`;
+    return;
+  }
+
+  box.innerHTML = coletores.map(c => `
+    <article class="admin-coletor-card admin-coletor-card-v28" data-coletor-id="${c.id}">
+      <div class="admin-coletor-card-topo">
+        <div class="admin-coletor-identidade">
+          ${htmlStatusColetorAdmin(c.ativo)}
+          <h3>${c.nome}</h3>
+          <p>${c.email}</p>
+        </div>
+        <strong class="admin-coletor-valor">${formatarMoedaBR(c.valorComissaoCadastro || 2)}</strong>
+      </div>
+      <div class="admin-coletor-metricas admin-coletor-metricas-v28">
+        <p><span>Telefone</span><strong>${c.telefone || "Não informado"}</strong></p>
+        <p><span>Setor</span><strong>${c.setor || "-"}</strong></p>
+        <p><span>Hoje</span><strong>${c.cadastrosHoje || 0}</strong></p>
+        <p><span>Total</span><strong>${c.totalCadastros || 0}</strong></p>
+        <p><span>No site</span><strong>${c.aceitosSite || 0}</strong></p>
+      </div>
+      <div class="admin-coletor-acoes admin-coletor-acoes-v28">
+        <button onclick="editarColetorAdmin(${c.id})">Editar</button>
+        <button onclick="alterarStatusColetorAdmin(${c.id}, ${c.ativo ? "false" : "true"})">${c.ativo ? "Desativar" : "Ativar"}</button>
+        ${c.telefone ? `<a href="${criarLinkWhatsApp(c.telefone)}" target="_blank">WhatsApp</a>` : ""}
+      </div>
+    </article>
+  `).join("");
+}
+
+function renderizarAdminSaquesColetores(saques = []) {
+  const box = document.getElementById("listaAdminSaquesColetores");
+  if (!box) return;
+  const pendentes = saques.filter(s => s.status === "aguardando").length;
+  setAdminBadge("badgeAdminColetores", pendentes);
+
+  box.innerHTML = saques.length ? saques.map(s => `
+    <article class="admin-pagamento-card admin-saque-coletor-v27 admin-saque-coletor-v28 status-${s.status === "pago" ? "pago" : s.status === "recusado" ? "expirado" : "aguardando"}">
+      <div class="pagamento-card-topo">
+        <div>
+          <span class="pagamento-status ${s.status === "pago" ? "pago" : "aguardando"}">${statusSaqueColetorLabel(s.status)}</span>
+          <h3>${s.coletorNome}</h3>
+          <p>${s.setor || "Setor não informado"} • ${formatarDataCurta(s.dataReferencia)}</p>
+        </div>
+        <strong>${formatarMoedaBR(s.valor)}</strong>
+      </div>
+      <div class="pagamento-metricas admin-saque-pix-grid">
+        <p><span>Cadastros</span><strong>${s.cadastrosContados}</strong></p>
+        <p><span>Telefone</span><strong>${s.coletorTelefone || "-"}</strong></p>
+        <p><span>Titular Pix</span><strong>${s.pixNomeTitular || "-"}</strong></p>
+        <p><span>Tipo Pix</span><strong>${s.pixTipoChave || "-"}</strong></p>
+        <p><span>Chave Pix</span><strong>${mascararPixAdmin(s.pixChave)}</strong></p>
+        <p><span>Pago em</span><strong>${formatarDataHoraCurta(s.pagoEm) || "-"}</strong></p>
+      </div>
+      <div class="pagamento-acoes">
+        ${s.coletorTelefone ? `<a href="${criarLinkWhatsApp(s.coletorTelefone)}" target="_blank">WhatsApp</a>` : ""}
+        ${s.pixChave ? `<button type="button" onclick="navigator.clipboard?.writeText('${String(s.pixChave).replace(/'/g, "\\'")}'); alert('Chave Pix copiada.')">Copiar Pix</button>` : ""}
+        ${s.status === "aguardando" ? `<button onclick="marcarSaqueColetorPago(${s.id})">Confirmar pagamento</button><button class="alerta" onclick="recusarSaqueColetor(${s.id})">Recusar</button>` : ""}
+      </div>
+    </article>
+  `).join("") : `<div class="admin-vazio admin-vazio-menor"><h3>Nenhum saque de coletor solicitado</h3><p>Quando o coletor completar a meta e pedir saque, a notificação aparecerá aqui.</p></div>`;
+}

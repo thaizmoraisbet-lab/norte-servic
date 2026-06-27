@@ -4130,3 +4130,107 @@ body > #cidadeSucessoColeta #cidadeSucessoTexto,
     grid-template-columns: 1fr !important;
   }
 }
+
+
+
+/* =========================================================
+   V28 — COLETOR COMISSÃO MAIS SIMPLES
+   ========================================================= */
+
+.cidade-pix-card.escondido,
+.cidade-comissao-card.escondido {
+  display: none !important;
+}
+
+.cidade-coletor-appbar {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.1fr) minmax(260px, .9fr) auto !important;
+  align-items: center !important;
+}
+
+.cidade-coletor-identidade,
+.cidade-coletor-identidade h2,
+.cidade-coletor-identidade p {
+  min-width: 0 !important;
+}
+
+.cidade-coletor-identidade h2,
+.cidade-coletor-identidade p {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.cidade-coletor-app-acoes {
+  display: flex !important;
+  gap: 8px !important;
+  flex-wrap: nowrap !important;
+}
+
+.cidade-coletor-app-acoes .cidade-btn {
+  min-height: 42px !important;
+  padding: 0 14px !important;
+  white-space: nowrap !important;
+}
+
+.cidade-comissao-card-compacta {
+  margin-top: 12px !important;
+  padding: 16px !important;
+}
+
+.cidade-comissao-card-compacta h3 {
+  font-size: clamp(20px, 3vw, 28px) !important;
+}
+
+.cidade-comissao-card-compacta p {
+  margin-bottom: 0 !important;
+}
+
+.cidade-pix-card {
+  margin: 10px 0 16px !important;
+  padding: 16px !important;
+}
+
+.cidade-pix-grid label {
+  margin-bottom: 0 !important;
+}
+
+.cidade-saque-status {
+  font-size: .86rem !important;
+}
+
+@media (max-width: 980px) {
+  .cidade-coletor-appbar {
+    grid-template-columns: 1fr !important;
+  }
+
+  .cidade-coletor-app-stats {
+    width: 100% !important;
+  }
+
+  .cidade-coletor-app-acoes {
+    width: 100% !important;
+  }
+
+  .cidade-coletor-app-acoes .cidade-btn {
+    flex: 1 1 0 !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .cidade-pix-card,
+  .cidade-comissao-card-compacta {
+    border-radius: 20px !important;
+  }
+
+  .cidade-pix-topo h3,
+  .cidade-comissao-card-compacta h3 {
+    font-size: 20px !important;
+  }
+
+  .cidade-pix-topo p,
+  .cidade-comissao-card-compacta p,
+  .cidade-saque-status {
+    font-size: 13px !important;
+    line-height: 1.35 !important;
+  }
+}

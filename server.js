@@ -3868,6 +3868,17 @@ app.get('/api/cidade/coletor/comissao', autenticarColetorCidade, async (req, res
       FROM cidade_coleta_profissionais
       WHERE coletor_id=$1
         AND saque_coletor_id IS NULL
+        AND criado_em >= (date_trunc('day', now() AT TIME ZONE 'America/Sao_Paulo') AT TIME ZONE 'America/Sao_Paulo')
+    `, [req.coletorCidade.id]);
+
+    const saqueHoje = await pool.query(`
+      SELECT *
+      FROM cidade_saques_coletores
+      WHERE coletor_id=$1
+        AND data_referencia=(now() AT TIME ZONE 'America/Sao_Paulo')::date
+        AND status IN ('aguardando','pago')
+      ORDER BY criado_em DESC
+      LIMIT 1
     `, [req.coletorCidade.id]);
 
     const cadastrosHoje = Number(hojeResult.rows[0]?.total || 0);
@@ -3877,15 +3888,14 @@ app.get('/api/cidade/coletor/comissao', autenticarColetorCidade, async (req, res
     const percentualLimite = metaSaque > 0 ? Math.round((Math.min(valorDisponivel, metaSaque) / metaSaque) * 100) : 0;
     const faltamParaSaque = Math.max(0, metaSaque - valorDisponivel);
     const faltamCadastrosParaSaque = valorPorCadastro > 0 ? Math.ceil(faltamParaSaque / valorPorCadastro) : 0;
-    const saqueLiberado = valorDisponivel >= metaSaque;
+    const dadosPagamento = dadosPagamentoColetorParaFrontend(coletor);
+    const faltamDadosPix = !dadosPagamento.completo;
 
-    const saquePendente = await pool.query(`
-      SELECT *
-      FROM cidade_saques_coletores
-      WHERE coletor_id=$1 AND status='aguardando'
-      ORDER BY criado_em DESC
-      LIMIT 1
-    `, [req.coletorCidade.id]);
+    const saqueHojeRow = saqueHoje.rows[0] || null;
+    const saquePendente = saqueHojeRow?.status === 'aguardando';
+    const saquePagoHoje = saqueHojeRow?.status === 'pago';
+    const saqueHojeBloqueado = Boolean(saquePendente || saquePagoHoje);
+    const saqueLiberado = valorDisponivel >= metaSaque && !saqueHojeBloqueado;
 
     const ultimoSaque = await pool.query(`
       SELECT *
@@ -3895,8 +3905,18 @@ app.get('/api/cidade/coletor/comissao', autenticarColetorCidade, async (req, res
       LIMIT 1
     `, [req.coletorCidade.id]);
 
-    const dadosPagamento = dadosPagamentoColetorParaFrontend(coletor);
-    const faltamDadosPix = !dadosPagamento.completo;
+    let mensagem;
+    if (saquePendente) {
+      mensagem = 'Meta do dia já foi batida e o saque está aguardando análise no Painel Admin. Não é possível solicitar outro saque hoje.';
+    } else if (saquePagoHoje) {
+      mensagem = 'Meta do dia já foi batida e o pagamento foi enviado. Nova solicitação será liberada no próximo dia de coleta.';
+    } else if (faltamDadosPix) {
+      mensagem = 'Preencha seus dados Pix para liberar a solicitação quando atingir a meta do dia.';
+    } else if (saqueLiberado) {
+      mensagem = 'Meta diária atingida. Solicite o saque para análise do Admin.';
+    } else {
+      mensagem = `${cadastrosDisponiveis} cadastro(s) disponível(is) hoje. Cada cadastro soma R$ ${valorPorCadastro.toFixed(2).replace('.', ',')}. Faltam ${faltamCadastrosParaSaque} cadastro(s) para liberar o saque.`;
+    }
 
     res.json({
       cadastrosHoje,
@@ -3909,21 +3929,20 @@ app.get('/api/cidade/coletor/comissao', autenticarColetorCidade, async (req, res
       faltamParaSaque,
       faltamCadastrosParaSaque,
       saqueLiberado,
-      saquePendente: saquePendente.rowCount > 0,
-      saquePendenteId: saquePendente.rows[0]?.id || null,
+      saquePendente,
+      saquePendenteId: saquePendente ? saqueHojeRow.id : null,
+      saqueHojeBloqueado,
+      saquePagoHoje,
+      metaBatidaHoje: saqueHojeBloqueado,
+      statusSaqueHoje: saqueHojeRow?.status || '',
+      saqueHoje: saqueHojeRow ? saqueColetorParaFrontend(saqueHojeRow) : null,
       ultimoSaque: ultimoSaque.rowCount ? saqueColetorParaFrontend(ultimoSaque.rows[0]) : null,
       dadosPagamento,
       dadosPagamentoCompleto: dadosPagamento.completo,
       faltamDadosPix,
       whatsappSaque: CIDADE_WHATSAPP_SAQUE,
-      regraSaque: 'O saque é liberado ao completar a meta de R$ 50,00 em cadastros disponíveis. Após solicitar, os cadastros ficam reservados para análise do Admin.',
-      mensagem: saquePendente.rowCount > 0
-        ? 'Sua solicitação de saque já está aguardando análise no Painel Admin.'
-        : faltamDadosPix
-          ? 'Preencha seus dados Pix para liberar a solicitação quando atingir a meta.'
-          : saqueLiberado
-            ? 'Meta de saque atingida. Solicite o saque para análise do Admin.'
-            : `${cadastrosDisponiveis} cadastro(s) disponível(is). Cada cadastro soma R$ ${valorPorCadastro.toFixed(2).replace('.', ',')}. Faltam ${faltamCadastrosParaSaque} cadastro(s) para liberar o saque.`
+      regraSaque: 'O saque é liberado ao completar a meta diária de R$ 50,00 em cadastros disponíveis. Após solicitar, os cadastros ficam reservados para análise do Admin.',
+      mensagem
     });
   } catch (error) {
     res.status(500).json({ erro: 'Erro ao calcular comissão do coletor.', detalhe: error.message });
@@ -4184,14 +4203,26 @@ app.post('/api/cidade/coletor/saques', autenticarColetorCidade, async (req, res)
       return res.status(400).json({ erro: 'Antes de solicitar saque, preencha seus dados Pix: nome completo, CPF/CNPJ, tipo de chave e chave Pix.' });
     }
 
-    const pendente = await pool.query(`
-      SELECT id FROM cidade_saques_coletores
-      WHERE coletor_id=$1 AND status='aguardando'
-      LIMIT 1
-    `, [req.coletorCidade.id]);
+    const dataRef = await pool.query(`SELECT (now() AT TIME ZONE 'America/Sao_Paulo')::date AS data_ref`);
+    const dataReferencia = dataRef.rows[0].data_ref;
 
-    if (pendente.rowCount > 0) {
-      return res.status(400).json({ erro: 'Já existe uma solicitação de saque aguardando análise.' });
+    const saqueHoje = await pool.query(`
+      SELECT id, status
+      FROM cidade_saques_coletores
+      WHERE coletor_id=$1
+        AND data_referencia=$2
+        AND status IN ('aguardando','pago')
+      ORDER BY criado_em DESC
+      LIMIT 1
+    `, [req.coletorCidade.id, dataReferencia]);
+
+    if (saqueHoje.rowCount > 0) {
+      const status = saqueHoje.rows[0].status;
+      return res.status(400).json({
+        erro: status === 'pago'
+          ? 'A meta do dia já foi batida e o pagamento já foi enviado. Nova solicitação só no próximo dia.'
+          : 'A meta do dia já foi batida e existe uma solicitação aguardando análise no Painel Admin.'
+      });
     }
 
     const elegiveis = await pool.query(`
@@ -4199,6 +4230,7 @@ app.post('/api/cidade/coletor/saques', autenticarColetorCidade, async (req, res)
       FROM cidade_coleta_profissionais
       WHERE coletor_id=$1
         AND saque_coletor_id IS NULL
+        AND criado_em >= (date_trunc('day', now() AT TIME ZONE 'America/Sao_Paulo') AT TIME ZONE 'America/Sao_Paulo')
       ORDER BY criado_em ASC
     `, [req.coletorCidade.id]);
 
@@ -4207,11 +4239,8 @@ app.post('/api/cidade/coletor/saques', autenticarColetorCidade, async (req, res)
 
     if (valorCalculado < CIDADE_COMISSAO_META_SAQUE) {
       const faltam = Math.ceil((CIDADE_COMISSAO_META_SAQUE - valorCalculado) / Math.max(valorPorCadastro, 1));
-      return res.status(400).json({ erro: `O saque só é liberado ao completar ${CIDADE_COMISSAO_META_SAQUE.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}. Faltam ${faltam} cadastro(s).` });
+      return res.status(400).json({ erro: `O saque só é liberado ao completar ${CIDADE_COMISSAO_META_SAQUE.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} no dia. Faltam ${faltam} cadastro(s).` });
     }
-
-    const dataRef = await pool.query(`SELECT (now() AT TIME ZONE 'America/Sao_Paulo')::date AS data_ref`);
-    const dataReferencia = dataRef.rows[0].data_ref;
 
     const result = await pool.query(`
       INSERT INTO cidade_saques_coletores (
@@ -4244,7 +4273,7 @@ app.post('/api/cidade/coletor/saques', autenticarColetorCidade, async (req, res)
     }
 
     res.status(201).json({
-      mensagem: 'Solicitação de saque enviada para o Painel Admin. Os cadastros foram reservados para análise e pagamento.',
+      mensagem: 'Meta diária batida. Solicitação de saque enviada para o Painel Admin. Não será possível solicitar outro saque hoje.',
       saque: saqueColetorParaFrontend(result.rows[0])
     });
   } catch (error) {
