@@ -6008,3 +6008,95 @@ async function enviarPixSaqueColetorEfi(id) {
     await mostrarAdminColetores();
   }
 }
+
+
+
+/* =========================================================
+   V30 — CADASTRO AUTOMÁTICO DO WEBHOOK EFÍ
+   ========================================================= */
+
+async function cadastrarWebhookEfiAdmin() {
+  const confirmar = confirm("Cadastrar o webhook da Efí na chave Pix pagadora configurada em EFI_PIX_KEY?\n\nUse isso quando aparecer erro de chave sem webhook.");
+  if (!confirmar) return;
+
+  try {
+    const resposta = await apiFetch("/api/admin/efi/webhook/cadastrar", {
+      method: "POST",
+      headers: headersAdmin(),
+      body: JSON.stringify({})
+    });
+    alert(`${resposta.mensagem || "Webhook cadastrado."}\n\nChave: ${resposta.chavePixMascarada || "-"}\nURL: ${resposta.webhookUrl || "-"}`);
+    await verificarEfiAdminStatus();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function consultarWebhookEfiAdmin() {
+  try {
+    const resposta = await apiFetch("/api/admin/efi/webhook", { headers: headersAdmin() });
+    alert(`Webhook Efí consultado:\n${JSON.stringify(resposta.webhook || {}, null, 2)}`);
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function verificarEfiAdminStatus() {
+  try {
+    const resposta = await apiFetch("/api/admin/efi/status", { headers: headersAdmin() });
+    const efi = resposta.efi || {};
+    const ativo = efi.pixAutomaticoAtivo ? "ATIVO" : "DESATIVADO";
+    const webhookInfo = efi.webhook?.webhookUrl || efi.webhook?.webhook?.webhookUrl || efi.webhook?.erro || "não consultado";
+    alert(`Efí Pix automático: ${ativo}\nAmbiente: ${efi.ambiente}\nCertificado: ${efi.certBase64 || efi.certPath?.existe ? "OK" : "pendente"}\nLimite por saque: ${formatarMoedaBR(efi.limitePorSaque || 0)}\nLimite diário: ${formatarMoedaBR(efi.limiteDiario || 0)}\nWebhook: ${webhookInfo}`);
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function renderizarAdminSaquesColetores(saques = []) {
+  const box = document.getElementById("listaAdminSaquesColetores");
+  if (!box) return;
+  const pendentes = saques.filter(s => s.status === "aguardando").length;
+  setAdminBadge("badgeAdminColetores", pendentes);
+
+  box.innerHTML = saques.length ? `
+    <div class="admin-saque-toolbar-v29 admin-saque-toolbar-v30">
+      <div>
+        <strong>${pendentes}</strong>
+        <span>saque(s) aguardando pagamento</span>
+      </div>
+      <div class="admin-saque-toolbar-acoes-v30">
+        <button type="button" onclick="verificarEfiAdminStatus()">Verificar Efí</button>
+        <button type="button" onclick="cadastrarWebhookEfiAdmin()">Cadastrar Webhook Efí</button>
+        <button type="button" onclick="consultarWebhookEfiAdmin()">Consultar Webhook</button>
+      </div>
+    </div>
+    ${saques.map(s => `
+      <article class="admin-pagamento-card admin-saque-coletor-v27 admin-saque-coletor-v28 admin-saque-coletor-v29 status-${s.status === "pago" ? "pago" : s.status === "recusado" ? "expirado" : "aguardando"}">
+        <div class="pagamento-card-topo">
+          <div>
+            <span class="pagamento-status ${s.status === "pago" ? "pago" : "aguardando"}">${statusSaqueColetorLabel(s.status)}</span>
+            <h3>${s.coletorNome}</h3>
+            <p>${s.setor || "Setor não informado"} • ${formatarDataCurta(s.dataReferencia)}</p>
+          </div>
+          <strong>${formatarMoedaBR(s.valor)}</strong>
+        </div>
+        <div class="pagamento-metricas admin-saque-pix-grid">
+          <p><span>Cadastros</span><strong>${s.cadastrosContados}</strong></p>
+          <p><span>Telefone</span><strong>${s.coletorTelefone || "-"}</strong></p>
+          <p><span>Titular Pix</span><strong>${s.pixNomeTitular || "-"}</strong></p>
+          <p><span>Tipo Pix</span><strong>${s.pixTipoChave || "-"}</strong></p>
+          <p><span>Chave Pix</span><strong>${mascararPixAdmin(s.pixChave)}</strong></p>
+          <p><span>Transação Efí</span><strong>${s.efiE2eId || s.efiIdEnvio || s.statusTransacao || "-"}</strong></p>
+          <p><span>Pago em</span><strong>${formatarDataHoraCurta(s.pagoEm) || "-"}</strong></p>
+          <p><span>Observação</span><strong>${s.observacaoAdmin || "Aguardando análise"}</strong></p>
+        </div>
+        <div class="pagamento-acoes">
+          ${s.coletorTelefone ? `<a href="${criarLinkWhatsApp(s.coletorTelefone)}" target="_blank">WhatsApp</a>` : ""}
+          ${s.pixChave ? `<button type="button" onclick="navigator.clipboard?.writeText('${String(s.pixChave).replace(/'/g, "\\'")}'); alert('Chave Pix copiada.')">Copiar Pix</button>` : ""}
+          ${s.status === "aguardando" ? `<button class="btn-efi-pix-v29" onclick="enviarPixSaqueColetorEfi(${s.id})">Enviar Pix Efí</button><button onclick="marcarSaqueColetorPago(${s.id})">Pago manual</button><button class="alerta" onclick="recusarSaqueColetor(${s.id})">Recusar</button>` : ""}
+        </div>
+      </article>
+    `).join("")}
+  ` : `<div class="admin-vazio admin-vazio-menor"><h3>Nenhum saque de coletor solicitado</h3><p>Quando o coletor completar a meta e pedir saque, a notificação aparecerá aqui.</p></div>`;
+}

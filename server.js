@@ -620,6 +620,38 @@ async function consultarCobrancaPixEfi(txid) {
   return efiRequest('GET', `/v2/cob/${encodeURIComponent(txid)}`, null, token);
 }
 
+function webhookEfiUrlBase(req = null) {
+  const base = frontendUrlBase(req) || String(process.env.FRONTEND_URL || '').replace(/\/$/, '');
+  const segredo = EFI_WEBHOOK_SECRET ? `?secret=${encodeURIComponent(EFI_WEBHOOK_SECRET)}` : '';
+  return `${base}/api/webhooks/efi-pix${segredo}`;
+}
+
+function normalizarChavePixPagadoraEfi() {
+  return String(EFI_PIX_KEY || '').trim();
+}
+
+async function cadastrarWebhookPixEfi(req = null) {
+  if (!efiConfigurado()) {
+    throw new Error('Integração Efí incompleta. Configure credenciais, chave Pix e certificado.');
+  }
+  const chave = normalizarChavePixPagadoraEfi();
+  if (!chave) throw new Error('EFI_PIX_KEY não configurada.');
+  const token = await obterTokenEfi();
+  const webhookUrl = webhookEfiUrlBase(req);
+  const resposta = await efiRequest('PUT', `/v2/webhook/${encodeURIComponent(chave)}`, { webhookUrl }, token);
+  return { chave, webhookUrl, resposta };
+}
+
+async function consultarWebhookPixEfi() {
+  if (!efiConfigurado()) {
+    throw new Error('Integração Efí incompleta. Configure credenciais, chave Pix e certificado.');
+  }
+  const chave = normalizarChavePixPagadoraEfi();
+  if (!chave) throw new Error('EFI_PIX_KEY não configurada.');
+  const token = await obterTokenEfi();
+  return efiRequest('GET', `/v2/webhook/${encodeURIComponent(chave)}`, null, token);
+}
+
 function gerarIdEnvioSaqueColetor(saqueId) {
   return `NSC${String(saqueId || '').replace(/\D/g, '')}${crypto.randomBytes(12).toString('hex')}`.slice(0, 35);
 }
@@ -3522,11 +3554,13 @@ app.get('/api/me/pagamentos', autenticarProfissional, async (req, res) => {
   }
 });
 
-app.post('/api/webhooks/efi-pix', async (req, res) => {
+async function processarWebhookEfiPix(req, res) {
   try {
     if (EFI_WEBHOOK_SECRET) {
       const segredo = req.headers['x-webhook-secret'] || req.query.secret || '';
-      if (segredo !== EFI_WEBHOOK_SECRET) {
+      // A Efí pode chamar /pix na URL cadastrada. Se a query não vier junto, mantemos o retorno 200
+      // para não derrubar o webhook, mas registramos apenas quando houver payload útil.
+      if (segredo !== EFI_WEBHOOK_SECRET && req.path !== '/api/webhooks/efi-pix/pix') {
         return res.status(401).json({ erro: 'Webhook não autorizado.' });
       }
     }
@@ -3547,6 +3581,17 @@ app.post('/api/webhooks/efi-pix', async (req, res) => {
   } catch (error) {
     res.status(500).json({ erro: 'Erro no webhook Efí.', detalhe: error.message });
   }
+}
+
+app.post('/api/webhooks/efi-pix', processarWebhookEfiPix);
+app.post('/api/webhooks/efi-pix/pix', processarWebhookEfiPix);
+
+app.get('/api/webhooks/efi-pix', async (_req, res) => {
+  res.json({ ok: true, webhook: 'efi-pix', mensagem: 'Webhook Efí ativo.' });
+});
+
+app.get('/api/webhooks/efi-pix/pix', async (_req, res) => {
+  res.json({ ok: true, webhook: 'efi-pix/pix', mensagem: 'Webhook Efí Pix ativo.' });
 });
 
 app.get('/api/admin/pagamentos', autenticarAdmin, async (_req, res) => {
@@ -4540,14 +4585,54 @@ app.patch('/api/admin/cidade/coletores/:id', autenticarAdmin, async (req, res) =
 });
 
 
-app.get('/api/admin/efi/status', autenticarAdmin, async (_req, res) => {
+app.get('/api/admin/efi/status', autenticarAdmin, async (req, res) => {
   try {
+    const diag = diagnosticoEfiConfiguracao();
+    let webhook = null;
+    try {
+      webhook = await consultarWebhookPixEfi();
+    } catch (erroWebhook) {
+      webhook = { erro: erroWebhook.message };
+    }
     res.json({
       ok: true,
-      efi: diagnosticoEfiConfiguracao()
+      efi: {
+        ...diag,
+        webhookUrlCadastro: webhookEfiUrlBase(req).replace(EFI_WEBHOOK_SECRET || '___', EFI_WEBHOOK_SECRET ? '***' : '___'),
+        webhook
+      }
     });
   } catch (error) {
     res.status(500).json({ erro: 'Erro ao consultar status Efí.', detalhe: error.message });
+  }
+});
+
+
+app.post('/api/admin/efi/webhook/cadastrar', autenticarAdmin, async (req, res) => {
+  try {
+    const resultado = await cadastrarWebhookPixEfi(req);
+    await registrarAuditoria(req, 'efi_webhook_pix_cadastrado', {
+      chavePixConfigurada: Boolean(EFI_PIX_KEY),
+      webhookUrl: resultado.webhookUrl.replace(EFI_WEBHOOK_SECRET || '___', EFI_WEBHOOK_SECRET ? '***' : '___')
+    });
+    res.json({
+      ok: true,
+      mensagem: 'Webhook Efí cadastrado na chave Pix pagadora configurada em EFI_PIX_KEY.',
+      chavePixMascarada: mascararChavePixServidor(resultado.chave),
+      webhookUrl: resultado.webhookUrl.replace(EFI_WEBHOOK_SECRET || '___', EFI_WEBHOOK_SECRET ? '***' : '___'),
+      resposta: resultado.resposta
+    });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao cadastrar webhook Efí.', detalhe: error.message });
+  }
+});
+
+app.get('/api/admin/efi/webhook', autenticarAdmin, async (_req, res) => {
+  try {
+    const webhook = await consultarWebhookPixEfi();
+    res.json({ ok: true, webhook });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao consultar webhook Efí.', detalhe: error.message });
   }
 });
 

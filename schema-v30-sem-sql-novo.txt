@@ -1,0 +1,1 @@
+V30 não precisa de SQL novo em relação à v29.
