@@ -4585,7 +4585,7 @@ app.patch('/api/admin/cidade/coletores/:id', autenticarAdmin, async (req, res) =
 });
 
 
-app.get('/api/admin/efi/status', autenticarAdmin, async (req, res) => {
+app.get('/api/admin/efi/status', autenticarAdmin, async (req, res) => { // Mantido apenas para diagnósticos de recebimento Pix dos planos.
   try {
     const diag = diagnosticoEfiConfiguracao();
     let webhook = null;
@@ -4608,32 +4608,17 @@ app.get('/api/admin/efi/status', autenticarAdmin, async (req, res) => {
 });
 
 
-app.post('/api/admin/efi/webhook/cadastrar', autenticarAdmin, async (req, res) => {
-  try {
-    const resultado = await cadastrarWebhookPixEfi(req);
-    await registrarAuditoria(req, 'efi_webhook_pix_cadastrado', {
-      chavePixConfigurada: Boolean(EFI_PIX_KEY),
-      webhookUrl: resultado.webhookUrl.replace(EFI_WEBHOOK_SECRET || '___', EFI_WEBHOOK_SECRET ? '***' : '___')
-    });
-    res.json({
-      ok: true,
-      mensagem: 'Webhook Efí cadastrado na chave Pix pagadora configurada em EFI_PIX_KEY.',
-      chavePixMascarada: mascararChavePixServidor(resultado.chave),
-      webhookUrl: resultado.webhookUrl.replace(EFI_WEBHOOK_SECRET || '___', EFI_WEBHOOK_SECRET ? '***' : '___'),
-      resposta: resultado.resposta
-    });
-  } catch (error) {
-    res.status(500).json({ erro: 'Erro ao cadastrar webhook Efí.', detalhe: error.message });
-  }
+// V31: Botões/rotas de webhook Efí para saque automático removidos.
+app.post('/api/admin/efi/webhook/cadastrar', autenticarAdmin, async (_req, res) => {
+  return res.status(410).json({
+    erro: 'Cadastro automático de webhook Efí foi removido para o saque dos coletores.'
+  });
 });
 
 app.get('/api/admin/efi/webhook', autenticarAdmin, async (_req, res) => {
-  try {
-    const webhook = await consultarWebhookPixEfi();
-    res.json({ ok: true, webhook });
-  } catch (error) {
-    res.status(500).json({ erro: 'Erro ao consultar webhook Efí.', detalhe: error.message });
-  }
+  return res.status(410).json({
+    erro: 'Consulta de webhook Efí foi removida para o saque dos coletores.'
+  });
 });
 
 app.get('/api/admin/cidade/saques', autenticarAdmin, async (_req, res) => {
@@ -4653,99 +4638,11 @@ app.get('/api/admin/cidade/saques', autenticarAdmin, async (_req, res) => {
 });
 
 
-app.post('/api/admin/cidade/saques/:id/enviar-efi', autenticarAdmin, async (req, res) => {
-  try {
-    await garantirSistemaCidadeParceira();
-
-    const senhaAutorizacao = String(req.body.senhaAutorizacao || '').trim();
-    if (CIDADE_SAQUE_ADMIN_PIN && senhaAutorizacao !== CIDADE_SAQUE_ADMIN_PIN) {
-      return res.status(403).json({ erro: 'Senha de autorização do pagamento incorreta.' });
-    }
-
-    const saqueResult = await pool.query(`
-      SELECT *
-      FROM cidade_saques_coletores
-      WHERE id=$1
-      LIMIT 1
-    `, [req.params.id]);
-
-    if (saqueResult.rowCount === 0) return res.status(404).json({ erro: 'Saque não encontrado.' });
-
-    const saque = saqueResult.rows[0];
-    if (saque.status !== 'aguardando') {
-      return res.status(400).json({ erro: 'Este saque já foi finalizado ou não está aguardando pagamento.' });
-    }
-
-    if (!saque.pix_chave || !saque.pix_tipo_chave) {
-      return res.status(400).json({ erro: 'Dados Pix do coletor incompletos.' });
-    }
-
-    let envio;
-    try {
-      envio = await enviarPixSaqueColetorEfi(saque);
-    } catch (erroEfi) {
-      await pool.query(`
-        UPDATE cidade_saques_coletores
-        SET status_transacao=$1,
-            observacao_admin=$2,
-            efi_resposta=$3,
-            atualizado_em=NOW()
-        WHERE id=$4
-      `, [
-        erroEfi.statusCode && erroEfi.statusCode >= 500 ? 'erro_efi_verificar_webhook' : 'erro_efi',
-        erroEfi.message,
-        erroEfi.efiResponse || { erro: erroEfi.message, statusCode: erroEfi.statusCode || null },
-        saque.id
-      ]);
-      throw erroEfi;
-    }
-
-    const observacao = String(req.body.observacao || `Pix enviado pela Efí. idEnvio: ${envio.idEnvio}`).trim();
-    const atualizado = await pool.query(`
-      UPDATE cidade_saques_coletores
-      SET status='pago',
-          observacao_admin=$1,
-          pago_em=NOW(),
-          pago_por_admin_id=$2,
-          metodo_pagamento='pix_efi',
-          status_transacao=$3,
-          efi_id_envio=$4,
-          efi_e2e_id=$5,
-          efi_resposta=$6,
-          comprovante=$7,
-          atualizado_em=NOW()
-      WHERE id=$8 AND status='aguardando'
-      RETURNING *
-    `, [
-      observacao,
-      req.adminUser?.id || null,
-      envio.resposta?.status || 'EM_PROCESSAMENTO',
-      envio.idEnvio,
-      envio.e2eId || null,
-      envio.resposta || {},
-      envio.e2eId ? `Efí e2eId: ${envio.e2eId}` : `Efí idEnvio: ${envio.idEnvio}`,
-      saque.id
-    ]);
-
-    if (atualizado.rowCount === 0) return res.status(409).json({ erro: 'O saque mudou de status durante o envio. Verifique antes de tentar novamente.' });
-
-    await registrarAuditoria(req, 'cidade_saque_coletor_pix_efi_enviado', {
-      saqueId: Number(saque.id),
-      idEnvio: envio.idEnvio,
-      e2eId: envio.e2eId || '',
-      valor: Number(saque.valor || 0)
-    });
-
-    res.json({
-      mensagem: 'Pix enviado pela Efí e saque marcado como pago.',
-      idEnvio: envio.idEnvio,
-      e2eId: envio.e2eId || '',
-      statusTransacao: envio.resposta?.status || 'EM_PROCESSAMENTO',
-      saque: saqueColetorParaFrontend(atualizado.rows[0])
-    });
-  } catch (error) {
-    res.status(500).json({ erro: 'Erro ao enviar Pix pela Efí.', detalhe: error.message });
-  }
+// V31: Pix automático da Efí para saque de coletor removido.
+app.post('/api/admin/cidade/saques/:id/enviar-efi', autenticarAdmin, async (_req, res) => {
+  return res.status(410).json({
+    erro: 'Pix automático da Efí foi removido dos saques dos coletores. Use pagamento manual e depois marque o saque como pago.'
+  });
 });
 
 app.patch('/api/admin/cidade/saques/:id/pagar', autenticarAdmin, async (req, res) => {
@@ -4773,7 +4670,7 @@ app.patch('/api/admin/cidade/saques/:id/pagar', autenticarAdmin, async (req, res
     if (result.rowCount === 0) return res.status(404).json({ erro: 'Saque não encontrado ou já finalizado.' });
 
     await registrarAuditoria(req, 'cidade_saque_coletor_pago', { saqueId: Number(req.params.id), observacao });
-    res.json({ mensagem: 'Saque marcado como pago. Na próxima etapa, este botão será ligado ao Pix automático da Efí.', saque: saqueColetorParaFrontend(result.rows[0]) });
+    res.json({ mensagem: 'Saque marcado como pago manualmente. O coletor verá o pagamento enviado com sucesso.', saque: saqueColetorParaFrontend(result.rows[0]) });
   } catch (error) {
     res.status(500).json({ erro: 'Erro ao marcar saque como pago.', detalhe: error.message });
   }

@@ -18532,3 +18532,66 @@ body::after { content: ""; display: none; }
     width: 100% !important;
   }
 }
+
+
+
+/* =========================================================
+   V31 — SAQUE MANUAL DOS COLETORES
+   ========================================================= */
+
+.admin-saque-toolbar-v31 {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #eff6ff, #ffffff);
+  border: 1px solid rgba(37,99,235,.14);
+  box-shadow: 0 14px 34px rgba(15,23,42,.06);
+}
+
+.admin-saque-toolbar-v31 div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-weight: 900;
+}
+
+.admin-saque-toolbar-v31 strong {
+  color: #2563eb;
+  font-size: 1.35rem;
+}
+
+.admin-saque-toolbar-v31 small {
+  max-width: 520px;
+  color: #64748b;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.admin-saque-coletor-v31 {
+  border-left: 4px solid #2563eb !important;
+}
+
+.admin-saque-coletor-v31.status-pago {
+  border-left-color: #16a34a !important;
+  background: linear-gradient(145deg, #ffffff, #f0fdf4) !important;
+}
+
+.admin-saque-coletor-v31.status-aguardando {
+  background: linear-gradient(145deg, #ffffff, #f8fbff) !important;
+}
+
+.admin-saque-coletor-v31 .pagamento-metricas p strong {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .admin-saque-toolbar-v31 {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

@@ -6100,3 +6100,94 @@ function renderizarAdminSaquesColetores(saques = []) {
     `).join("")}
   ` : `<div class="admin-vazio admin-vazio-menor"><h3>Nenhum saque de coletor solicitado</h3><p>Quando o coletor completar a meta e pedir saque, a notificação aparecerá aqui.</p></div>`;
 }
+
+
+
+/* =========================================================
+   V31 — SAQUE DO COLETOR MANUAL, SEM PIX AUTOMÁTICO EFÍ
+   ========================================================= */
+
+function statusSaqueColetorLabel(status = '') {
+  return {
+    aguardando: 'Aguardando pagamento manual',
+    pago: 'Pagamento enviado',
+    recusado: 'Recusado'
+  }[status] || status || 'aguardando';
+}
+
+function renderizarAdminSaquesColetores(saques = []) {
+  const box = document.getElementById("listaAdminSaquesColetores");
+  if (!box) return;
+  const pendentes = saques.filter(s => s.status === "aguardando").length;
+  setAdminBadge("badgeAdminColetores", pendentes);
+
+  box.innerHTML = saques.length ? `
+    <div class="admin-saque-toolbar-v31">
+      <div>
+        <strong>${pendentes}</strong>
+        <span>saque(s) aguardando pagamento manual</span>
+      </div>
+      <small>Pague manualmente pela Efí usando a chave Pix do coletor. Depois clique em “Marcar pago”.</small>
+    </div>
+    ${saques.map(s => `
+      <article class="admin-pagamento-card admin-saque-coletor-v27 admin-saque-coletor-v28 admin-saque-coletor-v31 status-${s.status === "pago" ? "pago" : s.status === "recusado" ? "expirado" : "aguardando"}">
+        <div class="pagamento-card-topo">
+          <div>
+            <span class="pagamento-status ${s.status === "pago" ? "pago" : "aguardando"}">${statusSaqueColetorLabel(s.status)}</span>
+            <h3>${s.coletorNome}</h3>
+            <p>${s.setor || "Setor não informado"} • ${formatarDataCurta(s.dataReferencia)}</p>
+          </div>
+          <strong>${formatarMoedaBR(s.valor)}</strong>
+        </div>
+        <div class="pagamento-metricas admin-saque-pix-grid">
+          <p><span>Cadastros</span><strong>${s.cadastrosContados}</strong></p>
+          <p><span>Telefone</span><strong>${s.coletorTelefone || "-"}</strong></p>
+          <p><span>Titular Pix</span><strong>${s.pixNomeTitular || "-"}</strong></p>
+          <p><span>CPF/CNPJ</span><strong>${s.pixCpfCnpj || "-"}</strong></p>
+          <p><span>Tipo Pix</span><strong>${s.pixTipoChave || "-"}</strong></p>
+          <p><span>Chave Pix</span><strong>${s.pixChave || "-"}</strong></p>
+          <p><span>Banco</span><strong>${s.bancoNome || "-"}</strong></p>
+          <p><span>Pago em</span><strong>${formatarDataHoraCurta(s.pagoEm) || "-"}</strong></p>
+          <p><span>Observação</span><strong>${s.observacaoAdmin || "Aguardando pagamento manual"}</strong></p>
+        </div>
+        <div class="pagamento-acoes">
+          ${s.coletorTelefone ? `<a href="${criarLinkWhatsApp(s.coletorTelefone)}" target="_blank">WhatsApp</a>` : ""}
+          ${s.pixChave ? `<button type="button" onclick="navigator.clipboard?.writeText('${String(s.pixChave).replace(/'/g, "\\'")}'); alert('Chave Pix copiada.')">Copiar Pix</button>` : ""}
+          ${s.status === "aguardando" ? `<button onclick="marcarSaqueColetorPago(${s.id})">Marcar pago</button><button class="alerta" onclick="recusarSaqueColetor(${s.id})">Recusar</button>` : ""}
+        </div>
+      </article>
+    `).join("")}
+  ` : `<div class="admin-vazio admin-vazio-menor"><h3>Nenhum saque de coletor solicitado</h3><p>Quando o coletor completar a meta e pedir saque, a notificação aparecerá aqui.</p></div>`;
+}
+
+async function marcarSaqueColetorPago(id) {
+  const senhaAutorizacao = prompt("Digite a senha interna para confirmar que você pagou manualmente pela Efí:");
+  if (senhaAutorizacao === null) return;
+  const observacao = prompt("Observação do pagamento:", "Pago manualmente pela Efí.") || "Pago manualmente pela Efí.";
+  try {
+    await apiFetch(`/api/admin/cidade/saques/${id}/pagar`, {
+      method: "PATCH",
+      headers: headersAdmin(),
+      body: JSON.stringify({ observacao, senhaAutorizacao })
+    });
+    alert("Pagamento manual registrado com sucesso.");
+    await mostrarAdminColetores();
+  } catch (error) { alert(error.message); }
+}
+
+// Garante que funções antigas de Pix automático não apareçam/acionem envio.
+async function enviarPixSaqueColetorEfi() {
+  alert("O Pix automático da Efí foi removido. Pague manualmente pela Efí e clique em Marcar pago.");
+}
+
+async function cadastrarWebhookEfiAdmin() {
+  alert("O webhook Efí para saque automático foi removido. O saque dos coletores agora é manual.");
+}
+
+async function consultarWebhookEfiAdmin() {
+  alert("O webhook Efí para saque automático foi removido. O saque dos coletores agora é manual.");
+}
+
+async function verificarEfiAdminStatus() {
+  alert("A verificação Efí para saque automático foi removida. Use pagamento manual pela Efí.");
+}
