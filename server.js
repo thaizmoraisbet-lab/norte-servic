@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
@@ -52,10 +53,14 @@ const EFI_CLIENT_ID = process.env.EFI_CLIENT_ID || process.env.ID_do_cliente_EFI
 const EFI_CLIENT_SECRET = process.env.EFI_CLIENT_SECRET || process.env.SECRET_DO_CLIENTE_EFI || process.env.CLIENT_SECRET_EFI || '';
 const EFI_PIX_KEY = process.env.EFI_PIX_KEY || process.env.CHAVE_PIX_EFI || process.env.PIX_KEY_EFI || '';
 const EFI_CERT_BASE64 = process.env.EFI_CERT_BASE64 || process.env.CERTIFICADO_EFI_BASE64 || process.env.EFI_CERTIFICADO_BASE64 || '';
+const EFI_CERT_PATH = process.env.EFI_CERT_PATH || process.env.EFI_CERTIFICADO_PATH || '';
 const EFI_CERT_PASSWORD = process.env.EFI_CERT_PASSWORD || '';
 const EFI_WEBHOOK_SECRET = process.env.EFI_WEBHOOK_SECRET || '';
 const EFI_PIX_EXPIRACAO = Number(process.env.EFI_PIX_EXPIRACAO || 3600);
-const EFI_SCOPE = process.env.EFI_SCOPE || 'cob.write cob.read pix.read webhook.write webhook.read payloadlocation.write payloadlocation.read';
+const EFI_SCOPE = process.env.EFI_SCOPE || 'cob.write cob.read pix.read pix.send gn.pix.send.read webhook.write webhook.read payloadlocation.write payloadlocation.read';
+const EFI_PIX_AUTOMATICO_ATIVO = String(process.env.EFI_PIX_AUTOMATICO_ATIVO || '').toLowerCase() === 'true';
+const EFI_PIX_LIMITE_POR_SAQUE = Number(process.env.EFI_PIX_LIMITE_POR_SAQUE || CIDADE_COMISSAO_META_SAQUE || 50);
+const EFI_PIX_LIMITE_DIARIO = Number(process.env.EFI_PIX_LIMITE_DIARIO || 300);
 const EFI_BASE_URL = EFI_AMBIENTE === 'producao'
   ? 'https://pix.api.efipay.com.br'
   : 'https://pix-h.api.efipay.com.br';
@@ -222,30 +227,53 @@ let efiTokenCache = {
   expiraEm: 0
 };
 
+function efiCertificadoConfigurado() {
+  if (EFI_CERT_BASE64) return true;
+  if (!EFI_CERT_PATH) return false;
+  try {
+    return fs.existsSync(EFI_CERT_PATH);
+  } catch (_) {
+    return false;
+  }
+}
+
+function efiCertificadoBuffer() {
+  if (EFI_CERT_BASE64) {
+    return Buffer.from(EFI_CERT_BASE64, 'base64');
+  }
+
+  if (EFI_CERT_PATH && fs.existsSync(EFI_CERT_PATH)) {
+    return fs.readFileSync(EFI_CERT_PATH);
+  }
+
+  throw new Error('Certificado da Efí não configurado. Configure EFI_CERT_BASE64 ou EFI_CERT_PATH no Railway.');
+}
+
 function efiConfigurado() {
-  return Boolean(EFI_CLIENT_ID && EFI_CLIENT_SECRET && EFI_PIX_KEY && EFI_CERT_BASE64);
+  return Boolean(EFI_CLIENT_ID && EFI_CLIENT_SECRET && EFI_PIX_KEY && efiCertificadoConfigurado());
 }
 
 function diagnosticoEfiConfiguracao() {
   return {
     ambiente: EFI_AMBIENTE,
+    baseUrl: EFI_BASE_URL,
     clientId: Boolean(EFI_CLIENT_ID),
     clientSecret: Boolean(EFI_CLIENT_SECRET),
     pixKey: Boolean(EFI_PIX_KEY),
     certBase64: Boolean(EFI_CERT_BASE64),
+    certPath: EFI_CERT_PATH ? { configurado: true, existe: efiCertificadoConfigurado() } : { configurado: false, existe: false },
     certPassword: Boolean(EFI_CERT_PASSWORD),
+    pixAutomaticoAtivo: EFI_PIX_AUTOMATICO_ATIVO,
+    limitePorSaque: EFI_PIX_LIMITE_POR_SAQUE,
+    limiteDiario: EFI_PIX_LIMITE_DIARIO,
     scope: EFI_SCOPE,
     expiracao: EFI_PIX_EXPIRACAO
   };
 }
 
 function efiHttpsAgent() {
-  if (!EFI_CERT_BASE64) {
-    throw new Error('Certificado da Efí não configurado. Configure EFI_CERT_BASE64 no Railway.');
-  }
-
   return new https.Agent({
-    pfx: Buffer.from(EFI_CERT_BASE64, 'base64'),
+    pfx: efiCertificadoBuffer(),
     passphrase: EFI_CERT_PASSWORD || undefined,
     rejectUnauthorized: true
   });
@@ -282,10 +310,18 @@ function efiRequest(method, caminho, body = null, token = '') {
 
         if (resposta.statusCode < 200 || resposta.statusCode >= 300) {
           const detalhe = json?.mensagem || json?.message || json?.erro || json?.detail || respostaTexto || `HTTP ${resposta.statusCode}`;
-          return reject(new Error(`Erro Efí HTTP ${resposta.statusCode}: ${detalhe}`));
+          const error = new Error(`Erro Efí HTTP ${resposta.statusCode}: ${detalhe}`);
+          error.statusCode = resposta.statusCode;
+          error.efiResponse = json;
+          error.headers = resposta.headers || {};
+          return reject(error);
         }
 
-        resolve(json || {});
+        resolve({
+          ...(json || {}),
+          _headers: resposta.headers || {},
+          _statusCode: resposta.statusCode
+        });
       });
     });
 
@@ -582,6 +618,109 @@ async function criarCobrancaPixEfi({ txid, plano, profissional }) {
 async function consultarCobrancaPixEfi(txid) {
   const token = await obterTokenEfi();
   return efiRequest('GET', `/v2/cob/${encodeURIComponent(txid)}`, null, token);
+}
+
+function gerarIdEnvioSaqueColetor(saqueId) {
+  return `NSC${String(saqueId || '').replace(/\D/g, '')}${crypto.randomBytes(12).toString('hex')}`.slice(0, 35);
+}
+
+function normalizarChavePixParaEfi(tipo = '', chave = '') {
+  const tipoNormalizado = normalizarTipoChavePixCidade(tipo);
+  const valor = String(chave || '').trim();
+
+  if (tipoNormalizado === 'telefone') {
+    let digitos = limparNumero(valor);
+    if (digitos && !digitos.startsWith('55')) digitos = `55${digitos}`;
+    return digitos ? `+${digitos}` : valor;
+  }
+
+  if (tipoNormalizado === 'cpf' || tipoNormalizado === 'cnpj') {
+    return limparNumero(valor);
+  }
+
+  return valor;
+}
+
+function documentoFavorecidoPix(dados = {}) {
+  const doc = limparNumero(dados.pix_cpf_cnpj || dados.pixCpfCnpj || '');
+  if (doc.length === 11) return { cpf: doc };
+  if (doc.length === 14) return { cnpj: doc };
+  return {};
+}
+
+async function enviarPixSaqueColetorEfi(saque) {
+  if (!EFI_PIX_AUTOMATICO_ATIVO) {
+    throw new Error('Pix automático da Efí está desativado. Configure EFI_PIX_AUTOMATICO_ATIVO=true somente após testar tudo.');
+  }
+
+  if (!efiConfigurado()) {
+    throw new Error('Integração Efí incompleta. Confira EFI_CLIENT_ID, EFI_CLIENT_SECRET, EFI_PIX_KEY e certificado.');
+  }
+
+  const valor = Number(saque.valor || 0);
+  if (!valor || valor <= 0) throw new Error('Valor do saque inválido.');
+  if (EFI_PIX_LIMITE_POR_SAQUE > 0 && valor > EFI_PIX_LIMITE_POR_SAQUE) {
+    throw new Error(`Valor do saque (${valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}) acima do limite por saque configurado (${EFI_PIX_LIMITE_POR_SAQUE.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}).`);
+  }
+
+  const diario = await pool.query(`
+    SELECT COALESCE(SUM(valor),0)::numeric AS total
+    FROM cidade_saques_coletores
+    WHERE status='pago'
+      AND metodo_pagamento='pix_efi'
+      AND pago_em >= (date_trunc('day', now() AT TIME ZONE 'America/Sao_Paulo') AT TIME ZONE 'America/Sao_Paulo')
+  `);
+  const totalHoje = Number(diario.rows[0]?.total || 0);
+  if (EFI_PIX_LIMITE_DIARIO > 0 && totalHoje + valor > EFI_PIX_LIMITE_DIARIO) {
+    throw new Error(`Limite diário de Pix automático atingido. Hoje já foram pagos ${totalHoje.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}.`);
+  }
+
+  const idEnvio = saque.efi_id_envio || gerarIdEnvioSaqueColetor(saque.id);
+  const chaveFavorecido = normalizarChavePixParaEfi(saque.pix_tipo_chave, saque.pix_chave);
+  if (!chaveFavorecido) throw new Error('Chave Pix do coletor não informada.');
+
+  const body = {
+    valor: dinheiroEfi(valor),
+    pagador: {
+      chave: EFI_PIX_KEY,
+      infoPagador: `Norte Servic - saque coletor #${saque.id}`
+    },
+    favorecido: {
+      chave: chaveFavorecido,
+      ...documentoFavorecidoPix(saque)
+    }
+  };
+
+  await pool.query(`
+    UPDATE cidade_saques_coletores
+    SET efi_id_envio=$1,
+        metodo_pagamento='pix_efi',
+        status_transacao='enviando_efi',
+        atualizado_em=NOW()
+    WHERE id=$2
+  `, [idEnvio, saque.id]);
+
+  const token = await obterTokenEfi();
+  const resposta = await efiRequest('PUT', `/v3/gn/pix/${encodeURIComponent(idEnvio)}`, body, token);
+
+  return {
+    idEnvio,
+    e2eId: resposta.e2eId || resposta.endToEndId || '',
+    resposta,
+    body: {
+      ...body,
+      favorecido: {
+        ...body.favorecido,
+        chave: mascararChavePixServidor(body.favorecido.chave)
+      }
+    }
+  };
+}
+
+function mascararChavePixServidor(valor = '') {
+  const texto = String(valor || '');
+  if (texto.length <= 6) return texto;
+  return `${texto.slice(0, 3)}***${texto.slice(-3)}`;
 }
 
 function isoSemMilissegundos(data) {
@@ -1206,6 +1345,11 @@ async function garantirSistemaCidadeParceira() {
   await pool.query(`ALTER TABLE cidade_saques_coletores ADD COLUMN IF NOT EXISTS metodo_pagamento TEXT`);
   await pool.query(`ALTER TABLE cidade_saques_coletores ADD COLUMN IF NOT EXISTS status_transacao TEXT`);
   await pool.query(`ALTER TABLE cidade_saques_coletores ADD COLUMN IF NOT EXISTS comprovante TEXT`);
+  await pool.query(`ALTER TABLE cidade_saques_coletores ADD COLUMN IF NOT EXISTS efi_id_envio TEXT`);
+  await pool.query(`ALTER TABLE cidade_saques_coletores ADD COLUMN IF NOT EXISTS efi_e2e_id TEXT`);
+  await pool.query(`ALTER TABLE cidade_saques_coletores ADD COLUMN IF NOT EXISTS efi_resposta JSONB DEFAULT '{}'::jsonb`);
+  await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_cidade_saques_efi_id_envio ON cidade_saques_coletores(efi_id_envio) WHERE efi_id_envio IS NOT NULL`);
+
   await pool.query(`ALTER TABLE cidade_coleta_profissionais ADD COLUMN IF NOT EXISTS saque_coletor_id BIGINT`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_cidade_coleta_saque_coletor ON cidade_coleta_profissionais(saque_coletor_id)`);
 
@@ -1388,6 +1532,9 @@ function saqueColetorParaFrontend(row) {
     metodoPagamento: row.metodo_pagamento || '',
     statusTransacao: row.status_transacao || '',
     comprovante: row.comprovante || '',
+    efiIdEnvio: row.efi_id_envio || '',
+    efiE2eId: row.efi_e2e_id || '',
+    efiResposta: row.efi_resposta || {},
     criadoEm: row.criado_em,
     atualizadoEm: row.atualizado_em
   };
@@ -4392,6 +4539,18 @@ app.patch('/api/admin/cidade/coletores/:id', autenticarAdmin, async (req, res) =
   }
 });
 
+
+app.get('/api/admin/efi/status', autenticarAdmin, async (_req, res) => {
+  try {
+    res.json({
+      ok: true,
+      efi: diagnosticoEfiConfiguracao()
+    });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao consultar status Efí.', detalhe: error.message });
+  }
+});
+
 app.get('/api/admin/cidade/saques', autenticarAdmin, async (_req, res) => {
   try {
     await garantirSistemaCidadeParceira();
@@ -4405,6 +4564,102 @@ app.get('/api/admin/cidade/saques', autenticarAdmin, async (_req, res) => {
     res.json(result.rows.map(saqueColetorParaFrontend));
   } catch (error) {
     res.status(500).json({ erro: 'Erro ao listar saques dos coletores.', detalhe: error.message });
+  }
+});
+
+
+app.post('/api/admin/cidade/saques/:id/enviar-efi', autenticarAdmin, async (req, res) => {
+  try {
+    await garantirSistemaCidadeParceira();
+
+    const senhaAutorizacao = String(req.body.senhaAutorizacao || '').trim();
+    if (CIDADE_SAQUE_ADMIN_PIN && senhaAutorizacao !== CIDADE_SAQUE_ADMIN_PIN) {
+      return res.status(403).json({ erro: 'Senha de autorização do pagamento incorreta.' });
+    }
+
+    const saqueResult = await pool.query(`
+      SELECT *
+      FROM cidade_saques_coletores
+      WHERE id=$1
+      LIMIT 1
+    `, [req.params.id]);
+
+    if (saqueResult.rowCount === 0) return res.status(404).json({ erro: 'Saque não encontrado.' });
+
+    const saque = saqueResult.rows[0];
+    if (saque.status !== 'aguardando') {
+      return res.status(400).json({ erro: 'Este saque já foi finalizado ou não está aguardando pagamento.' });
+    }
+
+    if (!saque.pix_chave || !saque.pix_tipo_chave) {
+      return res.status(400).json({ erro: 'Dados Pix do coletor incompletos.' });
+    }
+
+    let envio;
+    try {
+      envio = await enviarPixSaqueColetorEfi(saque);
+    } catch (erroEfi) {
+      await pool.query(`
+        UPDATE cidade_saques_coletores
+        SET status_transacao=$1,
+            observacao_admin=$2,
+            efi_resposta=$3,
+            atualizado_em=NOW()
+        WHERE id=$4
+      `, [
+        erroEfi.statusCode && erroEfi.statusCode >= 500 ? 'erro_efi_verificar_webhook' : 'erro_efi',
+        erroEfi.message,
+        erroEfi.efiResponse || { erro: erroEfi.message, statusCode: erroEfi.statusCode || null },
+        saque.id
+      ]);
+      throw erroEfi;
+    }
+
+    const observacao = String(req.body.observacao || `Pix enviado pela Efí. idEnvio: ${envio.idEnvio}`).trim();
+    const atualizado = await pool.query(`
+      UPDATE cidade_saques_coletores
+      SET status='pago',
+          observacao_admin=$1,
+          pago_em=NOW(),
+          pago_por_admin_id=$2,
+          metodo_pagamento='pix_efi',
+          status_transacao=$3,
+          efi_id_envio=$4,
+          efi_e2e_id=$5,
+          efi_resposta=$6,
+          comprovante=$7,
+          atualizado_em=NOW()
+      WHERE id=$8 AND status='aguardando'
+      RETURNING *
+    `, [
+      observacao,
+      req.adminUser?.id || null,
+      envio.resposta?.status || 'EM_PROCESSAMENTO',
+      envio.idEnvio,
+      envio.e2eId || null,
+      envio.resposta || {},
+      envio.e2eId ? `Efí e2eId: ${envio.e2eId}` : `Efí idEnvio: ${envio.idEnvio}`,
+      saque.id
+    ]);
+
+    if (atualizado.rowCount === 0) return res.status(409).json({ erro: 'O saque mudou de status durante o envio. Verifique antes de tentar novamente.' });
+
+    await registrarAuditoria(req, 'cidade_saque_coletor_pix_efi_enviado', {
+      saqueId: Number(saque.id),
+      idEnvio: envio.idEnvio,
+      e2eId: envio.e2eId || '',
+      valor: Number(saque.valor || 0)
+    });
+
+    res.json({
+      mensagem: 'Pix enviado pela Efí e saque marcado como pago.',
+      idEnvio: envio.idEnvio,
+      e2eId: envio.e2eId || '',
+      statusTransacao: envio.resposta?.status || 'EM_PROCESSAMENTO',
+      saque: saqueColetorParaFrontend(atualizado.rows[0])
+    });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao enviar Pix pela Efí.', detalhe: error.message });
   }
 });
 

@@ -18428,3 +18428,67 @@ body::after { content: ""; display: none; }
     grid-template-columns: 1fr !important;
   }
 }
+
+
+
+/* =========================================================
+   V29 — PIX EFÍ NO ADMIN
+   ========================================================= */
+
+.admin-saque-toolbar-v29 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #eff6ff, #ffffff);
+  border: 1px solid rgba(37,99,235,.14);
+  box-shadow: 0 14px 34px rgba(15,23,42,.06);
+}
+
+.admin-saque-toolbar-v29 div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-weight: 850;
+}
+
+.admin-saque-toolbar-v29 strong {
+  color: #2563eb;
+  font-size: 1.3rem;
+}
+
+.admin-saque-toolbar-v29 button,
+.btn-efi-pix-v29 {
+  border: 0;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+  color: #fff !important;
+  font-weight: 950 !important;
+  box-shadow: 0 10px 24px rgba(37,99,235,.22);
+}
+
+.admin-saque-coletor-v29.status-pago {
+  background: linear-gradient(145deg, #ffffff, #f0fdf4) !important;
+}
+
+.admin-saque-coletor-v29.status-aguardando {
+  background: linear-gradient(145deg, #ffffff, #f8fbff) !important;
+}
+
+.admin-saque-coletor-v29 .pagamento-acoes {
+  gap: 8px !important;
+}
+
+@media (max-width: 760px) {
+  .admin-saque-toolbar-v29 {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-saque-toolbar-v29 button {
+    width: 100%;
+  }
+}

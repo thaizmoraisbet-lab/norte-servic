@@ -5924,3 +5924,87 @@ function renderizarAdminSaquesColetores(saques = []) {
     </article>
   `).join("") : `<div class="admin-vazio admin-vazio-menor"><h3>Nenhum saque de coletor solicitado</h3><p>Quando o coletor completar a meta e pedir saque, a notificação aparecerá aqui.</p></div>`;
 }
+
+
+
+/* =========================================================
+   V29 — PIX AUTOMÁTICO EFÍ PARA SAQUE DOS COLETORES
+   ========================================================= */
+
+async function verificarEfiAdminStatus() {
+  try {
+    const resposta = await apiFetch("/api/admin/efi/status", { headers: headersAdmin() });
+    const efi = resposta.efi || {};
+    const ativo = efi.pixAutomaticoAtivo ? "ATIVO" : "DESATIVADO";
+    alert(`Efí Pix automático: ${ativo}\nAmbiente: ${efi.ambiente}\nCertificado: ${efi.certBase64 || efi.certPath?.existe ? "OK" : "pendente"}\nLimite por saque: ${formatarMoedaBR(efi.limitePorSaque || 0)}\nLimite diário: ${formatarMoedaBR(efi.limiteDiario || 0)}`);
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function renderizarAdminSaquesColetores(saques = []) {
+  const box = document.getElementById("listaAdminSaquesColetores");
+  if (!box) return;
+  const pendentes = saques.filter(s => s.status === "aguardando").length;
+  setAdminBadge("badgeAdminColetores", pendentes);
+
+  box.innerHTML = saques.length ? `
+    <div class="admin-saque-toolbar-v29">
+      <div>
+        <strong>${pendentes}</strong>
+        <span>saque(s) aguardando pagamento</span>
+      </div>
+      <button type="button" onclick="verificarEfiAdminStatus()">Verificar Efí</button>
+    </div>
+    ${saques.map(s => `
+      <article class="admin-pagamento-card admin-saque-coletor-v27 admin-saque-coletor-v28 admin-saque-coletor-v29 status-${s.status === "pago" ? "pago" : s.status === "recusado" ? "expirado" : "aguardando"}">
+        <div class="pagamento-card-topo">
+          <div>
+            <span class="pagamento-status ${s.status === "pago" ? "pago" : "aguardando"}">${statusSaqueColetorLabel(s.status)}</span>
+            <h3>${s.coletorNome}</h3>
+            <p>${s.setor || "Setor não informado"} • ${formatarDataCurta(s.dataReferencia)}</p>
+          </div>
+          <strong>${formatarMoedaBR(s.valor)}</strong>
+        </div>
+        <div class="pagamento-metricas admin-saque-pix-grid">
+          <p><span>Cadastros</span><strong>${s.cadastrosContados}</strong></p>
+          <p><span>Telefone</span><strong>${s.coletorTelefone || "-"}</strong></p>
+          <p><span>Titular Pix</span><strong>${s.pixNomeTitular || "-"}</strong></p>
+          <p><span>Tipo Pix</span><strong>${s.pixTipoChave || "-"}</strong></p>
+          <p><span>Chave Pix</span><strong>${mascararPixAdmin(s.pixChave)}</strong></p>
+          <p><span>Transação Efí</span><strong>${s.efiE2eId || s.efiIdEnvio || s.statusTransacao || "-"}</strong></p>
+          <p><span>Pago em</span><strong>${formatarDataHoraCurta(s.pagoEm) || "-"}</strong></p>
+          <p><span>Observação</span><strong>${s.observacaoAdmin || "Aguardando análise"}</strong></p>
+        </div>
+        <div class="pagamento-acoes">
+          ${s.coletorTelefone ? `<a href="${criarLinkWhatsApp(s.coletorTelefone)}" target="_blank">WhatsApp</a>` : ""}
+          ${s.pixChave ? `<button type="button" onclick="navigator.clipboard?.writeText('${String(s.pixChave).replace(/'/g, "\\'")}'); alert('Chave Pix copiada.')">Copiar Pix</button>` : ""}
+          ${s.status === "aguardando" ? `<button class="btn-efi-pix-v29" onclick="enviarPixSaqueColetorEfi(${s.id})">Enviar Pix Efí</button><button onclick="marcarSaqueColetorPago(${s.id})">Pago manual</button><button class="alerta" onclick="recusarSaqueColetor(${s.id})">Recusar</button>` : ""}
+        </div>
+      </article>
+    `).join("")}
+  ` : `<div class="admin-vazio admin-vazio-menor"><h3>Nenhum saque de coletor solicitado</h3><p>Quando o coletor completar a meta e pedir saque, a notificação aparecerá aqui.</p></div>`;
+}
+
+async function enviarPixSaqueColetorEfi(id) {
+  const senhaAutorizacao = prompt("Digite a senha interna de autorização para ENVIAR PIX pela Efí:");
+  if (senhaAutorizacao === null) return;
+
+  const confirmar = confirm("Confirma o envio Pix pela Efí? Essa ação pode movimentar dinheiro real e não deve ser repetida.");
+  if (!confirmar) return;
+
+  const observacao = prompt("Observação do pagamento:", "Pix enviado automaticamente pela Efí.") || "Pix enviado automaticamente pela Efí.";
+
+  try {
+    await apiFetch(`/api/admin/cidade/saques/${id}/enviar-efi`, {
+      method: "POST",
+      headers: headersAdmin(),
+      body: JSON.stringify({ senhaAutorizacao, observacao })
+    });
+    alert("Pix enviado pela Efí com sucesso. O saque foi marcado como pago.");
+    await mostrarAdminColetores();
+  } catch (error) {
+    alert(`${error.message}\n\nSe o erro foi 5XX ou timeout, NÃO tente novamente com outro saque. Verifique o status na Efí antes.`);
+    await mostrarAdminColetores();
+  }
+}
