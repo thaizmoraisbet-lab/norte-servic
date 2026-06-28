@@ -41,10 +41,10 @@
     <section class="cadastro-premium-hero">
       <span>Cadastro profissional</span>
 
-      <h1>Crie seu perfil e seja encontrado por clientes da região.</h1>
+      <h1>Cadastro guiado para criar seu perfil profissional.</h1>
 
       <p>
-        Cadastre sua profissão, selecione os serviços que realiza e informe as cidades onde atende.
+        Preencha em 5 etapas simples: dados, atendimento, contato, apresentação e termos.
       </p>
     </section>
 
@@ -61,9 +61,22 @@
           </p>
         </div>
 
-        <form id="formCadastro">
+        <div class="cadastro-mobile-wizard" id="cadastroWizardStepper" aria-label="Etapas do cadastro">
+          <button type="button" class="wizard-step ativo" data-step="1"><span>1</span><small>Dados</small></button>
+          <i></i>
+          <button type="button" class="wizard-step" data-step="2"><span>2</span><small>Atendimento</small></button>
+          <i></i>
+          <button type="button" class="wizard-step" data-step="3"><span>3</span><small>Contato</small></button>
+          <i></i>
+          <button type="button" class="wizard-step" data-step="4"><span>4</span><small>Perfil</small></button>
+          <i></i>
+          <button type="button" class="wizard-step" data-step="5"><span>5</span><small>Termos</small></button>
+        </div>
 
-          <div class="grupo-form-premium">
+        <form id="formCadastro" class="cadastro-wizard-form">
+
+          <div class="grupo-form-premium cadastro-wizard-panel ativo" data-wizard-panel="1">
+            <div class="wizard-panel-head"><span>Etapa 1 de 5</span><h3>Dados do profissional</h3><p>Informe a identificação, categoria, profissão e os serviços que realiza.</p></div>
             <h3>Informações principais</h3>
 
             <div class="form-grid-2">
@@ -89,7 +102,7 @@
             </div>
           </div>
 
-          <div class="grupo-form-premium">
+          <div class="grupo-form-premium cadastro-wizard-panel ativo" data-wizard-panel="1">
             <h3>Categoria e profissão</h3>
 
             <div class="form-grid-2">
@@ -141,7 +154,8 @@
             </p>
           </div>
 
-          <div class="grupo-form-premium">
+          <div class="grupo-form-premium cadastro-wizard-panel" data-wizard-panel="2">
+            <div class="wizard-panel-head"><span>Etapa 2 de 5</span><h3>Área de atendimento</h3><p>Informe a cidade, bairro e como você atende seus clientes.</p></div>
             <h3>Área de atendimento</h3>
 
             <div class="form-grid-2">
@@ -216,7 +230,8 @@
             </div>
           </div>
 
-          <div class="grupo-form-premium">
+          <div class="grupo-form-premium cadastro-wizard-panel" data-wizard-panel="3">
+            <div class="wizard-panel-head"><span>Etapa 3 de 5</span><h3>Contato</h3><p>Cadastre o WhatsApp e crie sua senha para acessar a área profissional.</p></div>
             <h3>Contato</h3>
 
             <div class="form-grid-2">
@@ -269,7 +284,8 @@
             </p>
           </div>
 
-          <div class="grupo-form-premium">
+          <div class="grupo-form-premium cadastro-wizard-panel" data-wizard-panel="4">
+            <div class="wizard-panel-head"><span>Etapa 4 de 5</span><h3>Apresentação do serviço e imagens</h3><p>Conte sobre seu trabalho e envie fotos para deixar seu perfil mais confiável.</p></div>
             <h3>Apresentação do serviço</h3>
 
             <label>Descrição do trabalho</label>
@@ -281,7 +297,7 @@
             ></textarea>
           </div>
 
-          <div class="grupo-form-premium">
+          <div class="grupo-form-premium cadastro-wizard-panel" data-wizard-panel="4">
             <h3>Imagens do perfil</h3>
 
             <div class="form-grid-2">
@@ -313,7 +329,8 @@
           </div>
 
 
-          <div class="grupo-form-premium cadastro-legal-aceite">
+          <div class="grupo-form-premium cadastro-legal-aceite cadastro-wizard-panel" data-wizard-panel="5">
+            <div class="wizard-panel-head"><span>Etapa 5 de 5</span><h3>Termos e privacidade</h3><p>Leia e aceite os documentos legais para enviar o cadastro para análise.</p></div>
             <h3>Termos e privacidade</h3>
             <label class="legal-checkbox-linha">
               <input type="checkbox" id="aceitouTermos" required>
@@ -325,9 +342,13 @@
             </label>
             <p class="aviso-foto premium">O aceite é obrigatório para finalizar o cadastro e será registrado com data, hora, IP e versão dos documentos.</p>
           </div>
-          <button type="submit" class="botao-cadastro-premium">
-            Enviar cadastro para análise
-          </button>
+          <div class="cadastro-wizard-actions">
+            <button type="button" class="wizard-voltar" id="btnWizardVoltar">Voltar</button>
+            <button type="button" class="wizard-proximo" id="btnWizardProximo">Próximo</button>
+            <button type="submit" class="botao-cadastro-premium wizard-submit" id="btnWizardSubmit">
+              Enviar cadastro para análise
+            </button>
+          </div>
         </form>
 
         <p id="mensagemCadastro"></p>

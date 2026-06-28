@@ -6191,3 +6191,121 @@ async function consultarWebhookEfiAdmin() {
 async function verificarEfiAdminStatus() {
   alert("A verificação Efí para saque automático foi removida. Use pagamento manual pela Efí.");
 }
+
+/* =========================================================
+   V34 - Cadastro guiado e Admin desktop com menu lateral
+   ========================================================= */
+(function initCadastroWizardV34(){
+  function qs(sel, root=document){ return root.querySelector(sel); }
+  function qsa(sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
+  function setup(){
+    const form = qs('#formCadastro.cadastro-wizard-form');
+    const stepper = qs('#cadastroWizardStepper');
+    if (!form || !stepper || form.dataset.wizardReady === '1') return;
+    form.dataset.wizardReady = '1';
+    let step = 1;
+    const total = 5;
+    const btnVoltar = qs('#btnWizardVoltar');
+    const btnProximo = qs('#btnWizardProximo');
+    const btnSubmit = qs('#btnWizardSubmit');
+    const mensagem = qs('#mensagemCadastro');
+
+    function painelCampos(n){
+      return qsa(`[data-wizard-panel="${n}"]`, form).flatMap(p => qsa('input, select, textarea', p));
+    }
+    function validarEtapa(n){
+      const campos = painelCampos(n).filter(c => !c.disabled && c.offsetParent !== null && c.type !== 'hidden');
+      for (const campo of campos) {
+        if (!campo.checkValidity()) {
+          campo.reportValidity();
+          return false;
+        }
+      }
+      if (n === 1) {
+        const servicos = qs('#servicos');
+        if (servicos && !String(servicos.value || '').trim()) {
+          if (mensagem) mensagem.innerText = 'Selecione pelo menos um serviço que você realiza.';
+          const box = qs('#servicosTagsBox');
+          if (box) box.scrollIntoView({behavior:'smooth', block:'center'});
+          return false;
+        }
+      }
+      return true;
+    }
+    function render(){
+      qsa('[data-wizard-panel]', form).forEach(p => p.classList.toggle('ativo', Number(p.dataset.wizardPanel) === step));
+      qsa('.wizard-step', stepper).forEach(btn => {
+        const n = Number(btn.dataset.step);
+        btn.classList.toggle('ativo', n === step);
+        btn.classList.toggle('concluido', n < step);
+      });
+      qsa('i', stepper).forEach((bar, idx) => bar.classList.toggle('ativo', idx < step - 1));
+      if (btnVoltar) btnVoltar.style.visibility = step === 1 ? 'hidden' : 'visible';
+      if (btnProximo) btnProximo.style.display = step === total ? 'none' : 'inline-flex';
+      if (btnSubmit) btnSubmit.classList.toggle('ativo', step === total);
+      const ativo = qs(`[data-wizard-panel="${step}"]`, form);
+      if (ativo) ativo.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+    btnProximo?.addEventListener('click', () => {
+      if (!validarEtapa(step)) return;
+      step = Math.min(total, step + 1);
+      render();
+    });
+    btnVoltar?.addEventListener('click', () => {
+      step = Math.max(1, step - 1);
+      render();
+    });
+    qsa('.wizard-step', stepper).forEach(btn => btn.addEventListener('click', () => {
+      const destino = Number(btn.dataset.step);
+      if (destino > step) {
+        for (let n = step; n < destino; n++) if (!validarEtapa(n)) return;
+      }
+      step = destino;
+      render();
+    }));
+    form.addEventListener('submit', (e) => {
+      if (step !== total) {
+        e.preventDefault();
+        if (validarEtapa(step)) { step = Math.min(total, step + 1); render(); }
+        return;
+      }
+      if (!validarEtapa(5)) {
+        e.preventDefault();
+      }
+    }, true);
+    render();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup);
+  else setup();
+})();
+
+(function initAdminDesktopV34(){
+  function setup(){
+    if (!document.getElementById('painelAdmin')) return;
+    document.body.classList.add('admin-modern-desktop');
+    const title = document.querySelector('.admin-ultra-header h1');
+    if (title) title.textContent = 'Admin Desktop';
+    const desc = document.querySelector('.admin-ultra-header p');
+    if (desc) desc.textContent = new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+    const map = {
+      profissionais: ['👥','Profissionais'],
+      pagamentos: ['💳','Pagamentos'],
+      indicacoes: ['🔗','Indicações'],
+      coletores: ['📍','Coletores'],
+      salaempreendedor: ['🏢','Sala Empreendedor'],
+      lgpd: ['🛡️','LGPD'],
+      avaliacoes: ['⭐','Avaliações']
+    };
+    document.querySelectorAll('.admin-modulo-btn').forEach(btn => {
+      const key = btn.dataset.adminModulo;
+      if (map[key]) {
+        const ic = btn.querySelector('.admin-modulo-icone');
+        const st = btn.querySelector('strong');
+        if (ic) ic.textContent = map[key][0];
+        if (st) st.textContent = map[key][1];
+      }
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup);
+  else setup();
+})();
