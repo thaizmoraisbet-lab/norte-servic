@@ -1,397 +1,132 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
-<meta charset="UTF-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Cadastro de Profissional - Norte Servic</title>
-
-  <link rel="stylesheet" href="style.css?v=32-base">
-  <link rel="stylesheet" href="theme.css?v=32-standard">
-  <link rel="canonical" href="https://www.norteservic.com.br/cadastro">
+  <meta name="theme-color" content="#07111d">
+  <title>Cadastre-se como profissional | Norte Servic</title>
+  <meta name="description" content="Crie seu perfil profissional na Norte Servic em menos de um minuto.">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/assets/css/base.css?v=36">
 </head>
-<body>
-
-  <div class="mini-loading" id="miniLoading">
-    <div class="loader-bolinha"></div>
-    <p>Enviando cadastro...</p>
+<body class="cadastro-v35-page auth-v36-page">
+  <div class="mini-loading" id="miniLoading" aria-live="polite">
+    <div class="ns-loader-card ns-loader-card-dark">
+      <div class="ns-loader-logo"><span>NS</span></div>
+      <p>Criando seu perfil...</p>
+      <div class="ns-loader-bar"><span></span></div>
+    </div>
   </div>
 
-  <header class="ns-header">
-  <a href="/" class="ns-logo" aria-label="Voltar para o início">
-    <span class="ns-logo-icon">✓</span>
-    <span>Norte Servic</span>
-  </a>
+  <header class="ns-header ns-header-v36">
+    <a href="/" class="ns-logo" aria-label="Norte Servic - início">
+      <span class="ns-logo-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span class="ns-logo-word">Norte <b>Servic</b><em>.</em></span>
+    </a>
+    <nav class="ns-nav" aria-label="Menu principal">
+      <a href="/">Encontrar profissionais</a>
+      <a href="/planos">Planos</a>
+      <a href="/login" class="ns-nav-login">Entrar</a>
+    </nav>
+  </header>
 
-  <nav class="ns-nav" aria-label="Menu principal">
-    <a href="/">Início</a>
-    <a href="/cadastro">Cadastrar</a>
-    <a href="/planos">Planos</a>
-    <a href="/login">Área profissional</a>
-  </nav>
-</header>
+  <main class="signup-shell signup-shell-v36">
+    <section class="signup-intro signup-intro-v36" aria-labelledby="signupTitle">
+      <span class="section-kicker section-kicker-star">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.8 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 2.8Z"/></svg>
+        Para profissionais
+      </span>
+      <h1 id="signupTitle">Seu trabalho mais perto de quem precisa.</h1>
+      <p>Crie a conta com apenas o essencial. Foto, portfólio, serviços detalhados e área de atendimento podem ser adicionados depois.</p>
 
-  <main class="cadastro-premium-page">
+      <div class="signup-trust-grid signup-trust-v36">
+        <article><span class="signup-trust-icon" aria-hidden="true">01</span><div><strong>Cadastro em menos de 1 minuto</strong><small>Nome, profissão, cidade, WhatsApp e senha.</small></div></article>
+        <article><span class="signup-trust-icon" aria-hidden="true">02</span><div><strong>Perfil guiado</strong><small>Depois do cadastro, um checklist mostra exatamente o que completar.</small></div></article>
+        <article><span class="signup-trust-icon" aria-hidden="true">03</span><div><strong>Controle pelo seu painel</strong><small>Atualize dados, portfólio e informações quando precisar.</small></div></article>
+      </div>
 
-    <section class="cadastro-premium-hero">
-      <span>Cadastro profissional</span>
-
-      <h1>Crie seu perfil e seja encontrado por clientes da região.</h1>
-
-      <p>
-        Cadastre sua profissão, selecione os serviços que realiza e informe as cidades onde atende.
-      </p>
+      <div class="signup-note signup-note-v36">
+        <span aria-hidden="true">✓</span>
+        <p><strong>Sem formulário gigante.</strong> Você cria a conta primeiro e melhora seu perfil no seu ritmo.</p>
+      </div>
     </section>
 
-    <section class="cadastro-premium-layout cadastro-layout-prioridade-mobile">
-
-      <section class="cadastro-form-card">
-        <div class="cadastro-form-topo">
-          <span>Preencha com atenção</span>
-
-          <h2>Dados do profissional</h2>
-
-          <p>
-            Preencha seus dados com cuidado. Essas informações aparecem no seu perfil e ajudam clientes da região a entrar em contato.
-          </p>
+    <section class="signup-card signup-card-v36" aria-label="Formulário de cadastro">
+      <div class="signup-card-head">
+        <div>
+          <span class="signup-step">PASSO 1 DE 2</span>
+          <h2>Crie seu perfil grátis</h2>
+          <p>Preencha somente os dados necessários para começar.</p>
         </div>
+        <div class="signup-progress" aria-label="Etapa 1 de 2"><span></span></div>
+      </div>
 
-        <form id="formCadastro">
-
-          <div class="grupo-form-premium">
-            <h3>Informações principais</h3>
-
-            <div class="form-grid-2">
-              <div>
-                <label>Nome completo</label>
-                <input 
-                  type="text" 
-                  id="nome" 
-                  placeholder="Ex: João Silva" 
-                  required
-                >
-              </div>
-
-              <div>
-                <label>Tipo de profissional</label>
-                <select id="tipoProfissional" required>
-                  <option value="">Selecione</option>
-                  <option value="Autônomo">Autônomo</option>
-                  <option value="MEI">MEI</option>
-                  <option value="Empresa / CNPJ">Empresa / CNPJ</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div class="grupo-form-premium">
-            <h3>Categoria e profissão</h3>
-
-            <div class="form-grid-2">
-              <div>
-                <label>Categoria</label>
-                <select id="categoria" required>
-                  <option value="">Selecione uma categoria</option>
-                </select>
-              </div>
-
-              <div>
-                <label>Profissão principal</label>
-                <select id="profissao" required>
-                  <option value="">Selecione primeiro uma categoria</option>
-                </select>
-              </div>
-            </div>
-
-            <label>Serviços que realiza</label>
-
-            <div class="servicos-tags-box" id="servicosTagsBox">
-              <p class="servicos-placeholder">
-                Selecione uma profissão para ver os serviços disponíveis.
-              </p>
-            </div>
-
-            <input type="hidden" id="servicos" required>
-
-            <div class="servicos-selecionados" id="servicosSelecionados"></div>
-
-            <div class="servico-extra-box">
-              <label>Outro serviço que realiza</label>
-
-              <div class="servico-extra-linha">
-                <input 
-                  type="text" 
-                  id="servicoExtra" 
-                  placeholder="Ex: assentamento de porcelanato"
-                >
-
-                <button type="button" onclick="adicionarServicoExtra()">
-                  Adicionar
-                </button>
-              </div>
-            </div>
-
-            <p class="aviso-foto premium">
-              Clique nos serviços que você realiza. Eles serão adicionados automaticamente ao seu perfil.
-            </p>
-          </div>
-
-          <div class="grupo-form-premium">
-            <h3>Área de atendimento</h3>
-
-            <div class="form-grid-2">
-              <div>
-                <label>Cidade principal</label>
-
-                <div class="campo-cidade-inteligente">
-                  <input 
-                    type="text" 
-                    id="cidade" 
-                    placeholder="Digite sua cidade"
-                    autocomplete="off"
-                    required
-                  >
-
-                  <div class="sugestoes-cidade" id="sugestoesCidade"></div>
-                </div>
-              </div>
-
-              <div>
-                <label>Bairro</label>
-                <input 
-                  type="text" 
-                  id="bairro" 
-                  placeholder="Ex: Centro" 
-                  required
-                >
-              </div>
-            </div>
-
-            <div class="form-grid-2">
-              <div>
-                <label>Atende outras cidades?</label>
-                <select id="atendeOutrasCidades" onchange="alternarCidadesAtendidas()" required>
-                  <option value="">Selecione</option>
-                  <option value="Não">Não, somente minha cidade</option>
-                  <option value="Sim">Sim, atendo cidades próximas</option>
-                  <option value="Depende do serviço">Depende do serviço</option>
-                </select>
-              </div>
-
-              <div>
-                <label>Forma de atendimento</label>
-                <select id="formaAtendimento" required>
-                  <option value="">Selecione</option>
-                  <option value="Presencial">Presencial</option>
-                  <option value="Online">Online</option>
-                  <option value="Presencial e online">Presencial e online</option>
-                </select>
-              </div>
-            </div>
-
-            <div id="boxCidadesAtendidas" class="box-cidades-atendidas escondido">
-              <label>Cidades que também atende</label>
-
-              <div class="campo-cidade-inteligente">
-                <input 
-                  type="text" 
-                  id="cidadeAtendidaInput" 
-                  placeholder="Digite uma cidade e selecione"
-                  autocomplete="off"
-                >
-
-                <div class="sugestoes-cidade" id="sugestoesCidadeAtendida"></div>
-              </div>
-
-              <div class="cidades-selecionadas" id="cidadesSelecionadas"></div>
-
-              <p class="aviso-foto premium">
-                Adicione apenas as cidades onde você realmente consegue atender.
-              </p>
-            </div>
-          </div>
-
-          <div class="grupo-form-premium">
-            <h3>Contato</h3>
-
-            <div class="form-grid-2">
-              <div>
-                <label>WhatsApp</label>
-                <input 
-                  type="text" 
-                  id="whatsapp" 
-                  placeholder="Ex: 5563999999999" 
-                  required
-                >
-              </div>
-
-              <div>
-                <label>Instagram</label>
-                <input 
-                  type="text" 
-                  id="instagram" 
-                  placeholder="Ex: @seuinstagram"
-                >
-              </div>
-            </div>
-
-            <div class="form-grid-2 senha-cadastro-grid">
-              <div>
-                <label>Criar senha de acesso</label>
-                <input 
-                  type="password" 
-                  id="senhaCadastro" 
-                  placeholder="Mínimo 6 caracteres" 
-                  minlength="6"
-                  required
-                >
-              </div>
-
-              <div>
-                <label>Confirmar senha</label>
-                <input 
-                  type="password" 
-                  id="confirmarSenhaCadastro" 
-                  placeholder="Digite a senha novamente" 
-                  minlength="6"
-                  required
-                >
-              </div>
-            </div>
-
-            <p class="aviso-foto premium">
-              Essa senha será usada para o profissional entrar na própria conta e editar o perfil depois.
-            </p>
-          </div>
-
-          <div class="grupo-form-premium">
-            <h3>Apresentação do serviço</h3>
-
-            <label>Descrição do trabalho</label>
-            <textarea 
-              id="descricao" 
-              rows="5" 
-              placeholder="Conte um pouco sobre seu trabalho, experiência e os serviços que oferece."
-              required
-            ></textarea>
-          </div>
-
-          <div class="grupo-form-premium">
-            <h3>Imagens do perfil</h3>
-
-            <div class="form-grid-2">
-              <div>
-                <label>Foto do profissional</label>
-                <input 
-                  type="file" 
-                  id="fotoPerfil" 
-                  accept="image/*"
-                  required
-                >
-                <small class="campo-ajuda-foto">Envie sua foto normalmente. O sistema ajusta e redimensiona automaticamente, mesmo se a imagem não estiver quadrada.</small>
-              </div>
-
-              <div>
-                <label>Fotos dos trabalhos</label>
-                <input 
-                  type="file" 
-                  id="fotosTrabalhos" 
-                  accept="image/*" 
-                  multiple
-                >
-              </div>
-            </div>
-
-            <p class="aviso-foto premium">
-              A foto principal será ajustada automaticamente. As fotos dos trabalhos aparecem em carrossel no perfil.
-            </p>
-          </div>
-
-
-          <div class="grupo-form-premium cadastro-legal-aceite">
-            <h3>Termos e privacidade</h3>
-            <label class="legal-checkbox-linha">
-              <input type="checkbox" id="aceitouTermos" required>
-              <span>Li e aceito os <a href="/documentos-legais#termos" target="_blank">Termos de Uso da Norte Servic</a>.</span>
-            </label>
-            <label class="legal-checkbox-linha">
-              <input type="checkbox" id="aceitouPrivacidade" required>
-              <span>Li e concordo com a <a href="/documentos-legais#privacidade" target="_blank">Política de Privacidade</a>.</span>
-            </label>
-            <p class="aviso-foto premium">O aceite é obrigatório para finalizar o cadastro e será registrado com data, hora, IP e versão dos documentos.</p>
-          </div>
-          <button type="submit" class="botao-cadastro-premium">
-            Enviar cadastro para análise
-          </button>
-        </form>
-
-        <p id="mensagemCadastro"></p>
-      </section>
-
-      <aside class="cadastro-beneficios">
-        <div class="cadastro-beneficios-topo">
-          <span>Para profissionais</span>
-
-          <h2>Seu serviço com aparência mais profissional.</h2>
-
-          <p>
-            Quanto mais completo for seu cadastro, maior a confiança para o cliente entrar em contato.
-          </p>
-        </div>
-
-        <div class="cadastro-beneficio-lista">
-          <div>
-            <strong>01</strong>
-            <h3>Cadastro organizado</h3>
-            <p>Escolha categoria, profissão e serviços de forma guiada.</p>
-          </div>
-
-          <div>
-            <strong>02</strong>
-            <h3>Atendimento regional</h3>
-            <p>Informe sua cidade principal e outras cidades que você também atende.</p>
-          </div>
-
-          <div>
-            <strong>03</strong>
-            <h3>Mais confiança</h3>
-            <p>Adicione fotos reais, descrição e dados corretos de contato.</p>
+      <form id="formCadastro" class="signup-form" novalidate>
+        <div class="field-group">
+          <label for="nome">Seu nome</label>
+          <div class="field-control field-control-v36">
+            <span class="field-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.2 3.6-7 8-7s8 2.8 8 7"/></svg></span>
+            <input type="text" id="nome" name="nome" autocomplete="name" placeholder="Ex: João da Silva" minlength="2" required>
           </div>
         </div>
 
-        <div class="cadastro-alerta-premium">
-          <h3>Dica importante</h3>
-
-          <p>
-            Cadastros com foto, descrição clara e serviços bem selecionados têm mais chance de receber contatos.
-          </p>
+        <div class="field-group">
+          <label for="profissao">Qual é a sua profissão?</label>
+          <div class="field-control field-control-v36">
+            <span class="field-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m14.7 6.3 3-3a4 4 0 0 1-5 5l-7.4 7.4a2 2 0 0 0 2.8 2.8l7.4-7.4a4 4 0 0 1 5 5l-3 3"/></svg></span>
+            <input type="text" id="profissao" name="profissao" list="listaProfissoesCadastro" autocomplete="off" placeholder="Digite ou escolha sua profissão" required>
+          </div>
+          <datalist id="listaProfissoesCadastro"></datalist>
+          <input type="hidden" id="categoria" name="categoria">
+          <small class="field-help">Ex.: Pedreiro, Eletricista, Fotógrafo, Designer...</small>
         </div>
-      </aside>
 
+        <div class="field-group">
+          <label for="cidade">Cidade onde você trabalha</label>
+          <div class="campo-cidade-inteligente">
+            <div class="field-control field-control-v36">
+              <span class="field-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+              <input type="text" id="cidade" name="cidade" autocomplete="address-level2" placeholder="Digite sua cidade" required>
+            </div>
+            <div class="sugestoes-cidade" id="sugestoesCidade"></div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="whatsapp">WhatsApp</label>
+          <div class="field-control field-control-v36">
+            <span class="field-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4h2l1 5-2 1c1.2 2.5 3 4.3 5.5 5.5l1-2 5 1v2c0 1.7-1.3 3-3 3C9.6 19.5 4.5 14.4 4.5 7.5c0-1.9 1-3.5 2.5-3.5Z"/></svg></span>
+            <input type="tel" id="whatsapp" name="whatsapp" inputmode="numeric" autocomplete="tel" maxlength="16" placeholder="(63) 99999-9999" required>
+          </div>
+          <small class="field-help">Será usado para entrar na conta e receber contatos de clientes.</small>
+        </div>
+
+        <div class="field-group">
+          <label for="senhaCadastro">Crie uma senha</label>
+          <div class="field-control field-control-v36">
+            <span class="field-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
+            <input type="password" id="senhaCadastro" name="senha" autocomplete="new-password" minlength="6" placeholder="Mínimo de 6 caracteres" required>
+          </div>
+        </div>
+
+        <label class="signup-legal" for="aceitouTermos">
+          <input type="checkbox" id="aceitouTermos" required>
+          <span>Li e aceito os <a href="/documentos-legais#termos" target="_blank" rel="noopener">Termos de Uso</a> e a <a href="/documentos-legais#privacidade" target="_blank" rel="noopener">Política de Privacidade</a>.</span>
+        </label>
+
+        <button type="submit" class="signup-submit btn-gold auth-submit-v36"><span>Criar meu perfil grátis</span><span aria-hidden="true">→</span></button>
+        <p id="mensagemCadastro" class="form-message" role="status" aria-live="polite"></p>
+      </form>
+
+      <p class="signup-login-link">Já possui cadastro? <a href="/login">Entrar na minha conta</a></p>
     </section>
-
   </main>
 
-  <footer class="rodape-minimo rodape-legal">
-    <nav>
-      <a href="/documentos-legais#termos">Termos de Uso</a>
-      <a href="/documentos-legais#privacidade">Privacidade</a>
-      <a href="/documentos-legais#cookies">Cookies</a>
-      <a href="/documentos-legais#lgpd">LGPD</a>
-      <a href="/admin">Área Administrativa</a>
-      <a href="/cidade">Cidade Parceira</a>
-      <a href="https://wa.me/5563992472236" target="_blank" rel="noopener">Contato Norte Servic</a>
-    </nav>
-    <p>Norte Servic — CNPJ 63.906.559/0001-03</p>
-    <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
+  <footer class="rodape-minimo rodape-legal footer-v36 footer-auth-v36">
+    <nav><a href="/documentos-legais#termos">Termos</a><a href="/documentos-legais#privacidade">Privacidade</a><a href="/documentos-legais#lgpd">LGPD</a><a href="/cidade">Cidade Parceira</a></nav>
+    <p>Norte Servic — CNPJ 63.906.559/0001-03 · © 2026.</p>
   </footer>
 
-  <script src="script.js?v=22-premium"></script>
+  <script src="/assets/js/core/catalog.js?v=36"></script><script src="/assets/js/core/runtime.js?v=36"></script><script src="/assets/js/features/public.js?v=36"></script><script src="/assets/js/features/professional.js?v=36"></script><script src="/assets/js/features/admin.js?v=36"></script><script src="/assets/js/features/interface.js?v=36"></script><script src="/assets/js/features/admin-operations.js?v=36"></script><script src="/assets/js/core/shell.js?v=36"></script><script src="/assets/js/app.js?v=36"></script>
 </body>
 </html>

@@ -1,125 +1,178 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
-<meta charset="UTF-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Completar perfil - Norte Servic</title>
-
-  <link rel="stylesheet" href="style.css?v=32-base">
-  <link rel="stylesheet" href="theme.css?v=32-standard">
+  <meta name="theme-color" content="#07111d">
+  <title>Complete seu perfil | Norte Servic</title>
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/assets/css/base.css?v=36">
 </head>
-<body class="completar-perfil-page">
-
-  <div class="mini-loading" id="miniLoading">
-    <div class="ns-loader-card ns-loader-card-mini" role="status" aria-live="polite">
+<body class="completar-perfil-page onboarding-v35-page">
+  <div class="mini-loading" id="miniLoading" aria-live="polite">
+    <div class="ns-loader-card ns-loader-card-mini">
       <div class="ns-loader-logo"><span>✓</span></div>
-      <strong>Norte Servic</strong>
-      <p>Carregando...</p>
+      <p>Carregando seu perfil...</p>
       <div class="ns-loader-bar"><span></span></div>
     </div>
   </div>
 
-  <header class="ns-header completar-header">
-    <a href="/" class="ns-logo" aria-label="Norte Servic">
-      <span class="ns-logo-icon">✓</span>
-      <span>Norte Servic</span>
+  <header class="ns-header ns-header-v36 completar-header">
+    <a href="/" class="ns-logo" aria-label="Norte Servic - início">
+      <span class="ns-logo-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span class="ns-logo-word">Norte <b>Servic</b><em>.</em></span>
     </a>
+    <a href="/painel-profissional" class="ns-nav-cta onboarding-painel-link">Ir para o painel</a>
   </header>
 
-  <main class="completar-wrap">
-    <section class="completar-hero">
-      <span class="completar-selo">Cidade Parceira</span>
-      <h1>Complete seu perfil profissional</h1>
-      <p>
-        Informe o WhatsApp cadastrado pelo coletor, receba um código de segurança e atualize foto, descrição,
-        serviços e informações de atendimento.
-      </p>
+  <main class="onboarding-shell">
+    <section class="onboarding-hero">
+      <div>
+        <span class="signup-eyebrow" id="onboardingOrigemSelo">Complete seu perfil</span>
+        <h1>Deixe seu perfil pronto para receber clientes.</h1>
+        <p>Você já criou sua conta. Agora adicione informações que aumentam a confiança de quem procura seu serviço.</p>
+      </div>
+      <div class="profile-strength-card">
+        <div class="profile-strength-top">
+          <span>Força do perfil</span>
+          <strong id="perfilProgressoNumero">40%</strong>
+        </div>
+        <div class="profile-strength-bar"><span id="perfilProgressoBarra" style="width:40%"></span></div>
+        <small id="perfilProgressoTexto">Complete mais informações para melhorar seu perfil.</small>
+      </div>
     </section>
 
-    <section class="completar-card" id="etapaTelefone">
-      <div class="completar-numero">1</div>
-      <h2>Solicitar código</h2>
-      <p>Digite o WhatsApp informado no cadastro.</p>
-
-      <label>WhatsApp com DDD</label>
-      <input type="tel" id="perfilWhatsapp" placeholder="(63) 99999-9999" inputmode="numeric" maxlength="16">
-
-      <button type="button" onclick="solicitarCodigoPerfil()">Enviar código pelo WhatsApp</button>
-      <p class="completar-msg" id="msgTelefone"></p>
+    <section class="onboarding-access-card" id="etapaTelefone">
+      <span class="onboarding-step-number">1</span>
+      <div class="onboarding-access-content">
+        <h2>Acesse seu perfil pelo WhatsApp</h2>
+        <p>Se seu cadastro foi criado pela Cidade Parceira, informe o WhatsApp usado no cadastro.</p>
+        <div class="field-group">
+          <label for="perfilWhatsapp">WhatsApp</label>
+          <div class="field-control">
+            <span class="field-icon" aria-hidden="true">☎</span>
+            <input type="tel" id="perfilWhatsapp" placeholder="(63) 99999-9999" inputmode="numeric" maxlength="16">
+          </div>
+        </div>
+        <button type="button" class="onboarding-primary" onclick="solicitarCodigoPerfil()">Enviar código pelo WhatsApp</button>
+        <p class="completar-msg form-message" id="msgTelefone"></p>
+      </div>
     </section>
 
-    <section class="completar-card escondido" id="etapaCodigo">
-      <div class="completar-numero">2</div>
-      <h2>Validar acesso</h2>
-      <p>Digite o código de 6 dígitos enviado pelo WhatsApp.</p>
-
-      <label>Código recebido</label>
-      <input type="text" id="perfilCodigo" placeholder="000000" inputmode="numeric" maxlength="6">
-
-      <button type="button" onclick="validarCodigoPerfil()">Validar código</button>
-      <p class="completar-msg" id="msgCodigo"></p>
+    <section class="onboarding-access-card escondido" id="etapaCodigo">
+      <span class="onboarding-step-number">2</span>
+      <div class="onboarding-access-content">
+        <h2>Digite o código recebido</h2>
+        <p>O código possui 6 dígitos e expira em alguns minutos.</p>
+        <div class="field-group">
+          <label for="perfilCodigo">Código de acesso</label>
+          <div class="field-control">
+            <span class="field-icon" aria-hidden="true">#</span>
+            <input type="text" id="perfilCodigo" placeholder="000000" inputmode="numeric" maxlength="6">
+          </div>
+        </div>
+        <button type="button" class="onboarding-primary" onclick="validarCodigoPerfil()">Validar código</button>
+        <button type="button" class="onboarding-link-btn" onclick="mostrarEtapa('etapaTelefone')">Usar outro WhatsApp</button>
+        <p class="completar-msg form-message" id="msgCodigo"></p>
+      </div>
     </section>
 
-    <section class="completar-card completar-form-card escondido" id="etapaPerfil">
-      <div class="completar-numero">3</div>
-      <h2>Atualizar perfil</h2>
-      <p>Essas informações poderão aparecer no seu perfil público da Norte Servic.</p>
+    <section class="onboarding-content escondido" id="etapaPerfil">
+      <aside class="onboarding-checklist">
+        <div class="onboarding-person-summary">
+          <div class="onboarding-avatar-wrap">
+            <img id="previewFotoPerfil" alt="Foto do profissional">
+            <span id="previewInicialPerfil">P</span>
+          </div>
+          <div>
+            <strong id="resumoNomePerfil">Seu perfil</strong>
+            <small id="resumoProfissaoPerfil">Profissional</small>
+          </div>
+        </div>
+        <h2>Checklist do perfil</h2>
+        <div class="checklist-items">
+          <div data-check="foto"><span>✓</span><p><strong>Foto profissional</strong><small>Ajuda o cliente a reconhecer você.</small></p></div>
+          <div data-check="servicos"><span>✓</span><p><strong>Serviços</strong><small>Explique o que você faz.</small></p></div>
+          <div data-check="descricao"><span>✓</span><p><strong>Apresentação</strong><small>Conte sua experiência e diferencial.</small></p></div>
+          <div data-check="local"><span>✓</span><p><strong>Área de atendimento</strong><small>Bairro e outras cidades são opcionais.</small></p></div>
+          <div data-check="contato"><span>✓</span><p><strong>Informações extras</strong><small>Instagram e horário são opcionais.</small></p></div>
+        </div>
+        <a href="/painel-profissional" class="onboarding-skip">Fazer isso depois</a>
+      </aside>
 
-      <form id="formCompletarPerfil">
-        <div class="completar-preview">
-          <img id="previewFotoPerfil" alt="Prévia da foto de perfil">
-          <label class="completar-upload">
-            <input type="file" id="fotoPerfilArquivo" accept="image/jpeg,image/png,image/webp">
-            <span>Escolher foto</span>
-          </label>
-          <small>JPG, PNG ou WEBP. Recomendado até 3 MB.</small>
+      <section class="onboarding-form-card">
+        <div class="onboarding-form-head">
+          <div>
+            <span class="signup-step">PASSO 2 DE 2</span>
+            <h2>Complete seu perfil</h2>
+            <p>Você pode deixar os campos opcionais para depois.</p>
+          </div>
         </div>
 
-        <label>Nome</label>
-        <input type="text" id="perfilNome" disabled>
+        <form id="formCompletarPerfil" class="onboarding-form">
+          <div class="onboarding-photo-field">
+            <div class="onboarding-photo-copy">
+              <strong>Adicione uma foto</strong>
+              <small>Opcional, mas aumenta a confiança no seu perfil.</small>
+            </div>
+            <label class="onboarding-upload">
+              <input type="file" id="fotoPerfilArquivo" accept="image/jpeg,image/png,image/webp">
+              <span>Escolher foto</span>
+            </label>
+          </div>
 
-        <label>Profissão</label>
-        <input type="text" id="perfilProfissao" disabled>
+          <div class="onboarding-readonly-grid">
+            <div class="field-group"><label>Nome</label><input type="text" id="perfilNome" disabled></div>
+            <div class="field-group"><label>Profissão</label><input type="text" id="perfilProfissao" disabled></div>
+          </div>
 
-        <label>Serviços oferecidos</label>
-        <textarea id="perfilServicos" rows="3" placeholder="Ex: faço pintura residencial, pequenos reparos, orçamento..."></textarea>
+          <div class="field-group">
+            <label for="perfilServicos">Quais serviços você realiza?</label>
+            <textarea id="perfilServicos" rows="3" placeholder="Ex: reboco, pequenos reparos, pintura residencial, orçamento..."></textarea>
+            <small class="field-help">Separe os serviços por vírgula para facilitar a busca.</small>
+          </div>
 
-        <label>Descrição</label>
-        <textarea id="perfilDescricao" rows="4" placeholder="Fale um pouco sobre seu trabalho, experiência e atendimento."></textarea>
+          <div class="field-group">
+            <label for="perfilDescricao">Apresente seu trabalho</label>
+            <textarea id="perfilDescricao" rows="4" placeholder="Ex: Trabalho há 8 anos com reformas residenciais e comerciais. Atendo com orçamento e horário combinado."></textarea>
+          </div>
 
-        <label>Bairro / referência</label>
-        <input type="text" id="perfilBairro" placeholder="Ex: Centro, Nova Canaã...">
+          <div class="form-grid-2">
+            <div class="field-group"><label for="perfilBairro">Bairro <span class="optional-label">opcional</span></label><input type="text" id="perfilBairro" placeholder="Ex: Centro"></div>
+            <div class="field-group"><label for="perfilInstagram">Instagram <span class="optional-label">opcional</span></label><input type="text" id="perfilInstagram" placeholder="@seuinstagram"></div>
+          </div>
 
-        <label>Instagram</label>
-        <input type="text" id="perfilInstagram" placeholder="@seuinstagram">
+          <div class="form-grid-2">
+            <div class="field-group"><label for="perfilHorario">Horário de atendimento <span class="optional-label">opcional</span></label><input type="text" id="perfilHorario" placeholder="Ex: seg. a sáb., 08h às 18h"></div>
+            <div class="field-group"><label for="perfilAtendeOutras">Atende outras cidades?</label><select id="perfilAtendeOutras"><option value="Não">Não</option><option value="Sim">Sim</option><option value="Depende do serviço">Depende do serviço</option></select></div>
+          </div>
 
-        <label>Horário de atendimento</label>
-        <input type="text" id="perfilHorario" placeholder="Ex: segunda a sábado, 08h às 18h">
+          <div class="field-group" id="perfilCidadesGrupo">
+            <label for="perfilCidades">Outras cidades atendidas <span class="optional-label">opcional</span></label>
+            <input type="text" id="perfilCidades" placeholder="Ex: Muricilândia, Araguaína, Santa Fé do Araguaia">
+          </div>
 
-        <label>Atende outras cidades?</label>
-        <select id="perfilAtendeOutras">
-          <option value="Não">Não</option>
-          <option value="Sim">Sim</option>
-          <option value="Consultar">Consultar</option>
-        </select>
-
-        <label>Cidades atendidas</label>
-        <input type="text" id="perfilCidades" placeholder="Ex: Muricilândia, Araguaína">
-
-        <button type="submit">Salvar meu perfil</button>
-      </form>
-
-      <p class="completar-msg" id="msgPerfil"></p>
+          <div class="onboarding-actions">
+            <button type="submit" class="onboarding-primary">Salvar e continuar</button>
+            <a href="/painel-profissional" class="onboarding-secondary">Fazer depois</a>
+          </div>
+        </form>
+        <p class="completar-msg form-message" id="msgPerfil"></p>
+        <div class="onboarding-success escondido" id="onboardingSuccess">
+          <span>✓</span>
+          <div><strong>Perfil salvo!</strong><p>Você pode continuar editando ou acessar seu painel profissional.</p></div>
+          <a href="/painel-profissional">Ir para o painel</a>
+        </div>
+      </section>
     </section>
   </main>
 
-  <script src="completar-perfil.js?v=v16-whatsapp-perfil-20260618"></script>
+  <footer class="rodape-minimo rodape-legal">
+    <nav><a href="/documentos-legais#termos">Termos</a><a href="/documentos-legais#privacidade">Privacidade</a><a href="/">Norte Servic</a></nav>
+    <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
+  </footer>
+
+  <script src="/completar-perfil.js?v=36"></script>
+  <script src="/assets/js/core/shell.js?v=36"></script>
 </body>
 </html>

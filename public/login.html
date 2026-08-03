@@ -1,142 +1,50 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
-<meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#07111d">
   <title>Área do Profissional - Norte Servic</title>
-
-  <link rel="stylesheet" href="style.css?v=32-base">
-  <link rel="stylesheet" href="theme.css?v=32-standard">
   <link rel="canonical" href="https://www.norteservic.com.br/login">
+  <link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/assets/css/base.css?v=36">
 </head>
-<body>
+<body class="auth-v36-page login-v36-page">
+  <div class="mini-loading" id="miniLoading"><div class="ns-loader-card ns-loader-card-dark"><div class="ns-loader-logo"><span>NS</span></div><p>Entrando...</p><div class="ns-loader-bar"><span></span></div></div></div>
 
-  <div class="mini-loading" id="miniLoading">
-    <div class="loader-bolinha"></div>
-    <p>Entrando...</p>
-  </div>
+  <header class="ns-header ns-header-v36">
+    <a href="/" class="ns-logo" aria-label="Norte Servic - início"><span class="ns-logo-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="ns-logo-word">Norte <b>Servic</b><em>.</em></span></a>
+    <nav class="ns-nav" aria-label="Menu principal"><a href="/">Início</a><a href="/cadastro" class="ns-nav-outline">Anuncie seu serviço</a><a href="/planos">Planos</a></nav>
+  </header>
 
-  <header class="ns-header">
-  <a href="/" class="ns-logo" aria-label="Voltar para o início">
-    <span class="ns-logo-icon">✓</span>
-    <span>Norte Servic</span>
-  </a>
-
-  <nav class="ns-nav" aria-label="Menu principal">
-    <a href="/">Início</a>
-    <a href="/cadastro">Cadastrar</a>
-    <a href="/planos">Planos</a>
-    <a href="/login">Área profissional</a>
-  </nav>
-</header>
-
-  <main class="login-profissional-premium-page">
-    <section class="login-profissional-premium-shell">
-
-      <aside class="login-profissional-showcase">
-        <span class="login-premium-kicker">Área exclusiva</span>
-
-        <h1>Gerencie seu perfil profissional com mais controle.</h1>
-
-        <p>
-          Entre com o WhatsApp cadastrado e acompanhe seu perfil, serviços, cidades atendidas e planos de destaque.
-        </p>
-
-        <div class="login-premium-beneficios">
-          <div>
-            <strong>01</strong>
-            <span>Atualize seus dados</span>
-          </div>
-
-          <div>
-            <strong>02</strong>
-            <span>Veja seu status</span>
-          </div>
-
-          <div>
-            <strong>03</strong>
-            <span>Prepare seu destaque</span>
-          </div>
+  <main class="login-profissional-premium-page login-page-v36">
+    <section class="login-profissional-premium-shell login-shell-v36">
+      <aside class="login-profissional-showcase login-showcase-v36">
+        <span class="section-kicker section-kicker-star"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.8 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 2.8Z"/></svg>Área profissional</span>
+        <h1>Seu perfil, seus contatos e sua presença profissional em um só lugar.</h1>
+        <p>Entre para atualizar seus dados, acompanhar o status do perfil e gerenciar sua visibilidade na Norte Servic.</p>
+        <div class="login-premium-beneficios login-benefits-v36">
+          <div><strong>01</strong><span>Atualize seu perfil e portfólio</span></div>
+          <div><strong>02</strong><span>Acompanhe aprovação e plano</span></div>
+          <div><strong>03</strong><span>Organize sua presença profissional</span></div>
         </div>
-
-        <div class="login-premium-nota">
-          <strong>Importante</strong>
-          <p>Se você alterar nome, profissão, categoria ou WhatsApp, o perfil poderá voltar para análise.</p>
-        </div>
+        <div class="login-premium-nota login-note-v36"><strong>Primeiro acesso?</strong><p>Crie seu perfil grátis em menos de um minuto e complete as informações depois.</p><a href="/cadastro">Criar meu perfil →</a></div>
       </aside>
 
-      <section class="login-profissional-card login-profissional-card-premium">
-        <div class="login-card-topo">
-          <span class="login-badge">Login profissional</span>
-
-          <h2>Entrar no painel</h2>
-
-          <p>
-            Use o WhatsApp e a senha criados no cadastro profissional.
-          </p>
-        </div>
-
+      <section class="login-profissional-card login-profissional-card-premium login-card-v36">
+        <div class="login-card-topo"><span class="login-badge">Acesso seguro</span><h2>Entrar no painel</h2><p>Use o WhatsApp e a senha do seu cadastro profissional.</p></div>
         <form id="formLoginProfissional" class="login-profissional-form">
-          <label>WhatsApp cadastrado</label>
-          <div class="login-input-premium">
-            <span>📱</span>
-            <input
-              type="text"
-              id="loginWhatsapp"
-              placeholder="Ex: 5563999999999"
-              required
-            >
-          </div>
-
-          <label>Senha</label>
-          <div class="login-input-premium">
-            <span>🔒</span>
-            <input
-              type="password"
-              id="loginSenha"
-              placeholder="Digite sua senha"
-              required
-            >
-          </div>
-
-          <button type="submit" class="botao-login-premium">
-            Entrar no painel
-          </button>
+          <label for="loginWhatsapp">WhatsApp cadastrado</label>
+          <div class="login-input-premium login-input-v36"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4h2l1 5-2 1c1.2 2.5 3 4.3 5.5 5.5l1-2 5 1v2c0 1.7-1.3 3-3 3C9.6 19.5 4.5 14.4 4.5 7.5c0-1.9 1-3.5 2.5-3.5Z"/></svg></span><input type="text" id="loginWhatsapp" placeholder="Ex: 5563999999999" autocomplete="tel" required></div>
+          <label for="loginSenha">Senha</label>
+          <div class="login-input-premium login-input-v36"><span aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span><input type="password" id="loginSenha" placeholder="Digite sua senha" autocomplete="current-password" required></div>
+          <button type="submit" class="botao-login-premium btn-gold auth-submit-v36">Entrar no painel <span aria-hidden="true">→</span></button>
         </form>
-
         <p id="mensagemLoginProfissional" class="mensagem-login-profissional"></p>
-
-        <div class="login-links-profissional login-links-profissional-premium">
-          <a href="/recuperar-senha" class="link-recuperar-senha">Esqueci minha senha</a>
-          <a href="/cadastro">Criar cadastro profissional</a>
-          <a href="/">Voltar para o início</a>
-        </div>
+        <div class="login-links-profissional login-links-profissional-premium login-links-v36"><a href="/recuperar-senha" class="link-recuperar-senha">Esqueci minha senha</a><a href="/cadastro">Criar cadastro</a><a href="/">Voltar ao início</a></div>
       </section>
-
     </section>
   </main>
 
-  <footer class="rodape-minimo rodape-legal">
-    <nav>
-      <a href="/documentos-legais#termos">Termos de Uso</a>
-      <a href="/documentos-legais#privacidade">Privacidade</a>
-      <a href="/documentos-legais#cookies">Cookies</a>
-      <a href="/documentos-legais#lgpd">LGPD</a>
-      <a href="/admin">Área Administrativa</a>
-      <a href="/cidade">Cidade Parceira</a>
-      <a href="https://wa.me/5563992472236" target="_blank" rel="noopener">Contato Norte Servic</a>
-    </nav>
-    <p>Norte Servic — CNPJ 63.906.559/0001-03</p>
-    <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
-  </footer>
+  <footer class="rodape-minimo rodape-legal footer-v36 footer-auth-v36"><nav><a href="/documentos-legais#termos">Termos</a><a href="/documentos-legais#privacidade">Privacidade</a><a href="/documentos-legais#lgpd">LGPD</a><a href="/cidade">Cidade Parceira</a></nav><p>Norte Servic — CNPJ 63.906.559/0001-03 · © 2026.</p></footer>
 
-  <script src="script.js?v=22-premium"></script>
+  <script src="/assets/js/core/catalog.js?v=36"></script><script src="/assets/js/core/runtime.js?v=36"></script><script src="/assets/js/features/public.js?v=36"></script><script src="/assets/js/features/professional.js?v=36"></script><script src="/assets/js/features/admin.js?v=36"></script><script src="/assets/js/features/interface.js?v=36"></script><script src="/assets/js/features/admin-operations.js?v=36"></script><script src="/assets/js/core/shell.js?v=36"></script><script src="/assets/js/app.js?v=36"></script>
 </body>
 </html>

@@ -1,17 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
-<meta charset="UTF-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <meta name="theme-color" content="#07111d">
   <title>Norte Servic - Profissionais de confiança perto de você</title>
-  <!-- Pré-visualização para WhatsApp, Facebook e redes sociais -->
   <meta name="description" content="Encontre profissionais, autônomos e pequenos negócios de confiança perto de você com a Norte Servic.">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Norte Servic">
@@ -19,237 +12,202 @@
   <meta property="og:description" content="Encontre profissionais, autônomos e pequenos negócios de confiança perto de você.">
   <meta property="og:url" content="https://www.norteservic.com.br/">
   <meta property="og:image" content="https://www.norteservic.com.br/preview-norte-servic.png">
-  <meta property="og:image:secure_url" content="https://www.norteservic.com.br/preview-norte-servic.png">
-  <meta property="og:image:type" content="image/png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Norte Servic - Profissionais de confiança perto de você">
-  <meta name="twitter:description" content="Encontre profissionais, autônomos e pequenos negócios de confiança perto de você.">
-  <meta name="twitter:image" content="https://www.norteservic.com.br/preview-norte-servic.png">
-
-
-  <link rel="stylesheet" href="style.css?v=32-base">
-  <link rel="stylesheet" href="theme.css?v=32-standard">
   <link rel="canonical" href="https://www.norteservic.com.br/">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="/assets/css/base.css?v=36">
 </head>
-<body>
-
-  <div class="mini-loading" id="miniLoading">
-    <div class="loader-bolinha"></div>
-    <p>Carregando...</p>
+<body class="home-v36">
+  <div class="mini-loading" id="miniLoading" aria-live="polite">
+    <div class="ns-loader-card ns-loader-card-dark">
+      <div class="ns-loader-logo"><span>NS</span></div>
+      <p>Carregando profissionais...</p>
+      <div class="ns-loader-bar"><span></span></div>
+    </div>
   </div>
 
-  <header class="ns-header">
-  <a href="/" class="ns-logo" aria-label="Voltar para o início">
-    <span class="ns-logo-icon">✓</span>
-    <span>Norte Servic</span>
-  </a>
-
-  <nav class="ns-nav" aria-label="Menu principal">
-    <a href="/">Início</a>
-    <a href="/cadastro">Cadastrar</a>
-    <a href="/planos">Planos</a>
-    <a href="/login">Área profissional</a>
-  </nav>
-</header>
-
-  <section class="hero">
-    <h1>Encontre profissionais<br class="hero-title-break"> confiáveis na sua região.</h1>
-
-    <p>
-      Compare perfis verificados e fale direto pelo WhatsApp.
-    </p>
-
-    <div class="busca-box">
-      <div class="input-busca busca-inteligente-area">
-        <span class="icone-busca">🛠️</span>
-
-        <input 
-          type="text" 
-          id="campoBusca" 
-          placeholder="Qual serviço você procura?"
-          autocomplete="off"
-        >
-
-        <div class="sugestoes-busca" id="sugestoesBusca"></div>
-      </div>
-
-      <button onclick="buscarProfissionais()">
-        Encontrar profissionais
-      </button>
-    </div>
-
-    <div class="hero-acoes-premium hero-acoes-enxutas">
-      <a class="hero-cta-principal" href="/cadastro" onclick="window.location.href='/cadastro'; return false;">Cadastrar meu serviço</a>
-      <a class="hero-cta-secundario" href="/planos" onclick="window.location.href='/planos'; return false;">Planos de destaque</a>
-    </div>
-
-    <div class="categorias">
-      <button onclick="buscarCategoria('pedreiro')">Pedreiro</button>
-      <button onclick="buscarCategoria('eletricista')">Eletricista</button>
-      <button onclick="buscarCategoria('diarista')">Diarista</button>
-      <button onclick="buscarCategoria('manicure')">Manicure</button>
-      <button onclick="buscarCategoria('designer')">Designer</button>
-      <button onclick="buscarCategoria('mecânico')">Mecânico</button>
-      <button onclick="buscarCategoria('encanador')">Encanador</button>
-      <button onclick="buscarCategoria('montador')">Montador</button>
-      <button onclick="buscarCategoria('fotógrafo')">Fotógrafo</button>
-      <button onclick="buscarCategoria('ar-condicionado')">Ar-condicionado</button>
-    </div>
-  </section>
-  <section class="secao destaques-section">
-    <span class="badge-destaque-home">Vitrine de confiança</span>
-
-    <h2>Profissionais em destaque</h2>
-
-    <p class="texto-destaque-home">
-      Veja profissionais cadastrados, analisados e prontos para atender pelo WhatsApp.
-    </p>
-
-    <div id="listaProfissionais" class="grid"></div>
-  </section>
-
-
-
-
-  <section class="como-funciona">
-    <h2>Como funciona?</h2>
-
-    <div class="passos">
-      <div>
-        <h3>1. Busque</h3>
-        <p>Digite o serviço, profissão ou problema que você precisa resolver.</p>
-      </div>
-
-      <div>
-        <h3>2. Compare</h3>
-        <p>Veja profissionais, informações de confiança, localização e avaliações.</p>
-      </div>
-
-      <div>
-        <h3>3. Chame</h3>
-        <p>Fale direto pelo WhatsApp com o profissional escolhido em apenas um clique.</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="por-que-premium">
-    <div class="por-que-header">
-      <span>Por que escolher a Norte Servic?</span>
-
-      <h2>Uma forma mais segura, rápida e profissional de encontrar serviços.</h2>
-
-      <p>
-        A Norte Servic conecta clientes a profissionais da região com foco em confiança,
-        praticidade e contato direto pelo WhatsApp.
-      </p>
-    </div>
-
-    <div class="por-que-grid">
-      <div class="por-que-card destaque">
-        <div class="por-que-icone">🔎</div>
-
-        <h3>Busca simples e rápida</h3>
-
-        <p>
-          O cliente procura pelo serviço ou problema que precisa resolver e encontra profissionais em poucos segundos.
-        </p>
-
-        <div class="por-que-tags">
-          <span>Busca por serviço</span>
-          <span>Categorias rápidas</span>
-        </div>
-      </div>
-
-      <div class="por-que-card">
-        <div class="por-que-icone">🛡️</div>
-
-        <h3>Mais confiança antes do contato</h3>
-
-        <p>
-          Perfis com foto, descrição, cidade, bairro, serviços realizados e informações que ajudam na decisão.
-        </p>
-
-        <div class="por-que-tags">
-          <span>Perfil analisado</span>
-          <span>WhatsApp confirmado</span>
-        </div>
-      </div>
-
-      <div class="por-que-card">
-        <div class="por-que-icone">📲</div>
-
-        <h3>Contato direto pelo WhatsApp</h3>
-
-        <p>
-          Nada de formulário complicado. O cliente visualiza o perfil e chama o profissional com apenas um clique.
-        </p>
-
-        <div class="por-que-tags">
-          <span>Chamada rápida</span>
-          <span>Sem burocracia</span>
-        </div>
-      </div>
-
-      <div class="por-que-card">
-        <div class="por-que-icone">🚀</div>
-
-        <h3>Mais visibilidade para profissionais</h3>
-
-        <p>
-          Quem trabalha pode criar um perfil profissional, mostrar seus serviços e aparecer para clientes da região.
-        </p>
-
-        <div class="por-que-tags">
-          <span>Perfil próprio</span>
-          <span>Planos de destaque</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="home-planos">
-    <div>
-      <span>Para profissionais</span>
-
-      <h2>Quer aparecer com mais destaque?</h2>
-
-      <p>
-        A Norte Servic possui planos para profissionais que querem mais visibilidade,
-        mais confiança e mais contatos pelo WhatsApp.
-      </p>
-    </div>
-
-    <a href="/planos">Ver planos de destaque</a>
-  </section>
-
-
-  <section class="home-indique-ganhe">
-    <div>
-      <span>Programa de indicação</span>
-      <h2>Indique e Ganhe com a Norte Servic</h2>
-      <p>Indique profissionais e receba <strong>R$ 10,00</strong> para cada assinatura Premium confirmada.</p>
-      <small>Saque disponível a partir de R$ 100,00.</small>
-    </div>
-    <a href="/login">Entrar na Área Profissional</a>
-  </section>
-
-  <section class="como-funciona">
-    <h2>Cadastre seu serviço</h2>
-
-    <p>Você é profissional, autônomo ou prestador de serviço?</p>
-
-    <p>Entre para a Norte Servic e seja encontrado por clientes da região.</p>
-
-    <br>
-
-    <a href="/cadastro" class="botao-grande">
-      Cadastrar meu serviço
+  <header class="ns-header ns-header-v36">
+    <a href="/" class="ns-logo" aria-label="Norte Servic - início">
+      <span class="ns-logo-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span class="ns-logo-word">Norte <b>Servic</b><em>.</em></span>
     </a>
-  </section>
 
-  <footer class="rodape-minimo rodape-legal">
+    <nav class="ns-nav" aria-label="Menu principal">
+      <a href="/" aria-current="page">Início</a>
+      <a href="#profissionais">Profissionais</a>
+      <a href="#categorias">Categorias</a>
+      <a href="#como-funciona">Como funciona</a>
+      <a href="/planos">Planos</a>
+      <a href="/cadastro" class="ns-nav-outline">Anuncie seu serviço</a>
+      <a href="/login" class="ns-nav-login">Entrar</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero-v36" aria-labelledby="heroTitle">
+      <div class="hero-v36-glow hero-v36-glow-a"></div>
+      <div class="hero-v36-glow hero-v36-glow-b"></div>
+      <div class="hero-v36-line" aria-hidden="true"></div>
+
+      <div class="hero-v36-inner">
+        <div class="hero-v36-copy">
+          <span class="section-kicker section-kicker-star">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.8 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 2.8Z"/></svg>
+            Encontre profissionais da sua região
+          </span>
+          <h1 id="heroTitle">Conectando você aos melhores <span>profissionais</span></h1>
+          <p>Encontre quem resolve o que você precisa, compare perfis e fale direto pelo WhatsApp. Rápido, seguro e sem burocracia.</p>
+
+          <div class="hero-v36-actions">
+            <a class="btn-gold btn-gold-lg" href="#busca-profissionais">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+              Encontrar profissional
+            </a>
+            <a class="btn-ghost-dark" href="#como-funciona">
+              <span class="play-ring" aria-hidden="true">▶</span>
+              Como funciona
+            </a>
+          </div>
+        </div>
+
+        <div class="hero-v36-visual" aria-label="Profissionais em diferentes áreas">
+          <img src="/assets/img/v36/hero-profissionais.webp" alt="Designer, eletricista e encanador representando profissionais da Norte Servic">
+        </div>
+      </div>
+
+      <form class="search-panel-v36" id="busca-profissionais" onsubmit="event.preventDefault(); buscarProfissionais();">
+        <div class="search-field-v36 busca-inteligente-area">
+          <span class="search-icon-v36" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          </span>
+          <label for="campoBusca">Qual serviço você precisa?</label>
+          <input type="text" id="campoBusca" placeholder="Ex: Eletricista, Designer, Pedreiro..." autocomplete="off">
+          <div class="sugestoes-busca" id="sugestoesBusca"></div>
+        </div>
+
+        <div class="search-field-v36">
+          <span class="search-icon-v36" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          </span>
+          <label for="campoCidade">Sua localização</label>
+          <input type="text" id="campoCidade" placeholder="Cidade ou bairro" autocomplete="address-level2">
+        </div>
+
+        <div class="search-field-v36 search-select-v36">
+          <span class="search-icon-v36" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><rect x="15" y="15" width="6" height="6" rx="1"/></svg>
+          </span>
+          <label for="campoCategoria">Todas as categorias</label>
+          <select id="campoCategoria" aria-label="Escolha uma categoria">
+            <option value="">Selecione uma categoria</option>
+          </select>
+        </div>
+
+        <button class="btn-gold search-submit-v36" type="submit">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          Buscar profissionais
+        </button>
+      </form>
+    </section>
+
+    <section class="home-section-v36 categories-v36" id="categorias">
+      <div class="section-head-v36">
+        <div>
+          <span class="section-kicker">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><rect x="15" y="15" width="6" height="6" rx="1"/></svg>
+            Categorias populares
+          </span>
+          <h2>Explore por categoria</h2>
+          <p>Escolha uma área e encontre profissionais disponíveis na sua região.</p>
+        </div>
+        <button class="section-link-button" type="button" onclick="document.getElementById('campoBusca').focus()">Ver todas <span>→</span></button>
+      </div>
+
+      <div class="category-rail-v36" id="categoriasHomeV36">
+        <button type="button" onclick="buscarCategoriaV36('Construção e Reforma')" data-category="Construção e Reforma">
+          <span class="category-icon-v36">⌂</span><strong>Casa e Reformas</strong><small>Construção e manutenção</small>
+        </button>
+        <button type="button" onclick="buscarCategoriaV36('Tecnologia e Serviços Digitais')" data-category="Tecnologia e Serviços Digitais">
+          <span class="category-icon-v36">▱</span><strong>Tecnologia</strong><small>Suporte e serviços digitais</small>
+        </button>
+        <button type="button" onclick="buscarCategoriaV36('Tecnologia e Serviços Digitais')" data-category="Tecnologia e Serviços Digitais">
+          <span class="category-icon-v36">✎</span><strong>Design e Criativo</strong><small>Imagem, conteúdo e criação</small>
+        </button>
+        <button type="button" onclick="buscarCategoriaV36('Eventos e Festas')" data-category="Eventos e Festas">
+          <span class="category-icon-v36">▣</span><strong>Eventos</strong><small>Produção e celebrações</small>
+        </button>
+        <button type="button" onclick="buscarCategoriaV36('Saúde e Bem-estar')" data-category="Saúde e Bem-estar">
+          <span class="category-icon-v36">♡</span><strong>Saúde e Bem-estar</strong><small>Cuidados e qualidade de vida</small>
+        </button>
+        <button type="button" onclick="buscarCategoriaV36('Educação e Aulas')" data-category="Educação e Aulas">
+          <span class="category-icon-v36">◇</span><strong>Aulas e Cursos</strong><small>Ensino e capacitação</small>
+        </button>
+      </div>
+    </section>
+
+    <section class="home-section-v36 featured-v36" id="profissionais">
+      <div class="section-head-v36">
+        <div>
+          <span class="section-kicker section-kicker-star">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.8 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 2.8Z"/></svg>
+            Profissionais em destaque
+          </span>
+          <h2>Encontre alguém para fazer o serviço</h2>
+          <p>Perfis aprovados pela plataforma, com informações claras e contato direto.</p>
+        </div>
+        <button class="section-link-button" type="button" onclick="document.getElementById('campoBusca').focus(); window.scrollTo({top: document.getElementById('busca-profissionais').offsetTop - 90, behavior:'smooth'});">Nova busca <span>→</span></button>
+      </div>
+
+      <div id="listaProfissionais" class="grid grid-v36"></div>
+    </section>
+
+    <section class="trust-strip-v36" aria-label="Vantagens da Norte Servic">
+      <article><span>♢</span><div><strong>Mais segurança</strong><small>Perfis passam por análise antes da publicação.</small></div></article>
+      <article><span>☆</span><div><strong>Avaliações reais</strong><small>Opiniões ajudam você a comparar profissionais.</small></div></article>
+      <article><span>✓</span><div><strong>Contato direto</strong><small>Fale pelo WhatsApp sem intermediação complicada.</small></div></article>
+      <article><span>◎</span><div><strong>Suporte local</strong><small>Um ecossistema pensado para serviços da região.</small></div></article>
+    </section>
+
+    <section class="how-v36" id="como-funciona">
+      <div class="home-section-v36 how-v36-inner">
+        <div class="how-v36-copy">
+          <span class="section-kicker">Como funciona</span>
+          <h2>Do problema ao contato em poucos passos.</h2>
+          <p>A Norte Servic foi desenhada para reduzir burocracia e colocar você em contato com quem pode ajudar.</p>
+          <a class="btn-gold" href="#busca-profissionais">Começar uma busca</a>
+        </div>
+        <div class="how-v36-steps">
+          <article><span>01</span><div><strong>Busque</strong><p>Informe o serviço, a cidade ou escolha uma categoria.</p></div></article>
+          <article><span>02</span><div><strong>Compare</strong><p>Veja profissão, localização, avaliações e informações do perfil.</p></div></article>
+          <article><span>03</span><div><strong>Converse</strong><p>Abra o perfil e fale diretamente pelo WhatsApp.</p></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="pro-cta-v36">
+      <div>
+        <span class="section-kicker">Para profissionais</span>
+        <h2>Seu trabalho merece ser encontrado.</h2>
+        <p>Crie seu perfil gratuitamente e complete suas informações no seu ritmo.</p>
+      </div>
+      <div class="pro-cta-actions-v36">
+        <a class="btn-gold" href="/cadastro">Anunciar meu serviço</a>
+        <a class="btn-ghost-dark" href="/planos">Conhecer os planos</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape-minimo rodape-legal footer-v36">
+    <div class="footer-v36-brand">
+      <a href="/" class="ns-logo" aria-label="Norte Servic - início">
+        <span class="ns-logo-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span class="ns-logo-word">Norte <b>Servic</b><em>.</em></span>
+      </a>
+      <p>Conectando pessoas a profissionais de confiança.</p>
+    </div>
     <nav>
       <a href="/documentos-legais#termos">Termos de Uso</a>
       <a href="/documentos-legais#privacidade">Privacidade</a>
@@ -257,12 +215,27 @@
       <a href="/documentos-legais#lgpd">LGPD</a>
       <a href="/admin">Área Administrativa</a>
       <a href="/cidade">Cidade Parceira</a>
-      <a href="https://wa.me/5563992472236" target="_blank" rel="noopener">Contato Norte Servic</a>
+      <a href="https://wa.me/5563992472236" target="_blank" rel="noopener">Contato</a>
     </nav>
-    <p>Norte Servic — CNPJ 63.906.559/0001-03</p>
-    <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
+    <p>Norte Servic — CNPJ 63.906.559/0001-03 · © 2026. Todos os direitos reservados.</p>
   </footer>
 
-  <script src="script.js?v=22-premium"></script>
+  <nav class="home-mobile-dock" aria-label="Navegação rápida">
+    <a href="/" aria-current="page"><span>⌂</span>Início</a>
+    <a href="#busca-profissionais"><span>⌕</span>Buscar</a>
+    <a href="#categorias"><span>▦</span>Categorias</a>
+    <a href="#profissionais"><span>☆</span>Perfis</a>
+    <a href="/login"><span>○</span>Entrar</a>
+  </nav>
+
+  <script src="/assets/js/core/catalog.js?v=36"></script>
+  <script src="/assets/js/core/runtime.js?v=36"></script>
+  <script src="/assets/js/features/public.js?v=36"></script>
+  <script src="/assets/js/features/professional.js?v=36"></script>
+  <script src="/assets/js/features/admin.js?v=36"></script>
+  <script src="/assets/js/features/interface.js?v=36"></script>
+  <script src="/assets/js/features/admin-operations.js?v=36"></script>
+  <script src="/assets/js/core/shell.js?v=36"></script>
+  <script src="/assets/js/app.js?v=36"></script>
 </body>
 </html>
