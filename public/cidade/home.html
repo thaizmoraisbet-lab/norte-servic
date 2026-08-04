@@ -1,148 +1,133 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
-  
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
-<meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home Cidade Parceira - Norte Servic</title>
-  <link rel="stylesheet" href="/assets/css/base.css?v=36">
-  <link rel="stylesheet" href="/assets/css/cidade.css?v=36">
+<link href="/favicon.ico" rel="icon" type="image/x-icon"/>
+<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/site.webmanifest" rel="manifest"/>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="#07111d" name="theme-color"/>
+<title>Home Cidade Parceira - Norte Servic</title>
+<link href="/assets/css/base.css?v=37" rel="stylesheet"/>
+<link href="/assets/css/cidade.css?v=37" rel="stylesheet"/>
 </head>
 <body class="cidade-body" data-cidade-page="home">
-
-  <div class="mini-loading" id="miniLoading">
-    <div class="loader-bolinha"></div>
-    <p>Carregando Cidade Parceira...</p>
-  </div>
-
-  <header class="ns-header cidade-header-fixo">
-    <a href="/" class="ns-logo" aria-label="Voltar para a Norte Servic">
-      <span class="ns-logo-icon">✓</span>
-      <span>Norte Servic</span>
-    </a>
-
-    <nav class="ns-nav" aria-label="Menu Cidade Parceira">
-      <a href="/">Site oficial</a>
-      <a href="/cidade/profissionais">Consultar Profissionais</a>
-      <a href="/cidade/coletor" class="cidade-nav-destaque">Área do coletor</a>
-      <button class="cidade-nav-btn" type="button" onclick="sairCidadeParceira()">Sair</button>
-    </nav>
-  </header>
-
-  <main>
-    <section class="cidade-home" id="cidadeHomeBox">
-      <section class="cidade-hero-premium cidade-animar-entrada">
-        <div class="cidade-hero-content">
-          <span class="cidade-badge">Cidade Parceira • Muricilândia - TO</span>
-          <h1>Conheça quem movimenta a economia de Muricilândia - TO.</h1>
-          <p>
+<div class="mini-loading" id="miniLoading">
+<div class="loader-bolinha"></div>
+<p>Carregando Cidade Parceira...</p>
+</div>
+<header class="ns-header cidade-header-fixo">
+<a aria-label="Voltar para a Norte Servic" class="ns-logo" href="/">
+<span class="ns-logo-icon">✓</span>
+<span>Norte Servic</span>
+</a>
+<nav aria-label="Menu Cidade Parceira" class="ns-nav">
+<a href="/">Site oficial</a>
+<a href="/cidade/profissionais">Consultar Profissionais</a>
+<a class="cidade-nav-destaque" href="/cidade/coletor">Área do coletor</a>
+<button class="cidade-nav-btn" onclick="sairCidadeParceira()" type="button">Sair</button>
+</nav>
+</header>
+<main>
+<section class="cidade-home" id="cidadeHomeBox">
+<section class="cidade-hero-premium cidade-animar-entrada">
+<div class="cidade-hero-content">
+<span class="cidade-badge">Cidade Parceira • Muricilândia - TO</span>
+<h1>Conheça quem movimenta a economia de Muricilândia - TO.</h1>
+<p>
             Mapeamos profissionais, autônomos e pequenos negócios em cada setor do município, transformando informações de campo em inteligência para decisões públicas mais eficientes, geração de oportunidades e fortalecimento da economia local.
           </p>
-
-          <div class="cidade-numero-box cidade-card-transicao cidade-numero-box-elite">
-            <div class="cidade-status cidade-status-tempo-real cidade-status-elite">
-              <i aria-hidden="true"></i>
-              <span>Dados reais coletados pela Norte Servic em tempo real</span>
-            </div>
-
-            <div class="cidade-numero-display-elite">
-              <span class="contadorCidade cidade-numero-valor-elite" id="cidadeTotalProfissionais">0</span>
-              <span class="cidade-numero-palavra-elite">profissionais</span>
-            </div>
-
-            <small class="cidade-numero-subtitulo-elite">mapeados pelos coletores em campo</small>
-
-            <div class="cidade-numero-rodape-elite" aria-label="Informações do painel">
-              <span>Norte Servic Cidade</span>
-              <span>3 setores ativos</span>
-              <span>Atualização automática</span>
-            </div>
-          </div>
-
-          <div class="cidade-hero-acoes">
-            <a class="cidade-btn cidade-btn-claro" href="/cidade/profissionais">Consultar Profissionais</a>
-            <a class="cidade-btn cidade-btn-premium" href="/cidade/coletor" onclick="navegarCidade('/cidade/coletor', 'Abrindo login do coletor...'); return false;">
-              <span class="cidade-btn-icon">+</span>
+<div class="cidade-numero-box cidade-card-transicao cidade-numero-box-elite">
+<div class="cidade-status cidade-status-tempo-real cidade-status-elite">
+<i aria-hidden="true"></i>
+<span>Dados reais coletados pela Norte Servic em tempo real</span>
+</div>
+<div class="cidade-numero-display-elite">
+<span class="contadorCidade cidade-numero-valor-elite" id="cidadeTotalProfissionais">0</span>
+<span class="cidade-numero-palavra-elite">profissionais</span>
+</div>
+<small class="cidade-numero-subtitulo-elite">mapeados pelos coletores em campo</small>
+<div aria-label="Informações do painel" class="cidade-numero-rodape-elite">
+<span>Norte Servic Cidade</span>
+<span>3 setores ativos</span>
+<span>Atualização automática</span>
+</div>
+</div>
+<div class="cidade-hero-acoes">
+<a class="cidade-btn cidade-btn-claro" href="/cidade/profissionais">Consultar Profissionais</a>
+<a class="cidade-btn cidade-btn-premium" href="/cidade/coletor" onclick="navegarCidade('/cidade/coletor', 'Abrindo login do coletor...'); return false;">
+<span class="cidade-btn-icon">+</span>
               Entrar na área do coletor
             </a>
-          </div>
-        </div>
-      </section>
-
-      <section class="cidade-metricas cidade-animar-entrada atraso-1">
-        <article class="cidade-card-transicao">
-          <strong id="cidadeCategorias">0</strong>
-          <span>Categorias mapeadas</span>
-        </article>
-        <article class="cidade-card-transicao">
-          <strong id="cidadeSetores">3</strong>
-          <span>Setores fixos</span>
-        </article>
-        <article class="cidade-card-transicao">
-          <strong id="cidadeAceitosSite">0</strong>
-          <span>Aceitaram aparecer no site</span>
-        </article>
-        <article class="cidade-card-transicao">
-          <strong id="cidadeTempoReal">ON</strong>
-          <span>Atualização automática</span>
-        </article>
-      </section>
-
-      <section class="cidade-grid-section cidade-animar-entrada atraso-2">
-        <div class="cidade-card-grande cidade-card-transicao">
-          <span class="cidade-tag">Onde estão os profissionais da cidade?</span>
-          <h2>Resumo por setor</h2>
-          <p>Visualize a distribuição dos profissionais cadastrados por setor. Os dados ajudam a identificar áreas com maior concentração de serviços e regiões que precisam de mais atenção em futuras ações de desenvolvimento econômico.</p>
-          <div class="cidade-setores-lista" id="cidadeSetoresLista"></div>
-        </div>
-
-        <div class="cidade-card-grande cidade-card-transicao">
-          <span class="cidade-tag">Profissões</span>
-          <h2>As atividades que movem o município</h2>
-          <p>Ranking atualizado automaticamente com as profissões mais encontradas durante a coleta. Essas informações revelam o perfil produtivo local e auxiliam na criação de programas de incentivo, capacitação e geração de renda.</p>
-          <div class="cidade-ranking" id="cidadeRankingProfissoes"></div>
-        </div>
-      </section>
-
-      <section class="cidade-coletor-cta cidade-animar-entrada atraso-3" id="coletorCidade">
-        <div class="cidade-coletor-cta-card cidade-card-transicao">
-          <div class="cidade-coletor-cta-texto">
-            <span class="cidade-tag">Aba do coletor</span>
-            <h2>Dados reais coletados diretamente nas residências e estabelecimentos.</h2>
-            <p>
+</div>
+</div>
+</section>
+<section class="cidade-metricas cidade-animar-entrada atraso-1">
+<article class="cidade-card-transicao">
+<strong id="cidadeCategorias">0</strong>
+<span>Categorias mapeadas</span>
+</article>
+<article class="cidade-card-transicao">
+<strong id="cidadeSetores">3</strong>
+<span>Setores fixos</span>
+</article>
+<article class="cidade-card-transicao">
+<strong id="cidadeAceitosSite">0</strong>
+<span>Aceitaram aparecer no site</span>
+</article>
+<article class="cidade-card-transicao">
+<strong id="cidadeTempoReal">ON</strong>
+<span>Atualização automática</span>
+</article>
+</section>
+<section class="cidade-grid-section cidade-animar-entrada atraso-2">
+<div class="cidade-card-grande cidade-card-transicao">
+<span class="cidade-tag">Onde estão os profissionais da cidade?</span>
+<h2>Resumo por setor</h2>
+<p>Visualize a distribuição dos profissionais cadastrados por setor. Os dados ajudam a identificar áreas com maior concentração de serviços e regiões que precisam de mais atenção em futuras ações de desenvolvimento econômico.</p>
+<div class="cidade-setores-lista" id="cidadeSetoresLista"></div>
+</div>
+<div class="cidade-card-grande cidade-card-transicao">
+<span class="cidade-tag">Profissões</span>
+<h2>As atividades que movem o município</h2>
+<p>Ranking atualizado automaticamente com as profissões mais encontradas durante a coleta. Essas informações revelam o perfil produtivo local e auxiliam na criação de programas de incentivo, capacitação e geração de renda.</p>
+<div class="cidade-ranking" id="cidadeRankingProfissoes"></div>
+</div>
+</section>
+<section class="cidade-coletor-cta cidade-animar-entrada atraso-3" id="coletorCidade">
+<div class="cidade-coletor-cta-card cidade-card-transicao">
+<div class="cidade-coletor-cta-texto">
+<span class="cidade-tag">Aba do coletor</span>
+<h2>Dados reais coletados diretamente nas residências e estabelecimentos.</h2>
+<p>
               Cada registro é realizado por coletores credenciados através de uma área exclusiva do sistema. As informações são organizadas em tempo real, permitindo acompanhar o avanço da coleta e construir um retrato atualizado da economia local.
             </p>
-          </div>
-          <a class="cidade-btn cidade-btn-premium cidade-btn-cta-coletor" href="/cidade/coletor" onclick="navegarCidade('/cidade/coletor', 'Abrindo área do coletor...'); return false;">
-            <span class="cidade-btn-icon">→</span>
+</div>
+<a class="cidade-btn cidade-btn-premium cidade-btn-cta-coletor" href="/cidade/coletor" onclick="navegarCidade('/cidade/coletor', 'Abrindo área do coletor...'); return false;">
+<span class="cidade-btn-icon">→</span>
             Acessar login do coletor
           </a>
-        </div>
-      </section>
-    </section>
-  </main>
-
-  <div class="cidade-toast" id="cidadeToast"></div>
-
-  <footer class="rodape-minimo rodape-legal">
-    <nav>
-      <a href="/">Site oficial</a>
-      <a href="/admin">Área Administrativa</a>
-      <a href="/cidade/profissionais">Consultar Profissionais</a>
-      <a href="/cidade/coletor">Área do coletor</a>
-      <a href="/documentos-legais#privacidade">Privacidade</a>
-    </nav>
-    <p>Norte Servic — Cidade Parceira</p>
-    <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
-  </footer>
-  <script src="/assets/js/cidade/core.js?v=36"></script>
-  <script src="/assets/js/cidade/interface.js?v=36"></script>
-  <script src="/assets/js/cidade/payments.js?v=36"></script>
-  <script src="/assets/js/core/shell.js?v=36"></script>
+</div>
+</section>
+</section>
+</main>
+<div class="cidade-toast" id="cidadeToast"></div>
+<footer class="rodape-minimo rodape-legal">
+<nav>
+<a href="/">Site oficial</a>
+<a href="/admin">Área Administrativa</a>
+<a href="/cidade/profissionais">Consultar Profissionais</a>
+<a href="/cidade/coletor">Área do coletor</a>
+<a href="/documentos-legais#privacidade">Privacidade</a>
+</nav>
+<p>Norte Servic — Cidade Parceira</p>
+<p>© 2026 Norte Servic. Todos os direitos reservados.</p>
+</footer>
+<script src="/assets/js/cidade/core.js?v=37"></script>
+<script src="/assets/js/cidade/interface.js?v=37"></script>
+<script src="/assets/js/cidade/payments.js?v=37"></script>
+<script src="/assets/js/core/shell.js?v=37"></script>
 </body>
 </html>

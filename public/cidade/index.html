@@ -1,81 +1,74 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
-  
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
-<meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Acesso Cidade Parceira - Norte Servic</title>
-  <link rel="canonical" href="https://www.norteservic.com.br/cidade">
-  <link rel="stylesheet" href="/assets/css/base.css?v=36">
-  <link rel="stylesheet" href="/assets/css/cidade.css?v=36">
+<link href="/favicon.ico" rel="icon" type="image/x-icon"/>
+<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/site.webmanifest" rel="manifest"/>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="#07111d" name="theme-color"/>
+<title>Acesso Cidade Parceira - Norte Servic</title>
+<link href="https://www.norteservic.com.br/cidade" rel="canonical"/>
+<link href="/assets/css/base.css?v=37" rel="stylesheet"/>
+<link href="/assets/css/cidade.css?v=37" rel="stylesheet"/>
 </head>
 <body class="cidade-body cidade-login-only" data-cidade-page="login">
-
-  <div class="mini-loading" id="miniLoading">
-    <div class="loader-bolinha"></div>
-    <p>Carregando Cidade Parceira...</p>
-  </div>
-
-  <header class="ns-header cidade-header-login">
-    <a href="/" class="ns-logo" aria-label="Voltar para a Norte Servic">
-      <span class="ns-logo-icon">✓</span>
-      <span>Norte Servic</span>
-    </a>
-
-    <nav class="ns-nav" aria-label="Menu Cidade Parceira">
-      <a href="/">Site oficial</a>
-      <a href="/admin">Área Administrativa</a>
-    </nav>
-  </header>
-
-  <main>
-    <section class="cidade-login-page cidade-login-page-unica" id="cidadeLoginBox">
-      <div class="cidade-login-card cidade-login-card-premium">
-        <span class="cidade-badge">Acesso privado</span>
-        <h1>Cidade Parceira</h1>
-        <p>Digite a senha para abrir a home exclusiva da prefeitura. O painel será carregado em uma página separada, sem abrir conteúdo embaixo.</p>
-
-        <form id="formSenhaCidade" class="cidade-form-senha">
-          <label for="senhaCidade">Senha da Cidade Parceira</label>
-          <div class="cidade-senha-linha">
-            <input type="password" id="senhaCidade" placeholder="Digite a senha de acesso" autocomplete="current-password" autofocus>
-            <button type="button" id="toggleSenhaCidade" aria-label="Mostrar senha">👁</button>
-          </div>
-          <button class="cidade-btn cidade-btn-azul cidade-btn-cheio" type="submit" id="btnEntrarCidade">Acessar painel</button>
-        </form>
-        <p class="cidade-msg erro" id="erroCidade"></p>
-      </div>
-
-      <div class="cidade-login-visual cidade-login-visual-premium">
-        <span>Norte Servic Cidade</span>
-        <h2>Uma vitrine municipal para mapear profissionais locais.</h2>
-        <p>Os coletores cadastram em campo. A prefeitura acompanha os números e, quando o profissional autorizar, ele também aparece no site oficial.</p>
-        <div class="cidade-login-passos">
-          <article><strong>1</strong><span>Senha da prefeitura</span></article>
-          <article><strong>2</strong><span>Home Cidade Parceira</span></article>
-          <article><strong>3</strong><span>Coleta em campo</span></article>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="rodape-minimo rodape-legal">
-    <nav>
-      <a href="/">Site oficial</a>
-      <a href="/admin">Área Administrativa</a>
-      <a href="/documentos-legais#privacidade">Privacidade</a>
-    </nav>
-    <p>Norte Servic — Cidade Parceira</p>
-    <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
-  </footer>
-  <script src="/assets/js/cidade/core.js?v=36"></script>
-  <script src="/assets/js/cidade/interface.js?v=36"></script>
-  <script src="/assets/js/cidade/payments.js?v=36"></script>
-  <script src="/assets/js/core/shell.js?v=36"></script>
+<div class="mini-loading" id="miniLoading">
+<div class="loader-bolinha"></div>
+<p>Carregando Cidade Parceira...</p>
+</div>
+<header class="ns-header cidade-header-login">
+<a aria-label="Voltar para a Norte Servic" class="ns-logo" href="/">
+<span class="ns-logo-icon">✓</span>
+<span>Norte Servic</span>
+</a>
+<nav aria-label="Menu Cidade Parceira" class="ns-nav">
+<a href="/">Site oficial</a>
+<a href="/admin">Área Administrativa</a>
+</nav>
+</header>
+<main>
+<section class="cidade-login-page cidade-login-page-unica" id="cidadeLoginBox">
+<div class="cidade-login-card cidade-login-card-premium">
+<span class="cidade-badge">Acesso privado</span>
+<h1>Cidade Parceira</h1>
+<p>Digite a senha para abrir a home exclusiva da prefeitura. O painel será carregado em uma página separada, sem abrir conteúdo embaixo.</p>
+<form class="cidade-form-senha" id="formSenhaCidade">
+<label for="senhaCidade">Senha da Cidade Parceira</label>
+<div class="cidade-senha-linha">
+<input autocomplete="current-password" autofocus="" id="senhaCidade" placeholder="Digite a senha de acesso" type="password"/>
+<button aria-label="Mostrar senha" id="toggleSenhaCidade" type="button">👁</button>
+</div>
+<button class="cidade-btn cidade-btn-azul cidade-btn-cheio" id="btnEntrarCidade" type="submit">Acessar painel</button>
+</form>
+<p class="cidade-msg erro" id="erroCidade"></p>
+</div>
+<div class="cidade-login-visual cidade-login-visual-premium">
+<span>Norte Servic Cidade</span>
+<h2>Uma vitrine municipal para mapear profissionais locais.</h2>
+<p>Os coletores cadastram em campo. A prefeitura acompanha os números e, quando o profissional autorizar, ele também aparece no site oficial.</p>
+<div class="cidade-login-passos">
+<article><strong>1</strong><span>Senha da prefeitura</span></article>
+<article><strong>2</strong><span>Home Cidade Parceira</span></article>
+<article><strong>3</strong><span>Coleta em campo</span></article>
+</div>
+</div>
+</section>
+</main>
+<footer class="rodape-minimo rodape-legal">
+<nav>
+<a href="/">Site oficial</a>
+<a href="/admin">Área Administrativa</a>
+<a href="/documentos-legais#privacidade">Privacidade</a>
+</nav>
+<p>Norte Servic — Cidade Parceira</p>
+<p>© 2026 Norte Servic. Todos os direitos reservados.</p>
+</footer>
+<script src="/assets/js/cidade/core.js?v=37"></script>
+<script src="/assets/js/cidade/interface.js?v=37"></script>
+<script src="/assets/js/cidade/payments.js?v=37"></script>
+<script src="/assets/js/core/shell.js?v=37"></script>
 </body>
 </html>

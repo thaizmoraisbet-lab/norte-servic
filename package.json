@@ -1,7 +1,7 @@
 {
   "name": "norte-servic-login",
-  "version": "36.0.0",
-  "description": "Norte Servic V36 com redesign premium dark/gold, busca avançada e onboarding simplificado.",
+  "version": "37.0.0",
+  "description": "Norte Servic V37 com identidade dark/gold aplicada a todas as áreas, componentes e estados de carregamento.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

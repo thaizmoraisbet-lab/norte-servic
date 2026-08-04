@@ -1,420 +1,361 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
-  
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
-<meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Painel Admin - Norte Servic</title>
-  <link rel="stylesheet" href="/assets/css/base.css?v=36">
-  <link rel="stylesheet" href="/assets/css/admin.css?v=36">
+<link href="/favicon.ico" rel="icon" type="image/x-icon"/>
+<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/site.webmanifest" rel="manifest"/>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="#07111d" name="theme-color"/>
+<title>Painel Admin - Norte Servic</title>
+<link href="/assets/css/base.css?v=37" rel="stylesheet"/>
+<link href="/assets/css/admin.css?v=37" rel="stylesheet"/>
 </head>
 <body class="admin-page-body">
-
-  <div class="mini-loading" id="miniLoading">
-    <div class="loader-bolinha"></div>
-    <p>Carregando painel...</p>
-  </div>
-
+<div class="mini-loading" id="miniLoading">
+<div class="loader-bolinha"></div>
+<p>Carregando painel...</p>
+</div>
 <header class="ns-header admin-public-header">
-  <a href="/" class="ns-logo" aria-label="Voltar para o início">
-    <span class="ns-logo-icon">✓</span>
-    <span>Norte Servic</span>
-  </a>
-
-  <nav class="ns-nav" aria-label="Menu principal">
-    <a href="/">Início</a>
-    <a href="/cadastro">Cadastrar</a>
-    <a href="/planos">Planos</a>
-    <a href="/login">Área profissional</a>
-  </nav>
+<a aria-label="Voltar para o início" class="ns-logo" href="/">
+<span class="ns-logo-icon">✓</span>
+<span>Norte Servic</span>
+</a>
+<nav aria-label="Menu principal" class="ns-nav">
+<a href="/">Início</a>
+<a href="/cadastro">Cadastrar</a>
+<a href="/planos">Planos</a>
+<a href="/login">Área profissional</a>
+</nav>
 </header>
-
-  <main class="admin-ultra-page">
-
-    <section class="admin-ultra-login admin-ultra-login-mobile-prioridade" id="loginAdmin">
-      <div class="admin-login-box">
-        <span>Área administrativa</span>
-
-        <h2>Acessar painel</h2>
-
-        <p>Entre com e-mail e senha. A sessão administrativa agora é protegida por cookie seguro.</p>
-
-        <label>E-mail do administrador</label>
-        <input type="email" id="emailAdmin" placeholder="admin@norteservic.com.br" autocomplete="username">
-
-        <label>Senha do administrador</label>
-        <input type="password" id="senhaAdmin" placeholder="Digite sua senha" autocomplete="current-password">
-
-        <button onclick="entrarAdmin()">Entrar com segurança</button>
-
-        <p id="erroSenha"></p>
-      </div>
-
-      <div class="admin-login-visual">
-        <span>Painel privado</span>
-
-        <h1>Gestão premium da Norte Servic.</h1>
-
-        <p>
+<main class="admin-ultra-page">
+<section class="admin-ultra-login admin-ultra-login-mobile-prioridade" id="loginAdmin">
+<div class="admin-login-box">
+<span>Área administrativa</span>
+<h2>Acessar painel</h2>
+<p>Entre com e-mail e senha. A sessão administrativa agora é protegida por cookie seguro.</p>
+<label>E-mail do administrador</label>
+<input autocomplete="username" id="emailAdmin" placeholder="admin@norteservic.com.br" type="email"/>
+<label>Senha do administrador</label>
+<input autocomplete="current-password" id="senhaAdmin" placeholder="Digite sua senha" type="password"/>
+<button onclick="entrarAdmin()">Entrar com segurança</button>
+<p id="erroSenha"></p>
+</div>
+<div class="admin-login-visual">
+<span>Painel privado</span>
+<h1>Gestão premium da Norte Servic.</h1>
+<p>
           Controle cadastros, aprove profissionais, acompanhe solicitações e mantenha a plataforma com aparência confiável.
         </p>
-
-        <div class="admin-login-beneficios">
-          <p>✓ Controle de cadastros recebidos</p>
-          <p>✓ Aprovação de profissionais</p>
-          <p>✓ Organização por status</p>
-          <p>✓ Acesso rápido ao WhatsApp</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="admin-ultra-dashboard escondido" id="painelAdmin">
-      <div class="admin-app-shell">
-        <button class="admin-sidebar-overlay" type="button" aria-label="Fechar menu" onclick="alternarMenuAdmin(false)"></button>
-
-        <aside class="admin-sidebar" id="adminSidebar" aria-label="Navegação administrativa">
-          <a class="admin-sidebar-brand" href="/" aria-label="Ir para o site Norte Servic">
-            <span class="admin-sidebar-brand-icon">✓</span>
-            <span><strong>Norte Servic</strong><small>Central de gestão</small></span>
-          </a>
-
-          <div class="admin-sidebar-label">GESTÃO</div>
-          <nav class="admin-sidebar-nav" id="adminModulosPremium">
-            <button type="button" class="admin-modulo-btn" data-admin-modulo="profissionais" onclick="navegarModuloAdmin('profissionais')">
-              <span class="admin-modulo-icone" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
-              <span class="admin-modulo-texto"><strong>Profissionais</strong><small>Cadastros e aprovações</small></span>
-              <em class="admin-badge" id="badgeAdminProfissionais">0</em>
-            </button>
-
-            <button type="button" class="admin-modulo-btn" data-admin-modulo="pagamentos" onclick="navegarModuloAdmin('pagamentos')">
-              <span class="admin-modulo-icone" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h2"/></svg></span>
-              <span class="admin-modulo-texto"><strong>Financeiro</strong><small>Planos e pagamentos</small></span>
-              <em class="admin-badge" id="badgeAdminPagamentos">0</em>
-            </button>
-
-            <button type="button" class="admin-modulo-btn" data-admin-modulo="indicacoes" onclick="navegarModuloAdmin('indicacoes')">
-              <span class="admin-modulo-icone" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
-              <span class="admin-modulo-texto"><strong>Indicações</strong><small>Comissões e saques</small></span>
-              <em class="admin-badge" id="badgeAdminIndicacoes">0</em>
-            </button>
-
-            <button type="button" class="admin-modulo-btn" data-admin-modulo="coletores" onclick="navegarModuloAdmin('coletores')">
-              <span class="admin-modulo-icone" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
-              <span class="admin-modulo-texto"><strong>Coletores</strong><small>Equipe Cidade Parceira</small></span>
-              <em class="admin-badge" id="badgeAdminColetores">0</em>
-            </button>
-
-            <button type="button" class="admin-modulo-btn" data-admin-modulo="salaempreendedor" onclick="navegarModuloAdmin('salaempreendedor')">
-              <span class="admin-modulo-icone" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-4h6v4M9 10h.01M15 10h.01M9 14h.01M15 14h.01"/></svg></span>
-              <span class="admin-modulo-texto"><strong>Sala do Empreendedor</strong><small>MEI e formalização</small></span>
-              <em class="admin-badge" id="badgeAdminSalaEmpreendedor">0</em>
-            </button>
-
-            <button type="button" class="admin-modulo-btn" data-admin-modulo="lgpd" onclick="navegarModuloAdmin('lgpd')">
-              <span class="admin-modulo-icone" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg></span>
-              <span class="admin-modulo-texto"><strong>LGPD e dados</strong><small>Privacidade e exclusões</small></span>
-              <em class="admin-badge" id="badgeAdminLgpd">0</em>
-            </button>
-
-            <button type="button" class="admin-modulo-btn" data-admin-modulo="avaliacoes" onclick="navegarModuloAdmin('avaliacoes')">
-              <span class="admin-modulo-icone" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2Z"/></svg></span>
-              <span class="admin-modulo-texto"><strong>Avaliações</strong><small>Moderação e qualidade</small></span>
-              <em class="admin-badge" id="badgeAdminAvaliacoes">0</em>
-            </button>
-          </nav>
-
-          <div class="admin-sidebar-footer">
-            <div class="admin-sidebar-user">
-              <span class="admin-user-avatar">A</span>
-              <span><strong>Administrador</strong><small id="adminUsuarioEmail">Sessão protegida</small></span>
-            </div>
-            <button type="button" class="admin-sidebar-logout" onclick="sairAdminSeguro()">Sair do painel</button>
-          </div>
-        </aside>
-
-        <div class="admin-app-main">
-          <header class="admin-app-topbar">
-            <div class="admin-topbar-heading">
-              <button class="admin-mobile-menu" type="button" onclick="alternarMenuAdmin(true)" aria-label="Abrir menu administrativo">
-                <span></span><span></span><span></span>
-              </button>
-              <div><span>Administração</span><h1 id="adminPaginaTitulo">Profissionais</h1></div>
-            </div>
-            <div class="admin-topbar-actions">
-              <a href="/cadastro">Novo cadastro</a>
-              <button type="button" onclick="mostrarAdmin()">Atualizar dados</button>
-            </div>
-          </header>
-
-          <div class="admin-app-content">
-            <div class="admin-ultra-header">
-              <div>
-                <span id="adminPaginaEtiqueta">Visão administrativa</span>
-                <h1 id="adminPaginaDestaque">Gestão de profissionais</h1>
-                <p id="adminPaginaDescricao">Acompanhe cadastros, aprove perfis e mantenha a vitrine da Norte Servic organizada.</p>
-              </div>
-              <div class="admin-system-status"><i></i><span>Sistema operacional</span><small>Atualização automática a cada 30s</small></div>
-            </div>
-
-            <div class="admin-ultra-stats" id="adminStats">
-              <!-- Estatísticas pelo JavaScript -->
-            </div>
-
-      <section class="admin-ultra-content admin-modulo-section ativo" data-admin-section="profissionais">
-        <div class="admin-section-title">
-          <div>
-            <span>Lista de profissionais</span>
-            <h2>Cadastros recebidos</h2>
-          </div>
-          <p>Dentro desta área ficam os profissionais do site oficial e os profissionais mapeados pelos coletores da Cidade Parceira.</p>
-        </div>
-
-        <section class="admin-ultra-toolbar admin-toolbar-interno">
-          <div class="admin-search-box">
-            <span>🔎</span>
-            <input 
-              type="text" 
-              id="adminBusca" 
-              placeholder="Buscar por nome, profissão, cidade ou WhatsApp..."
-              oninput="mostrarAdmin()"
-            >
-          </div>
-
-          <div class="admin-filtros admin-filtros-profissionais">
-            <button class="ativo" onclick="filtrarAdmin('todos', this)">Todos</button>
-            <button onclick="filtrarAdmin('pendente', this)">Pendentes</button>
-            <button onclick="filtrarAdmin('aprovado', this)">Aprovados</button>
-          </div>
-        </section>
-
-        <div class="admin-subarea-topo">
-          <div>
-            <span>Site oficial</span>
-            <h3>Profissionais cadastrados pela plataforma</h3>
-          </div>
-          <small>Cadastros feitos pelo site oficial passam por aprovação manual.</small>
-        </div>
-        <div id="listaAdmin" class="admin-ultra-lista"></div>
-
-        <div class="admin-subarea-topo admin-subarea-cidade">
-          <div>
-            <span>Cidade Parceira</span>
-            <h3>Profissionais cadastrados pelos coletores</h3>
-          </div>
-          <small>Quando o profissional autoriza aparecer no site, o cadastro entra aprovado automaticamente.</small>
-        </div>
-        <div class="admin-internal-tabs cidade-parceira-tabs-v22" role="tablist" aria-label="Cidade Parceira">
-          <button class="ativo" type="button" data-cidade-tab="coletas" onclick="ativarAbaCidadeParceiraAdmin('coletas', this)">Coletas</button>
-          <button type="button" data-cidade-tab="publicados" onclick="ativarAbaCidadeParceiraAdmin('publicados', this)">Publicados</button>
-          <button type="button" data-cidade-tab="relatorio" onclick="ativarAbaCidadeParceiraAdmin('relatorio', this)">Relatório</button>
-        </div>
-        <div id="listaAdminCidadeColetas" class="admin-cidade-coletas-lista"></div>
-      </section>
-
-      <section class="admin-ultra-content admin-modulo-section admin-pagamentos-content" data-admin-section="pagamentos">
-        <div class="admin-section-title">
-          <div>
-            <span>Pagamentos dos planos</span>
-            <h2>Controle de assinaturas</h2>
-          </div>
-          <p id="contadorPagamentosAdmin">0 pagamento(s)</p>
-        </div>
-
-        <section class="admin-financeiro-dashboard" id="adminFinanceiroDashboard">
-          <div class="admin-section-title admin-section-title-financeiro">
-            <div>
-              <span>Gestão financeira</span>
-              <h2>Faturamento e assinaturas</h2>
-            </div>
-            <p>Resumo dos planos pagos, estimativa de taxa da Efí, gratuitos e assinantes.</p>
-          </div>
-
-          <div class="admin-financeiro-grid" id="adminFinanceiroResumo">
-            <!-- Resumo financeiro pelo JavaScript -->
-          </div>
-
-          <div class="admin-grafico-box">
-            <div class="admin-grafico-topo">
-              <div>
-                <span>Últimos 7 dias</span>
-                <h3>Faturamento por dia</h3>
-              </div>
-              <small>Valores brutos dos pagamentos confirmados</small>
-            </div>
-            <div class="admin-grafico-barras" id="adminGraficoFaturamento"></div>
-          </div>
-        </section>
-
-        <div class="admin-filtros admin-filtros-pagamentos">
-          <button class="ativo" onclick="filtrarPagamentosAdmin('todos', this)">Todos</button>
-          <button onclick="filtrarPagamentosAdmin('pago', this)">Pagos</button>
-          <button onclick="filtrarPagamentosAdmin('aguardando', this)">Aguardando pagamento</button>
-          <button onclick="filtrarPagamentosAdmin('expirado', this)">Expirados</button>
-        </div>
-
-        <div id="listaAdminPagamentos" class="admin-pagamentos-lista admin-pagamentos-lista-por-data"></div>
-      </section>
-
-      <section class="admin-ultra-content admin-modulo-section admin-indicacoes-content" data-admin-section="indicacoes">
-        <div class="admin-section-title">
-          <div>
-            <span>Programa de indicação</span>
-            <h2>Indicações e saques</h2>
-          </div>
-          <p>Acompanhe comissões de R$ 10,00 e aprove saques manuais a partir de R$ 100,00.</p>
-        </div>
-        <div class="admin-financeiro-grid" id="adminIndicacoesResumo"></div>
-        <div class="admin-section-title admin-section-title-menor">
-          <span>Saques</span>
-          <h2>Solicitações de saque</h2>
-        </div>
-        <div id="listaAdminSaquesIndicacoes" class="admin-pagamentos-lista"></div>
-        <div class="admin-section-title admin-section-title-menor">
-          <span>Histórico</span>
-          <h2>Indicações registradas</h2>
-        </div>
-        <div id="listaAdminIndicacoes" class="admin-avaliacoes-lista"></div>
-      </section>
-
-      <section class="admin-ultra-content admin-modulo-section admin-coletores-content" data-admin-section="coletores">
-        <div class="admin-section-title">
-          <div>
-            <span>Coletores Cidade Parceira</span>
-            <h2>Credenciamento, setores e comissão</h2>
-          </div>
-          <p>Cadastre coletores, defina o setor de coleta do dia e ajuste o valor pago por cadastro finalizado.</p>
-        </div>
-
-        <div class="admin-coletores-grid">
-          <form id="formAdminColetor" class="admin-coletor-form">
-            <h3>Novo coletor</h3>
-            <p>O e-mail e a senha serão usados no login da área do coletor.</p>
-            <label>Nome do coletor<input name="nome" id="adminColetorNome" placeholder="Ex: Maria Silva" required></label>
-            <label>Telefone do coletor<input name="telefone" id="adminColetorTelefone" placeholder="Ex: 63999990000"></label>
-            <label>E-mail de login<input name="email" id="adminColetorEmail" type="email" placeholder="coletor@..." required></label>
-            <label>Senha inicial<input name="senha" id="adminColetorSenha" placeholder="Mínimo 6 caracteres" required></label>
-            <label>Setor que vai mapear
-              <select name="setor" id="adminColetorSetor" required>
-                <option>Nova Canaã</option>
-                <option>Nova Muricilândia</option>
-                <option>Centro</option>
-              </select>
-            </label>
-            <label>Comissão por cadastro finalizado
-              <input name="valorComissaoCadastro" id="adminColetorComissao" type="number" min="0" step="0.50" value="2">
-            </label>
-            <button type="submit">Credenciar coletor</button>
-            <small id="msgAdminColetor"></small>
-          </form>
-
-          <div class="admin-coletor-painel">
-            <div class="admin-subarea-topo sem-margem">
-              <div>
-                <span>Equipe de campo</span>
-                <h3>Coletores credenciados</h3>
-              </div>
-              <small>Altere setor, telefone, status e comissão quando precisar.</small>
-            </div>
-            <div id="listaAdminColetores" class="admin-coletores-lista"></div>
-          </div>
-        </div>
-
-        <div class="admin-subarea-topo admin-subarea-cidade">
-          <div>
-            <span>Comissão dos coletores</span>
-            <h3>Solicitações de saque</h3>
-          </div>
-          <small>Os cadastros precisam ser avaliados pelo time da Norte Servic antes do pagamento.</small>
-        </div>
-        <div id="listaAdminSaquesColetores" class="admin-pagamentos-lista"></div>
-      </section>
-
-      <section class="admin-ultra-content admin-modulo-section admin-sala-empreendedor-content" data-admin-section="salaempreendedor">
-        <div class="admin-section-title">
-          <div>
-            <span>Cidade Parceira + Sala do Empreendedor</span>
-            <h2>MEI, nota fiscal, cursos e formalização</h2>
-          </div>
-          <p>Use os dados coletados em campo para orientar pequenos negócios, autônomos e profissionais locais.</p>
-        </div>
-
-        <div class="admin-financeiro-grid admin-sala-resumo" id="adminSalaEmpreendedorResumo"></div>
-
-        <div class="admin-filtros admin-filtros-sala">
-          <button class="ativo" onclick="aplicarFiltroSalaEmpreendedor('todos')">Todos</button>
-          <button onclick="aplicarFiltroSalaEmpreendedor('informal')">Informais</button>
-          <button onclick="aplicarFiltroSalaEmpreendedor('quer_mei')">Quer MEI</button>
-          <button onclick="aplicarFiltroSalaEmpreendedor('nota')">Precisa emitir nota</button>
-          <button onclick="aplicarFiltroSalaEmpreendedor('curso')">Curso/capacitação</button>
-          <button onclick="baixarRelatorioSalaEmpreendedor()">Baixar relatório</button>
-        </div>
-
-        <div class="admin-subarea-topo admin-subarea-cidade">
-          <div>
-            <span>Atendimento orientado</span>
-            <h3>Profissionais para encaminhamento</h3>
-          </div>
-          <small>Botão de convocação abre WhatsApp com mensagem pronta para atendimento da Sala do Empreendedor.</small>
-        </div>
-        <div id="listaAdminSalaEmpreendedor" class="admin-sala-lista"></div>
-      </section>
-
-      <section class="admin-ultra-content admin-modulo-section admin-lgpd-content" data-admin-section="lgpd">
-        <div class="admin-section-title">
-          <div>
-            <span>LGPD e dados</span>
-            <h2>Solicitações de exclusão de conta</h2>
-          </div>
-          <p>Analise pedidos de exclusão, aprove a anonimização ou recuse quando houver pendências.</p>
-        </div>
-        <div id="listaAdminExclusoes" class="admin-pagamentos-lista"></div>
-      </section>
-
-      <section class="admin-ultra-content admin-modulo-section admin-avaliacoes-content" data-admin-section="avaliacoes">
-        <div class="admin-section-title">
-          <div>
-            <span>Avaliações pendentes</span>
-            <h2>Controle de avaliações</h2>
-          </div>
-          <p id="contadorAvaliacoesPendentes">0 pendente(s)</p>
-        </div>
-
-        <div id="listaAdminAvaliacoes" class="admin-avaliacoes-lista"></div>
-      </section>
-          </div>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <footer class="rodape-minimo rodape-legal">
-    <nav>
-      <a href="/documentos-legais#termos">Termos de Uso</a>
-      <a href="/documentos-legais#privacidade">Privacidade</a>
-      <a href="/documentos-legais#cookies">Cookies</a>
-      <a href="/documentos-legais#lgpd">LGPD</a>
-      <a href="/admin">Área Administrativa</a>
-      <a href="/cidade">Cidade Parceira</a>
-      <a href="https://wa.me/5563992472236" target="_blank" rel="noopener">Contato Norte Servic</a>
-    </nav>
-    <p>Norte Servic — CNPJ 63.906.559/0001-03</p>
-    <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
-  </footer>
-  <script src="/assets/js/core/catalog.js?v=36"></script>
-  <script src="/assets/js/core/runtime.js?v=36"></script>
-  <script src="/assets/js/features/public.js?v=36"></script>
-  <script src="/assets/js/features/professional.js?v=36"></script>
-  <script src="/assets/js/features/admin.js?v=36"></script>
-  <script src="/assets/js/features/interface.js?v=36"></script>
-  <script src="/assets/js/features/admin-operations.js?v=36"></script>
-  <script src="/assets/js/core/shell.js?v=36"></script>
-  <script src="/assets/js/app.js?v=36"></script>
+<div class="admin-login-beneficios">
+<p>✓ Controle de cadastros recebidos</p>
+<p>✓ Aprovação de profissionais</p>
+<p>✓ Organização por status</p>
+<p>✓ Acesso rápido ao WhatsApp</p>
+</div>
+</div>
+</section>
+<section class="admin-ultra-dashboard escondido" id="painelAdmin">
+<div class="admin-app-shell">
+<button aria-label="Fechar menu" class="admin-sidebar-overlay" onclick="alternarMenuAdmin(false)" type="button"></button>
+<aside aria-label="Navegação administrativa" class="admin-sidebar" id="adminSidebar">
+<a aria-label="Ir para o site Norte Servic" class="admin-sidebar-brand" href="/">
+<span class="admin-sidebar-brand-icon">✓</span>
+<span><strong>Norte Servic</strong><small>Central de gestão</small></span>
+</a>
+<div class="admin-sidebar-label">GESTÃO</div>
+<nav class="admin-sidebar-nav" id="adminModulosPremium">
+<button class="admin-modulo-btn" data-admin-modulo="profissionais" onclick="navegarModuloAdmin('profissionais')" type="button">
+<span aria-hidden="true" class="admin-modulo-icone"><svg viewbox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>
+<span class="admin-modulo-texto"><strong>Profissionais</strong><small>Cadastros e aprovações</small></span>
+<em class="admin-badge" id="badgeAdminProfissionais">0</em>
+</button>
+<button class="admin-modulo-btn" data-admin-modulo="pagamentos" onclick="navegarModuloAdmin('pagamentos')" type="button">
+<span aria-hidden="true" class="admin-modulo-icone"><svg viewbox="0 0 24 24"><rect height="14" rx="2" width="20" x="2" y="5"></rect><path d="M2 10h20M6 15h2"></path></svg></span>
+<span class="admin-modulo-texto"><strong>Financeiro</strong><small>Planos e pagamentos</small></span>
+<em class="admin-badge" id="badgeAdminPagamentos">0</em>
+</button>
+<button class="admin-modulo-btn" data-admin-modulo="indicacoes" onclick="navegarModuloAdmin('indicacoes')" type="button">
+<span aria-hidden="true" class="admin-modulo-icone"><svg viewbox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></span>
+<span class="admin-modulo-texto"><strong>Indicações</strong><small>Comissões e saques</small></span>
+<em class="admin-badge" id="badgeAdminIndicacoes">0</em>
+</button>
+<button class="admin-modulo-btn" data-admin-modulo="coletores" onclick="navegarModuloAdmin('coletores')" type="button">
+<span aria-hidden="true" class="admin-modulo-icone"><svg viewbox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg></span>
+<span class="admin-modulo-texto"><strong>Coletores</strong><small>Equipe Cidade Parceira</small></span>
+<em class="admin-badge" id="badgeAdminColetores">0</em>
+</button>
+<button class="admin-modulo-btn" data-admin-modulo="salaempreendedor" onclick="navegarModuloAdmin('salaempreendedor')" type="button">
+<span aria-hidden="true" class="admin-modulo-icone"><svg viewbox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-4h6v4M9 10h.01M15 10h.01M9 14h.01M15 14h.01"></path></svg></span>
+<span class="admin-modulo-texto"><strong>Sala do Empreendedor</strong><small>MEI e formalização</small></span>
+<em class="admin-badge" id="badgeAdminSalaEmpreendedor">0</em>
+</button>
+<button class="admin-modulo-btn" data-admin-modulo="lgpd" onclick="navegarModuloAdmin('lgpd')" type="button">
+<span aria-hidden="true" class="admin-modulo-icone"><svg viewbox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path><path d="m9 12 2 2 4-4"></path></svg></span>
+<span class="admin-modulo-texto"><strong>LGPD e dados</strong><small>Privacidade e exclusões</small></span>
+<em class="admin-badge" id="badgeAdminLgpd">0</em>
+</button>
+<button class="admin-modulo-btn" data-admin-modulo="avaliacoes" onclick="navegarModuloAdmin('avaliacoes')" type="button">
+<span aria-hidden="true" class="admin-modulo-icone"><svg viewbox="0 0 24 24"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2Z"></path></svg></span>
+<span class="admin-modulo-texto"><strong>Avaliações</strong><small>Moderação e qualidade</small></span>
+<em class="admin-badge" id="badgeAdminAvaliacoes">0</em>
+</button>
+</nav>
+<div class="admin-sidebar-footer">
+<div class="admin-sidebar-user">
+<span class="admin-user-avatar">A</span>
+<span><strong>Administrador</strong><small id="adminUsuarioEmail">Sessão protegida</small></span>
+</div>
+<button class="admin-sidebar-logout" onclick="sairAdminSeguro()" type="button">Sair do painel</button>
+</div>
+</aside>
+<div class="admin-app-main">
+<header class="admin-app-topbar">
+<div class="admin-topbar-heading">
+<button aria-label="Abrir menu administrativo" class="admin-mobile-menu" onclick="alternarMenuAdmin(true)" type="button">
+<span></span><span></span><span></span>
+</button>
+<div><span>Administração</span><h1 id="adminPaginaTitulo">Profissionais</h1></div>
+</div>
+<div class="admin-topbar-actions">
+<a href="/cadastro">Novo cadastro</a>
+<button onclick="mostrarAdmin()" type="button">Atualizar dados</button>
+</div>
+</header>
+<div class="admin-app-content">
+<div class="admin-ultra-header">
+<div>
+<span id="adminPaginaEtiqueta">Visão administrativa</span>
+<h1 id="adminPaginaDestaque">Gestão de profissionais</h1>
+<p id="adminPaginaDescricao">Acompanhe cadastros, aprove perfis e mantenha a vitrine da Norte Servic organizada.</p>
+</div>
+<div class="admin-system-status"><i></i><span>Sistema operacional</span><small>Atualização automática a cada 30s</small></div>
+</div>
+<div class="admin-ultra-stats" id="adminStats">
+<!-- Estatísticas pelo JavaScript -->
+</div>
+<section class="admin-ultra-content admin-modulo-section ativo" data-admin-section="profissionais">
+<div class="admin-section-title">
+<div>
+<span>Lista de profissionais</span>
+<h2>Cadastros recebidos</h2>
+</div>
+<p>Dentro desta área ficam os profissionais do site oficial e os profissionais mapeados pelos coletores da Cidade Parceira.</p>
+</div>
+<section class="admin-ultra-toolbar admin-toolbar-interno">
+<div class="admin-search-box">
+<span>🔎</span>
+<input id="adminBusca" oninput="mostrarAdmin()" placeholder="Buscar por nome, profissão, cidade ou WhatsApp..." type="text"/>
+</div>
+<div class="admin-filtros admin-filtros-profissionais">
+<button class="ativo" onclick="filtrarAdmin('todos', this)">Todos</button>
+<button onclick="filtrarAdmin('pendente', this)">Pendentes</button>
+<button onclick="filtrarAdmin('aprovado', this)">Aprovados</button>
+</div>
+</section>
+<div class="admin-subarea-topo">
+<div>
+<span>Site oficial</span>
+<h3>Profissionais cadastrados pela plataforma</h3>
+</div>
+<small>Cadastros feitos pelo site oficial passam por aprovação manual.</small>
+</div>
+<div class="admin-ultra-lista" id="listaAdmin"></div>
+<div class="admin-subarea-topo admin-subarea-cidade">
+<div>
+<span>Cidade Parceira</span>
+<h3>Profissionais cadastrados pelos coletores</h3>
+</div>
+<small>Quando o profissional autoriza aparecer no site, o cadastro entra aprovado automaticamente.</small>
+</div>
+<div aria-label="Cidade Parceira" class="admin-internal-tabs cidade-parceira-tabs-v22" role="tablist">
+<button class="ativo" data-cidade-tab="coletas" onclick="ativarAbaCidadeParceiraAdmin('coletas', this)" type="button">Coletas</button>
+<button data-cidade-tab="publicados" onclick="ativarAbaCidadeParceiraAdmin('publicados', this)" type="button">Publicados</button>
+<button data-cidade-tab="relatorio" onclick="ativarAbaCidadeParceiraAdmin('relatorio', this)" type="button">Relatório</button>
+</div>
+<div class="admin-cidade-coletas-lista" id="listaAdminCidadeColetas"></div>
+</section>
+<section class="admin-ultra-content admin-modulo-section admin-pagamentos-content" data-admin-section="pagamentos">
+<div class="admin-section-title">
+<div>
+<span>Pagamentos dos planos</span>
+<h2>Controle de assinaturas</h2>
+</div>
+<p id="contadorPagamentosAdmin">0 pagamento(s)</p>
+</div>
+<section class="admin-financeiro-dashboard" id="adminFinanceiroDashboard">
+<div class="admin-section-title admin-section-title-financeiro">
+<div>
+<span>Gestão financeira</span>
+<h2>Faturamento e assinaturas</h2>
+</div>
+<p>Resumo dos planos pagos, estimativa de taxa da Efí, gratuitos e assinantes.</p>
+</div>
+<div class="admin-financeiro-grid" id="adminFinanceiroResumo">
+<!-- Resumo financeiro pelo JavaScript -->
+</div>
+<div class="admin-grafico-box">
+<div class="admin-grafico-topo">
+<div>
+<span>Últimos 7 dias</span>
+<h3>Faturamento por dia</h3>
+</div>
+<small>Valores brutos dos pagamentos confirmados</small>
+</div>
+<div class="admin-grafico-barras" id="adminGraficoFaturamento"></div>
+</div>
+</section>
+<div class="admin-filtros admin-filtros-pagamentos">
+<button class="ativo" onclick="filtrarPagamentosAdmin('todos', this)">Todos</button>
+<button onclick="filtrarPagamentosAdmin('pago', this)">Pagos</button>
+<button onclick="filtrarPagamentosAdmin('aguardando', this)">Aguardando pagamento</button>
+<button onclick="filtrarPagamentosAdmin('expirado', this)">Expirados</button>
+</div>
+<div class="admin-pagamentos-lista admin-pagamentos-lista-por-data" id="listaAdminPagamentos"></div>
+</section>
+<section class="admin-ultra-content admin-modulo-section admin-indicacoes-content" data-admin-section="indicacoes">
+<div class="admin-section-title">
+<div>
+<span>Programa de indicação</span>
+<h2>Indicações e saques</h2>
+</div>
+<p>Acompanhe comissões de R$ 10,00 e aprove saques manuais a partir de R$ 100,00.</p>
+</div>
+<div class="admin-financeiro-grid" id="adminIndicacoesResumo"></div>
+<div class="admin-section-title admin-section-title-menor">
+<span>Saques</span>
+<h2>Solicitações de saque</h2>
+</div>
+<div class="admin-pagamentos-lista" id="listaAdminSaquesIndicacoes"></div>
+<div class="admin-section-title admin-section-title-menor">
+<span>Histórico</span>
+<h2>Indicações registradas</h2>
+</div>
+<div class="admin-avaliacoes-lista" id="listaAdminIndicacoes"></div>
+</section>
+<section class="admin-ultra-content admin-modulo-section admin-coletores-content" data-admin-section="coletores">
+<div class="admin-section-title">
+<div>
+<span>Coletores Cidade Parceira</span>
+<h2>Credenciamento, setores e comissão</h2>
+</div>
+<p>Cadastre coletores, defina o setor de coleta do dia e ajuste o valor pago por cadastro finalizado.</p>
+</div>
+<div class="admin-coletores-grid">
+<form class="admin-coletor-form" id="formAdminColetor">
+<h3>Novo coletor</h3>
+<p>O e-mail e a senha serão usados no login da área do coletor.</p>
+<label>Nome do coletor<input id="adminColetorNome" name="nome" placeholder="Ex: Maria Silva" required=""/></label>
+<label>Telefone do coletor<input id="adminColetorTelefone" name="telefone" placeholder="Ex: 63999990000"/></label>
+<label>E-mail de login<input id="adminColetorEmail" name="email" placeholder="coletor@..." required="" type="email"/></label>
+<label>Senha inicial<input id="adminColetorSenha" name="senha" placeholder="Mínimo 6 caracteres" required=""/></label>
+<label>Setor que vai mapear
+              <select id="adminColetorSetor" name="setor" required="">
+<option>Nova Canaã</option>
+<option>Nova Muricilândia</option>
+<option>Centro</option>
+</select>
+</label>
+<label>Comissão por cadastro finalizado
+              <input id="adminColetorComissao" min="0" name="valorComissaoCadastro" step="0.50" type="number" value="2"/>
+</label>
+<button type="submit">Credenciar coletor</button>
+<small id="msgAdminColetor"></small>
+</form>
+<div class="admin-coletor-painel">
+<div class="admin-subarea-topo sem-margem">
+<div>
+<span>Equipe de campo</span>
+<h3>Coletores credenciados</h3>
+</div>
+<small>Altere setor, telefone, status e comissão quando precisar.</small>
+</div>
+<div class="admin-coletores-lista" id="listaAdminColetores"></div>
+</div>
+</div>
+<div class="admin-subarea-topo admin-subarea-cidade">
+<div>
+<span>Comissão dos coletores</span>
+<h3>Solicitações de saque</h3>
+</div>
+<small>Os cadastros precisam ser avaliados pelo time da Norte Servic antes do pagamento.</small>
+</div>
+<div class="admin-pagamentos-lista" id="listaAdminSaquesColetores"></div>
+</section>
+<section class="admin-ultra-content admin-modulo-section admin-sala-empreendedor-content" data-admin-section="salaempreendedor">
+<div class="admin-section-title">
+<div>
+<span>Cidade Parceira + Sala do Empreendedor</span>
+<h2>MEI, nota fiscal, cursos e formalização</h2>
+</div>
+<p>Use os dados coletados em campo para orientar pequenos negócios, autônomos e profissionais locais.</p>
+</div>
+<div class="admin-financeiro-grid admin-sala-resumo" id="adminSalaEmpreendedorResumo"></div>
+<div class="admin-filtros admin-filtros-sala">
+<button class="ativo" onclick="aplicarFiltroSalaEmpreendedor('todos')">Todos</button>
+<button onclick="aplicarFiltroSalaEmpreendedor('informal')">Informais</button>
+<button onclick="aplicarFiltroSalaEmpreendedor('quer_mei')">Quer MEI</button>
+<button onclick="aplicarFiltroSalaEmpreendedor('nota')">Precisa emitir nota</button>
+<button onclick="aplicarFiltroSalaEmpreendedor('curso')">Curso/capacitação</button>
+<button onclick="baixarRelatorioSalaEmpreendedor()">Baixar relatório</button>
+</div>
+<div class="admin-subarea-topo admin-subarea-cidade">
+<div>
+<span>Atendimento orientado</span>
+<h3>Profissionais para encaminhamento</h3>
+</div>
+<small>Botão de convocação abre WhatsApp com mensagem pronta para atendimento da Sala do Empreendedor.</small>
+</div>
+<div class="admin-sala-lista" id="listaAdminSalaEmpreendedor"></div>
+</section>
+<section class="admin-ultra-content admin-modulo-section admin-lgpd-content" data-admin-section="lgpd">
+<div class="admin-section-title">
+<div>
+<span>LGPD e dados</span>
+<h2>Solicitações de exclusão de conta</h2>
+</div>
+<p>Analise pedidos de exclusão, aprove a anonimização ou recuse quando houver pendências.</p>
+</div>
+<div class="admin-pagamentos-lista" id="listaAdminExclusoes"></div>
+</section>
+<section class="admin-ultra-content admin-modulo-section admin-avaliacoes-content" data-admin-section="avaliacoes">
+<div class="admin-section-title">
+<div>
+<span>Avaliações pendentes</span>
+<h2>Controle de avaliações</h2>
+</div>
+<p id="contadorAvaliacoesPendentes">0 pendente(s)</p>
+</div>
+<div class="admin-avaliacoes-lista" id="listaAdminAvaliacoes"></div>
+</section>
+</div>
+</div>
+</div>
+</section>
+</main>
+<footer class="rodape-minimo rodape-legal">
+<nav>
+<a href="/documentos-legais#termos">Termos de Uso</a>
+<a href="/documentos-legais#privacidade">Privacidade</a>
+<a href="/documentos-legais#cookies">Cookies</a>
+<a href="/documentos-legais#lgpd">LGPD</a>
+<a href="/admin">Área Administrativa</a>
+<a href="/cidade">Cidade Parceira</a>
+<a href="https://wa.me/5563992472236" rel="noopener" target="_blank">Contato Norte Servic</a>
+</nav>
+<p>Norte Servic — CNPJ 63.906.559/0001-03</p>
+<p>© 2026 Norte Servic. Todos os direitos reservados.</p>
+</footer>
+<script src="/assets/js/core/catalog.js?v=37"></script>
+<script src="/assets/js/core/runtime.js?v=37"></script>
+<script src="/assets/js/features/public.js?v=37"></script>
+<script src="/assets/js/features/professional.js?v=37"></script>
+<script src="/assets/js/features/admin.js?v=37"></script>
+<script src="/assets/js/features/interface.js?v=37"></script>
+<script src="/assets/js/features/admin-operations.js?v=37"></script>
+<script src="/assets/js/core/shell.js?v=37"></script>
+<script src="/assets/js/app.js?v=37"></script>
 </body>
 </html>

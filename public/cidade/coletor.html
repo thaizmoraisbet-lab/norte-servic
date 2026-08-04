@@ -1,335 +1,305 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
-  
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
-<meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Área do Coletor - Norte Servic Cidade Parceira</title>
-  <link rel="stylesheet" href="/assets/css/base.css?v=36">
-  <link rel="stylesheet" href="/assets/css/cidade.css?v=36">
+<link href="/favicon.ico" rel="icon" type="image/x-icon"/>
+<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/site.webmanifest" rel="manifest"/>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="#07111d" name="theme-color"/>
+<title>Área do Coletor - Norte Servic Cidade Parceira</title>
+<link href="/assets/css/base.css?v=37" rel="stylesheet"/>
+<link href="/assets/css/cidade.css?v=37" rel="stylesheet"/>
 </head>
 <body class="cidade-body cidade-coletor-body" data-cidade-page="coletor">
-
-  <div class="mini-loading" id="miniLoading">
-    <div class="loader-bolinha"></div>
-    <p>Carregando área do coletor...</p>
-  </div>
-
-  <header class="ns-header cidade-header-fixo">
-    <a href="/" class="ns-logo" aria-label="Voltar para a Norte Servic">
-      <span class="ns-logo-icon">✓</span>
-      <span>Norte Servic</span>
-    </a>
-
-    <nav class="ns-nav" aria-label="Menu Cidade Parceira">
-      <a href="/">Site oficial</a>
-      <a href="/cidade/home">Cidade Parceira</a>
-      <a href="/cidade/profissionais">Consultar Profissionais</a>
-      <button class="cidade-nav-btn" type="button" onclick="sairCidadeParceira()">Sair</button>
-    </nav>
-  </header>
-
-  <main class="cidade-coletor-main cidade-coletor-app-main">
-    <section class="cidade-coletor-area cidade-coletor-area-page cidade-animar-entrada" id="coletorCidade">
-      <aside class="cidade-coletor-login cidade-coletor-login-centro cidade-card-transicao" id="coletorLoginBox">
-        <span class="cidade-tag">Login do coletor</span>
-        <h2>Entrar para cadastrar profissionais</h2>
-        <p class="cidade-login-help">Área rápida para coleta em campo. Depois do login, o setor aparece automaticamente e o formulário fica pronto para cadastrar pelo celular.</p>
-
-        <label for="emailColetor">E-mail do coletor</label>
-        <input type="email" id="emailColetor" placeholder="coletor.centro@norteservic.com.br" autocomplete="username" inputmode="email">
-
-        <label for="senhaColetor">Senha</label>
-        <input type="password" id="senhaColetor" placeholder="Senha do coletor" autocomplete="current-password">
-
-        <button type="button" id="btnEntrarColetor" onclick="entrarColetorCidade()">Entrar e iniciar coleta</button>
-        <p class="cidade-msg erro" id="erroColetor"></p>
-      </aside>
-
-      <section class="cidade-coletor-form cidade-coletor-form-page cidade-coletor-app escondido" id="coletorPainelBox">
-        <div class="cidade-coletor-appbar cidade-card-transicao">
-          <div class="cidade-coletor-identidade">
-            <span class="cidade-tag">Coletor em campo</span>
-            <h2 id="coletorNomeTitulo">Coleta de profissionais</h2>
-            <p><strong id="coletorSetorTitulo">---</strong> • setor automático pelo login</p>
-          </div>
-          <div class="cidade-coletor-app-stats">
-            <article>
-              <span>Hoje</span>
-              <strong id="cidadeCadastrosHojeCompacto">0</strong>
-              <small>cadastros</small>
-            </article>
-            <article>
-              <span>Comissão</span>
-              <strong id="cidadeComissaoCompacta">R$ 0,00</strong>
-              <small id="cidadeMetaCompacta">meta R$ 50,00</small>
-            </article>
-          </div>
-          <div class="cidade-coletor-app-acoes">
-            <button type="button" class="cidade-btn cidade-btn-claro" onclick="alternarPainelComissaoCidade()">Ver comissão</button>
-            <button type="button" class="cidade-btn cidade-btn-azul" onclick="sairColetorCidade()">Sair</button>
-          </div>
-        </div>
-
-        <div class="cidade-comissao-card cidade-comissao-card-compacta cidade-card-transicao escondido" id="cidadeComissaoCard">
-          <div>
-            <span class="cidade-tag">Comissão do coletor</span>
-            <h3>Comissão por cadastro finalizado</h3>
-            <p id="cidadeComissaoResumo">Acompanhe a meta do dia, cadastros disponíveis e status do saque.</p>
-          </div>
-          <div class="cidade-comissao-valor">
-            <strong id="cidadeComissaoValor">R$ 0,00</strong>
-            <small id="cidadeComissaoDetalhe">0 cadastros hoje • R$ 2,00 por cadastro</small>
-          </div>
-          <div class="cidade-comissao-barra"><i id="cidadeComissaoBarra" style="width:0%"></i></div>
-          <p class="cidade-saque-status" id="cidadeStatusSaqueColetor">Aguardando cadastros para liberar saque.</p>
-          <a id="btnSolicitarSaqueColetor" class="cidade-btn cidade-btn-premium cidade-btn-saque" href="#">Saque libera em R$ 50,00</a>
-        </div>
-
-        <div class="cidade-pix-card cidade-card-transicao escondido" id="cidadePixCard">
-          <div class="cidade-pix-topo">
-            <div>
-              <span class="cidade-tag">Dados para saque</span>
-              <h3>Chave Pix do coletor</h3>
-              <p>Preencha uma vez. Fica salvo para o saque quando a meta do dia for atingida.</p>
-            </div>
-            <span class="cidade-pix-status" id="cidadePixStatus">Pendente</span>
-          </div>
-
-          <form id="formDadosPixColetor" class="cidade-pix-form" autocomplete="off">
-            <div class="cidade-form-grid cidade-pix-grid">
-              <label>Nome completo do titular
-                <input type="text" name="nomeTitular" id="pixNomeTitularColetor" placeholder="Nome igual ao Pix">
-              </label>
-              <label>CPF/CNPJ do titular
-                <input type="text" name="cpfCnpj" id="pixCpfCnpjColetor" inputmode="numeric" placeholder="Somente números">
-              </label>
-              <label>Tipo da chave Pix
-                <select name="tipoChavePix" id="pixTipoChaveColetor">
-                  <option value="">Selecione</option>
-                  <option value="cpf">CPF</option>
-                  <option value="cnpj">CNPJ</option>
-                  <option value="telefone">Telefone</option>
-                  <option value="email">E-mail</option>
-                  <option value="aleatoria">Chave aleatória</option>
-                </select>
-              </label>
-              <label>Chave Pix
-                <input type="text" name="chavePix" id="pixChaveColetor" placeholder="Digite a chave Pix">
-              </label>
-              <label>Banco <small>opcional</small>
-                <input type="text" name="banco" id="pixBancoColetor" placeholder="Ex: Nubank, Caixa, Banco do Brasil">
-              </label>
-            </div>
-            <button type="submit" class="cidade-btn cidade-btn-claro cidade-btn-pix-salvar" id="btnSalvarPixColetor">Salvar dados Pix</button>
-            <p class="cidade-msg" id="msgDadosPixColetor"></p>
-          </form>
-        </div>
-
-        <form id="formColetaCidade" class="cidade-form-coleta-rapida cidade-form-app" autocomplete="off">
-          <div class="cidade-bloco-form cidade-bloco-destaque cidade-bloco-principal-app">
-            <div class="cidade-bloco-header cidade-bloco-header-app">
-              <span>1</span>
-              <div>
-                <h4>Novo cadastro rápido</h4>
-                <p>Preencha só o essencial. Os detalhes podem ser completados depois.</p>
-              </div>
-            </div>
-
-            <div class="cidade-form-grid cidade-form-grid-principal cidade-form-grid-app">
-              <label>Nome do profissional
-                <input type="text" name="nome" id="nomeColetaCidade" required placeholder="Ex: Maria Silva" autocomplete="off">
-              </label>
-              <label>WhatsApp / telefone
-                <input type="tel" name="whatsapp" id="whatsappColetaCidade" inputmode="numeric" placeholder="(63) 99999-9999" maxlength="16" autocomplete="off">
-                <small class="cidade-alerta-duplicado" id="alertaWhatsappDuplicado"></small>
-              </label>
-            </div>
-          </div>
-
-          <div class="cidade-bloco-form cidade-bloco-profissao-app">
-            <div class="cidade-bloco-header cidade-bloco-header-app">
-              <span>2</span>
-              <div>
-                <h4>Profissão</h4>
-                <p>Pesquise e toque na opção correta. Evita lista gigante e acelera a coleta.</p>
-              </div>
-            </div>
-
-            <div class="cidade-profissao-searchbox cidade-profissao-searchbox-app">
-              <label>Buscar atividade
-                <input type="search" id="buscaProfissaoColetaCidade" placeholder="Ex: capinador, horteiro, pedreiro..." autocomplete="off">
-              </label>
-              <div class="cidade-profissao-rapida cidade-profissao-sugestoes" id="cidadeProfissoesRapidas"></div>
-            </div>
-
-            <div class="cidade-form-grid cidade-form-grid-app">
-              <label>Profissão selecionada
-                <input type="text" name="profissao" id="profissaoColetaCidade" required placeholder="Ex: Pedreiro, manicure, diarista...">
-              </label>
-              <label>Categoria automática
-                <input type="text" name="categoria" id="categoriaColetaCidade" placeholder="Categoria" readonly>
-              </label>
-            </div>
-          </div>
-
-          <div class="cidade-bloco-form cidade-bloco-autorizacao-app">
-            <div class="cidade-bloco-header cidade-bloco-header-app">
-              <span>3</span>
-              <div>
-                <h4>Autorização</h4>
-                <p>Marque somente se a pessoa autorizou aparecer publicamente na vitrine da Norte Servic.</p>
-              </div>
-            </div>
-
-            <label class="cidade-checkbox cidade-switch-site cidade-switch-app">
-              <input type="checkbox" name="aceitaSite" value="true" id="aceitaSiteColetaCidade">
-              <span>
-                <strong>Aparecer no site oficial</strong>
-                <small>Se marcado, o cadastro entra aprovado automaticamente no site oficial como pré-cadastro. Depois a pessoa poderá completar foto, Instagram e descrição.</small>
-              </span>
-            </label>
-
-            <label class="cidade-checkbox cidade-switch-site cidade-switch-app">
-              <input type="checkbox" name="autorizouMensagem" value="true" id="autorizouMensagemColetaCidade" checked>
-              <span>
-                <strong>Enviar WhatsApp automático</strong>
-                <small>Use somente se a pessoa autorizou receber a mensagem da Norte Servic com o link para completar o perfil.</small>
-              </span>
-            </label>
-          </div>
-
-          <div class="cidade-bloco-form cidade-bloco-empreendedor-app">
-            <div class="cidade-bloco-header cidade-bloco-header-app">
-              <span>4</span>
-              <div>
-                <h4>Sala do Empreendedor</h4>
-                <p>Dados rápidos para a prefeitura orientar MEI, nota fiscal, cursos e formalização.</p>
-              </div>
-            </div>
-
-            <div class="cidade-form-grid cidade-form-grid-app">
-              <label>Esse profissional já é MEI?
-                <select name="meiStatus" id="meiStatusColetaCidade">
-                  <option value="nao_informado">Não informado</option>
-                  <option value="sim">Sim, já é MEI</option>
-                  <option value="nao">Não é MEI</option>
-                  <option value="nao_sabe">Não sabe informar</option>
-                </select>
-              </label>
-              <label>Tem interesse em se formalizar?
-                <select name="interesseFormalizacao" id="interesseFormalizacaoColetaCidade">
-                  <option value="nao_informado">Não informado</option>
-                  <option value="sim">Sim</option>
-                  <option value="talvez">Talvez / precisa de orientação</option>
-                  <option value="nao">Não no momento</option>
-                </select>
-              </label>
-            </div>
-
-            <div class="cidade-checklist-empreendedor cidade-checklist-premium-coletor" aria-label="Necessidades de apoio da Sala do Empreendedor">
-              <strong>Precisa de ajuda com:</strong>
-              <label><input type="checkbox" name="necessidadesEmpreendedor" value="abrir_mei"><span>Abrir MEI</span></label>
-              <label><input type="checkbox" name="necessidadesEmpreendedor" value="emitir_nota"><span>Emitir nota fiscal</span></label>
-              <label><input type="checkbox" name="necessidadesEmpreendedor" value="pagar_das"><span>Pagar DAS / regularizar MEI</span></label>
-              <label><input type="checkbox" name="necessidadesEmpreendedor" value="declaracao_anual"><span>Declaração anual</span></label>
-              <label><input type="checkbox" name="necessidadesEmpreendedor" value="vender_prefeitura"><span>Vender para a prefeitura</span></label>
-              <label><input type="checkbox" name="necessidadesEmpreendedor" value="curso_capacitacao"><span>Curso / capacitação</span></label>
-              <label><input type="checkbox" name="necessidadesEmpreendedor" value="divulgacao"><span>Melhorar divulgação</span></label>
-              <label><input type="checkbox" name="necessidadesEmpreendedor" value="precificacao"><span>Precificação / organização do negócio</span></label>
-            </div>
-
-            <label class="cidade-detalhes-full">Observação para a Sala do Empreendedor
-              <input type="text" name="observacaoEmpreendedor" id="observacaoEmpreendedorColetaCidade" placeholder="Ex: quer abrir MEI, precisa aprender nota fiscal, deseja curso...">
-            </label>
-          </div>
-
-          <details class="cidade-detalhes-opcionais cidade-card-transicao">
-            <summary>+ Adicionar mais detalhes opcionais</summary>
-            <div class="cidade-detalhes-grid">
-              <label>Bairro ou referência
-                <input type="text" name="bairro" id="bairroColetaCidade" placeholder="Rua, bairro, comércio próximo...">
-              </label>
-              <label>Instagram do profissional <small>opcional</small>
-                <input type="text" name="instagram" id="instagramColetaCidade" placeholder="@perfil ou link do Instagram">
-              </label>
-              <label>E-mail para liberar acesso futuro <small>opcional</small>
-                <input type="email" name="emailProfissional" id="emailProfissionalColetaCidade" placeholder="email do profissional, se tiver">
-              </label>
-              <label>Observação rápida
-                <input type="text" name="descricao" id="descricaoColetaCidade" placeholder="Ex: atende em domicílio, trabalha à noite...">
-              </label>
-              <label class="cidade-detalhes-full">Serviços que realiza <small>opcional</small>
-                <div class="cidade-servicos-rapidos" id="cidadeServicosRapidos"></div>
-                <textarea name="servicos" id="servicosColetaCidade" rows="3" placeholder="Ex: reforma, pintura, limpeza, unhas em gel..."></textarea>
-              </label>
-            </div>
-            <div class="cidade-acesso-profissional-info cidade-info-compacta">
-              <strong>Como o profissional altera depois?</strong>
-              <p>O cadastro nasce simples. Se o profissional quiser completar foto, descrição, Instagram ou senha, a equipe libera acesso individual pelo WhatsApp cadastrado.</p>
-            </div>
-          </details>
-
-          <div class="cidade-form-acoes cidade-form-acoes-desktop">
-            <button class="cidade-btn cidade-btn-claro cidade-btn-limpar" type="button" onclick="limparFormularioColetaCidade()">Limpar</button>
-            <button class="cidade-btn cidade-btn-azul" id="btnSalvarColetaCidade" type="submit">Salvar cadastro</button>
-          </div>
-          <p class="cidade-msg" id="msgColetaCidade"></p>
-        </form>
-
-        <div class="cidade-form-acoes-mobile" id="cidadeAcoesMobile">
-          <button class="cidade-btn cidade-btn-claro cidade-btn-limpar" type="button" onclick="limparFormularioColetaCidade()">Limpar</button>
-          <button class="cidade-btn cidade-btn-azul" id="btnSalvarColetaCidadeMobile" type="button" onclick="document.getElementById('formColetaCidade')?.requestSubmit()">Salvar cadastro</button>
-        </div>
-
-        <div class="cidade-sucesso-coleta escondido" id="cidadeSucessoColeta">
-          <div class="cidade-sucesso-card">
-            <span class="ns-logo-icon">✓</span>
-            <h3>Cadastro enviado com sucesso!</h3>
-            <p id="cidadeSucessoTexto">O profissional foi enviado para a base de dados.</p>
-            <div class="cidade-sucesso-status neutro" id="cidadeSucessoStatus"></div>
-            <div class="cidade-sucesso-acoes-extras" id="cidadeSucessoAcoesExtras"></div>
-            <div class="cidade-sucesso-principais">
-              <button type="button" class="cidade-btn cidade-btn-azul" onclick="proximoCadastroColetaCidade()">Cadastrar próximo</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="cidade-minhas-coletas cidade-card-transicao cidade-minhas-coletas-app">
-          <div class="cidade-minhas-topo">
-            <div>
-              <h4>Últimos cadastros</h4>
-              <p>Conferência rápida dos cadastros feitos por este coletor.</p>
-            </div>
-            <button type="button" onclick="carregarMinhasColetasCidade()">Atualizar</button>
-          </div>
-          <div id="listaMinhasColetas"></div>
-        </div>
-      </section>
-    </section>
-  </main>
-
-  <div class="cidade-toast" id="cidadeToast"></div>
-
-  <footer class="rodape-minimo rodape-legal">
-    <nav>
-      <a href="/">Site oficial</a>
-      <a href="/cidade/home">Cidade Parceira</a>
-      <a href="/cidade/profissionais">Consultar Profissionais</a>
-      <a href="/documentos-legais#privacidade">Privacidade</a>
-          <a href="/admin">Área Administrativa</a>
+<div class="mini-loading" id="miniLoading">
+<div class="loader-bolinha"></div>
+<p>Carregando área do coletor...</p>
+</div>
+<header class="ns-header cidade-header-fixo">
+<a aria-label="Voltar para a Norte Servic" class="ns-logo" href="/">
+<span class="ns-logo-icon">✓</span>
+<span>Norte Servic</span>
+</a>
+<nav aria-label="Menu Cidade Parceira" class="ns-nav">
+<a href="/">Site oficial</a>
+<a href="/cidade/home">Cidade Parceira</a>
+<a href="/cidade/profissionais">Consultar Profissionais</a>
+<button class="cidade-nav-btn" onclick="sairCidadeParceira()" type="button">Sair</button>
 </nav>
-    <p>Norte Servic — Área do Coletor</p>
-    <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
-  </footer>
-  <script src="/assets/js/cidade/core.js?v=36"></script>
-  <script src="/assets/js/cidade/interface.js?v=36"></script>
-  <script src="/assets/js/cidade/payments.js?v=36"></script>
-  <script src="/assets/js/core/shell.js?v=36"></script>
+</header>
+<main class="cidade-coletor-main cidade-coletor-app-main">
+<section class="cidade-coletor-area cidade-coletor-area-page cidade-animar-entrada" id="coletorCidade">
+<aside class="cidade-coletor-login cidade-coletor-login-centro cidade-card-transicao" id="coletorLoginBox">
+<span class="cidade-tag">Login do coletor</span>
+<h2>Entrar para cadastrar profissionais</h2>
+<p class="cidade-login-help">Área rápida para coleta em campo. Depois do login, o setor aparece automaticamente e o formulário fica pronto para cadastrar pelo celular.</p>
+<label for="emailColetor">E-mail do coletor</label>
+<input autocomplete="username" id="emailColetor" inputmode="email" placeholder="coletor.centro@norteservic.com.br" type="email"/>
+<label for="senhaColetor">Senha</label>
+<input autocomplete="current-password" id="senhaColetor" placeholder="Senha do coletor" type="password"/>
+<button id="btnEntrarColetor" onclick="entrarColetorCidade()" type="button">Entrar e iniciar coleta</button>
+<p class="cidade-msg erro" id="erroColetor"></p>
+</aside>
+<section class="cidade-coletor-form cidade-coletor-form-page cidade-coletor-app escondido" id="coletorPainelBox">
+<div class="cidade-coletor-appbar cidade-card-transicao">
+<div class="cidade-coletor-identidade">
+<span class="cidade-tag">Coletor em campo</span>
+<h2 id="coletorNomeTitulo">Coleta de profissionais</h2>
+<p><strong id="coletorSetorTitulo">---</strong> • setor automático pelo login</p>
+</div>
+<div class="cidade-coletor-app-stats">
+<article>
+<span>Hoje</span>
+<strong id="cidadeCadastrosHojeCompacto">0</strong>
+<small>cadastros</small>
+</article>
+<article>
+<span>Comissão</span>
+<strong id="cidadeComissaoCompacta">R$ 0,00</strong>
+<small id="cidadeMetaCompacta">meta R$ 50,00</small>
+</article>
+</div>
+<div class="cidade-coletor-app-acoes">
+<button class="cidade-btn cidade-btn-claro" onclick="alternarPainelComissaoCidade()" type="button">Ver comissão</button>
+<button class="cidade-btn cidade-btn-azul" onclick="sairColetorCidade()" type="button">Sair</button>
+</div>
+</div>
+<div class="cidade-comissao-card cidade-comissao-card-compacta cidade-card-transicao escondido" id="cidadeComissaoCard">
+<div>
+<span class="cidade-tag">Comissão do coletor</span>
+<h3>Comissão por cadastro finalizado</h3>
+<p id="cidadeComissaoResumo">Acompanhe a meta do dia, cadastros disponíveis e status do saque.</p>
+</div>
+<div class="cidade-comissao-valor">
+<strong id="cidadeComissaoValor">R$ 0,00</strong>
+<small id="cidadeComissaoDetalhe">0 cadastros hoje • R$ 2,00 por cadastro</small>
+</div>
+<div class="cidade-comissao-barra"><i id="cidadeComissaoBarra" style="width:0%"></i></div>
+<p class="cidade-saque-status" id="cidadeStatusSaqueColetor">Aguardando cadastros para liberar saque.</p>
+<a class="cidade-btn cidade-btn-premium cidade-btn-saque" href="#" id="btnSolicitarSaqueColetor">Saque libera em R$ 50,00</a>
+</div>
+<div class="cidade-pix-card cidade-card-transicao escondido" id="cidadePixCard">
+<div class="cidade-pix-topo">
+<div>
+<span class="cidade-tag">Dados para saque</span>
+<h3>Chave Pix do coletor</h3>
+<p>Preencha uma vez. Fica salvo para o saque quando a meta do dia for atingida.</p>
+</div>
+<span class="cidade-pix-status" id="cidadePixStatus">Pendente</span>
+</div>
+<form autocomplete="off" class="cidade-pix-form" id="formDadosPixColetor">
+<div class="cidade-form-grid cidade-pix-grid">
+<label>Nome completo do titular
+                <input id="pixNomeTitularColetor" name="nomeTitular" placeholder="Nome igual ao Pix" type="text"/>
+</label>
+<label>CPF/CNPJ do titular
+                <input id="pixCpfCnpjColetor" inputmode="numeric" name="cpfCnpj" placeholder="Somente números" type="text"/>
+</label>
+<label>Tipo da chave Pix
+                <select id="pixTipoChaveColetor" name="tipoChavePix">
+<option value="">Selecione</option>
+<option value="cpf">CPF</option>
+<option value="cnpj">CNPJ</option>
+<option value="telefone">Telefone</option>
+<option value="email">E-mail</option>
+<option value="aleatoria">Chave aleatória</option>
+</select>
+</label>
+<label>Chave Pix
+                <input id="pixChaveColetor" name="chavePix" placeholder="Digite a chave Pix" type="text"/>
+</label>
+<label>Banco <small>opcional</small>
+<input id="pixBancoColetor" name="banco" placeholder="Ex: Nubank, Caixa, Banco do Brasil" type="text"/>
+</label>
+</div>
+<button class="cidade-btn cidade-btn-claro cidade-btn-pix-salvar" id="btnSalvarPixColetor" type="submit">Salvar dados Pix</button>
+<p class="cidade-msg" id="msgDadosPixColetor"></p>
+</form>
+</div>
+<form autocomplete="off" class="cidade-form-coleta-rapida cidade-form-app" id="formColetaCidade">
+<div class="cidade-bloco-form cidade-bloco-destaque cidade-bloco-principal-app">
+<div class="cidade-bloco-header cidade-bloco-header-app">
+<span>1</span>
+<div>
+<h4>Novo cadastro rápido</h4>
+<p>Preencha só o essencial. Os detalhes podem ser completados depois.</p>
+</div>
+</div>
+<div class="cidade-form-grid cidade-form-grid-principal cidade-form-grid-app">
+<label>Nome do profissional
+                <input autocomplete="off" id="nomeColetaCidade" name="nome" placeholder="Ex: Maria Silva" required="" type="text"/>
+</label>
+<label>WhatsApp / telefone
+                <input autocomplete="off" id="whatsappColetaCidade" inputmode="numeric" maxlength="16" name="whatsapp" placeholder="(63) 99999-9999" type="tel"/>
+<small class="cidade-alerta-duplicado" id="alertaWhatsappDuplicado"></small>
+</label>
+</div>
+</div>
+<div class="cidade-bloco-form cidade-bloco-profissao-app">
+<div class="cidade-bloco-header cidade-bloco-header-app">
+<span>2</span>
+<div>
+<h4>Profissão</h4>
+<p>Pesquise e toque na opção correta. Evita lista gigante e acelera a coleta.</p>
+</div>
+</div>
+<div class="cidade-profissao-searchbox cidade-profissao-searchbox-app">
+<label>Buscar atividade
+                <input autocomplete="off" id="buscaProfissaoColetaCidade" placeholder="Ex: capinador, horteiro, pedreiro..." type="search"/>
+</label>
+<div class="cidade-profissao-rapida cidade-profissao-sugestoes" id="cidadeProfissoesRapidas"></div>
+</div>
+<div class="cidade-form-grid cidade-form-grid-app">
+<label>Profissão selecionada
+                <input id="profissaoColetaCidade" name="profissao" placeholder="Ex: Pedreiro, manicure, diarista..." required="" type="text"/>
+</label>
+<label>Categoria automática
+                <input id="categoriaColetaCidade" name="categoria" placeholder="Categoria" readonly="" type="text"/>
+</label>
+</div>
+</div>
+<div class="cidade-bloco-form cidade-bloco-autorizacao-app">
+<div class="cidade-bloco-header cidade-bloco-header-app">
+<span>3</span>
+<div>
+<h4>Autorização</h4>
+<p>Marque somente se a pessoa autorizou aparecer publicamente na vitrine da Norte Servic.</p>
+</div>
+</div>
+<label class="cidade-checkbox cidade-switch-site cidade-switch-app">
+<input id="aceitaSiteColetaCidade" name="aceitaSite" type="checkbox" value="true"/>
+<span>
+<strong>Aparecer no site oficial</strong>
+<small>Se marcado, o cadastro entra aprovado automaticamente no site oficial como pré-cadastro. Depois a pessoa poderá completar foto, Instagram e descrição.</small>
+</span>
+</label>
+<label class="cidade-checkbox cidade-switch-site cidade-switch-app">
+<input checked="" id="autorizouMensagemColetaCidade" name="autorizouMensagem" type="checkbox" value="true"/>
+<span>
+<strong>Enviar WhatsApp automático</strong>
+<small>Use somente se a pessoa autorizou receber a mensagem da Norte Servic com o link para completar o perfil.</small>
+</span>
+</label>
+</div>
+<div class="cidade-bloco-form cidade-bloco-empreendedor-app">
+<div class="cidade-bloco-header cidade-bloco-header-app">
+<span>4</span>
+<div>
+<h4>Sala do Empreendedor</h4>
+<p>Dados rápidos para a prefeitura orientar MEI, nota fiscal, cursos e formalização.</p>
+</div>
+</div>
+<div class="cidade-form-grid cidade-form-grid-app">
+<label>Esse profissional já é MEI?
+                <select id="meiStatusColetaCidade" name="meiStatus">
+<option value="nao_informado">Não informado</option>
+<option value="sim">Sim, já é MEI</option>
+<option value="nao">Não é MEI</option>
+<option value="nao_sabe">Não sabe informar</option>
+</select>
+</label>
+<label>Tem interesse em se formalizar?
+                <select id="interesseFormalizacaoColetaCidade" name="interesseFormalizacao">
+<option value="nao_informado">Não informado</option>
+<option value="sim">Sim</option>
+<option value="talvez">Talvez / precisa de orientação</option>
+<option value="nao">Não no momento</option>
+</select>
+</label>
+</div>
+<div aria-label="Necessidades de apoio da Sala do Empreendedor" class="cidade-checklist-empreendedor cidade-checklist-premium-coletor">
+<strong>Precisa de ajuda com:</strong>
+<label><input name="necessidadesEmpreendedor" type="checkbox" value="abrir_mei"/><span>Abrir MEI</span></label>
+<label><input name="necessidadesEmpreendedor" type="checkbox" value="emitir_nota"/><span>Emitir nota fiscal</span></label>
+<label><input name="necessidadesEmpreendedor" type="checkbox" value="pagar_das"/><span>Pagar DAS / regularizar MEI</span></label>
+<label><input name="necessidadesEmpreendedor" type="checkbox" value="declaracao_anual"/><span>Declaração anual</span></label>
+<label><input name="necessidadesEmpreendedor" type="checkbox" value="vender_prefeitura"/><span>Vender para a prefeitura</span></label>
+<label><input name="necessidadesEmpreendedor" type="checkbox" value="curso_capacitacao"/><span>Curso / capacitação</span></label>
+<label><input name="necessidadesEmpreendedor" type="checkbox" value="divulgacao"/><span>Melhorar divulgação</span></label>
+<label><input name="necessidadesEmpreendedor" type="checkbox" value="precificacao"/><span>Precificação / organização do negócio</span></label>
+</div>
+<label class="cidade-detalhes-full">Observação para a Sala do Empreendedor
+              <input id="observacaoEmpreendedorColetaCidade" name="observacaoEmpreendedor" placeholder="Ex: quer abrir MEI, precisa aprender nota fiscal, deseja curso..." type="text"/>
+</label>
+</div>
+<details class="cidade-detalhes-opcionais cidade-card-transicao">
+<summary>+ Adicionar mais detalhes opcionais</summary>
+<div class="cidade-detalhes-grid">
+<label>Bairro ou referência
+                <input id="bairroColetaCidade" name="bairro" placeholder="Rua, bairro, comércio próximo..." type="text"/>
+</label>
+<label>Instagram do profissional <small>opcional</small>
+<input id="instagramColetaCidade" name="instagram" placeholder="@perfil ou link do Instagram" type="text"/>
+</label>
+<label>E-mail para liberar acesso futuro <small>opcional</small>
+<input id="emailProfissionalColetaCidade" name="emailProfissional" placeholder="email do profissional, se tiver" type="email"/>
+</label>
+<label>Observação rápida
+                <input id="descricaoColetaCidade" name="descricao" placeholder="Ex: atende em domicílio, trabalha à noite..." type="text"/>
+</label>
+<label class="cidade-detalhes-full">Serviços que realiza <small>opcional</small>
+<div class="cidade-servicos-rapidos" id="cidadeServicosRapidos"></div>
+<textarea id="servicosColetaCidade" name="servicos" placeholder="Ex: reforma, pintura, limpeza, unhas em gel..." rows="3"></textarea>
+</label>
+</div>
+<div class="cidade-acesso-profissional-info cidade-info-compacta">
+<strong>Como o profissional altera depois?</strong>
+<p>O cadastro nasce simples. Se o profissional quiser completar foto, descrição, Instagram ou senha, a equipe libera acesso individual pelo WhatsApp cadastrado.</p>
+</div>
+</details>
+<div class="cidade-form-acoes cidade-form-acoes-desktop">
+<button class="cidade-btn cidade-btn-claro cidade-btn-limpar" onclick="limparFormularioColetaCidade()" type="button">Limpar</button>
+<button class="cidade-btn cidade-btn-azul" id="btnSalvarColetaCidade" type="submit">Salvar cadastro</button>
+</div>
+<p class="cidade-msg" id="msgColetaCidade"></p>
+</form>
+<div class="cidade-form-acoes-mobile" id="cidadeAcoesMobile">
+<button class="cidade-btn cidade-btn-claro cidade-btn-limpar" onclick="limparFormularioColetaCidade()" type="button">Limpar</button>
+<button class="cidade-btn cidade-btn-azul" id="btnSalvarColetaCidadeMobile" onclick="document.getElementById('formColetaCidade')?.requestSubmit()" type="button">Salvar cadastro</button>
+</div>
+<div class="cidade-sucesso-coleta escondido" id="cidadeSucessoColeta">
+<div class="cidade-sucesso-card">
+<span class="ns-logo-icon">✓</span>
+<h3>Cadastro enviado com sucesso!</h3>
+<p id="cidadeSucessoTexto">O profissional foi enviado para a base de dados.</p>
+<div class="cidade-sucesso-status neutro" id="cidadeSucessoStatus"></div>
+<div class="cidade-sucesso-acoes-extras" id="cidadeSucessoAcoesExtras"></div>
+<div class="cidade-sucesso-principais">
+<button class="cidade-btn cidade-btn-azul" onclick="proximoCadastroColetaCidade()" type="button">Cadastrar próximo</button>
+</div>
+</div>
+</div>
+<div class="cidade-minhas-coletas cidade-card-transicao cidade-minhas-coletas-app">
+<div class="cidade-minhas-topo">
+<div>
+<h4>Últimos cadastros</h4>
+<p>Conferência rápida dos cadastros feitos por este coletor.</p>
+</div>
+<button onclick="carregarMinhasColetasCidade()" type="button">Atualizar</button>
+</div>
+<div id="listaMinhasColetas"></div>
+</div>
+</section>
+</section>
+</main>
+<div class="cidade-toast" id="cidadeToast"></div>
+<footer class="rodape-minimo rodape-legal">
+<nav>
+<a href="/">Site oficial</a>
+<a href="/cidade/home">Cidade Parceira</a>
+<a href="/cidade/profissionais">Consultar Profissionais</a>
+<a href="/documentos-legais#privacidade">Privacidade</a>
+<a href="/admin">Área Administrativa</a>
+</nav>
+<p>Norte Servic — Área do Coletor</p>
+<p>© 2026 Norte Servic. Todos os direitos reservados.</p>
+</footer>
+<script src="/assets/js/cidade/core.js?v=37"></script>
+<script src="/assets/js/cidade/interface.js?v=37"></script>
+<script src="/assets/js/cidade/payments.js?v=37"></script>
+<script src="/assets/js/core/shell.js?v=37"></script>
 </body>
 </html>

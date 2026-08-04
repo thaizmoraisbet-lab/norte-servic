@@ -1,104 +1,90 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
-  
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
-<meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Painel do Profissional - Norte Servic</title>
-  <link rel="stylesheet" href="/assets/css/base.css?v=36">
+<link href="/favicon.ico" rel="icon" type="image/x-icon"/>
+<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/site.webmanifest" rel="manifest"/>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="#07111d" name="theme-color"/>
+<title>Painel do Profissional - Norte Servic</title>
+<link href="/assets/css/base.css?v=37" rel="stylesheet"/>
 </head>
 <body>
-
-  <div class="mini-loading" id="miniLoading">
-    <div class="loader-bolinha"></div>
-    <p>Carregando painel...</p>
-  </div>
-
-  <header class="ns-header ns-header-v36">
-  <a href="/" class="ns-logo" aria-label="Voltar para o início">
-    <span class="ns-logo-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-    <span class="ns-logo-word">Norte <b>Servic</b><em>.</em></span>
-  </a>
-
-  <nav class="ns-nav" aria-label="Menu principal">
-    <a href="/">Início</a>
-    <a href="/cadastro">Cadastrar</a>
-    <a href="/planos">Planos</a>
-    <a href="/login">Área profissional</a>
-  </nav>
+<div class="mini-loading" id="miniLoading">
+<div class="loader-bolinha"></div>
+<p>Carregando painel...</p>
+</div>
+<header class="ns-header ns-header-v36">
+<a aria-label="Voltar para o início" class="ns-logo" href="/">
+<span aria-hidden="true" class="ns-logo-mark"><i></i><i></i><i></i><i></i></span>
+<span class="ns-logo-word">Norte <b>Servic</b><em>.</em></span>
+</a>
+<nav aria-label="Menu principal" class="ns-nav">
+<a href="/">Início</a>
+<a href="/cadastro">Cadastrar</a>
+<a href="/planos">Planos</a>
+<a href="/login">Área profissional</a>
+</nav>
 </header>
-
-  <main class="painel-profissional-page painel-profissional-premium-page">
-    <section class="painel-profissional-header painel-profissional-header-premium" id="painelProfissionalHeader"></section>
-
-    <section class="painel-status-grid painel-status-grid-premium" id="painelStatusProfissional"></section>
-
-    <section class="painel-profissional-grid painel-profissional-grid-premium">
-      <div class="painel-card-principal painel-card-principal-premium" id="painelResumoProfissional"></div>
-
-      <aside class="painel-acoes-profissional painel-acoes-premium">
-        <div class="painel-acoes-topo">
-          <span>Ações rápidas</span>
-          <h3>Gerenciar conta</h3>
-        </div>
-
-        <a href="/editar-perfil" class="painel-acao destaque">Editar meu perfil</a>
-        <a href="/planos?origem=painel" class="painel-acao">Ver planos de destaque</a>
-        <a href="#" id="linkPerfilPublico" class="painel-acao">Ver perfil público</a>
-        <button type="button" onclick="sairProfissional()" class="painel-acao sair">Sair da conta</button>
-      </aside>
-    </section>
-
-    <section class="painel-profissional-extra-grid">
-      <div class="painel-extra-card" id="painelPlanoProfissional"></div>
-      <div class="painel-extra-card" id="painelDicasProfissional"></div>
-    </section>
-
-    <section class="painel-extra-card painel-indicacoes-card" id="painelIndicacoesProfissional"></section>
-
-    <section class="painel-extra-card painel-privacidade-card" id="painelPrivacidadeDados">
-      <div class="painel-privacidade-topo">
-        <span class="painel-box-badge">LGPD</span>
-        <h3>Privacidade e Dados</h3>
-        <p>Gerencie seus dados pessoais cadastrados na Norte Servic.</p>
-      </div>
-      <div class="painel-privacidade-acoes">
-        <button type="button" onclick="baixarMeusDados()">Baixar meus dados</button>
-        <a href="/editar-perfil">Editar meus dados</a>
-        <button type="button" class="alerta" onclick="solicitarExclusaoConta()">Solicitar exclusão da conta</button>
-      </div>
-      <small>A exclusão será enviada ao painel administrativo para análise. Após aprovação, os dados poderão ser removidos ou anonimizados.</small>
-    </section>
-
-  </main>
-
-  <footer class="rodape-minimo rodape-legal">
-    <nav>
-      <a href="/documentos-legais#termos">Termos de Uso</a>
-      <a href="/documentos-legais#privacidade">Privacidade</a>
-      <a href="/documentos-legais#cookies">Cookies</a>
-      <a href="/documentos-legais#lgpd">LGPD</a>
-      <a href="/admin">Área Administrativa</a>
-      <a href="/cidade">Cidade Parceira</a>
-      <a href="https://wa.me/5563992472236" target="_blank" rel="noopener">Contato Norte Servic</a>
-    </nav>
-    <p>Norte Servic — CNPJ 63.906.559/0001-03</p>
-    <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
-  </footer>
-  <script src="/assets/js/core/catalog.js?v=36"></script>
-  <script src="/assets/js/core/runtime.js?v=36"></script>
-  <script src="/assets/js/features/public.js?v=36"></script>
-  <script src="/assets/js/features/professional.js?v=36"></script>
-  <script src="/assets/js/features/admin.js?v=36"></script>
-  <script src="/assets/js/features/interface.js?v=36"></script>
-  <script src="/assets/js/features/admin-operations.js?v=36"></script>
-  <script src="/assets/js/core/shell.js?v=36"></script>
-  <script src="/assets/js/app.js?v=36"></script>
+<main class="painel-profissional-page painel-profissional-premium-page">
+<section class="painel-profissional-header painel-profissional-header-premium" id="painelProfissionalHeader"></section>
+<section class="painel-status-grid painel-status-grid-premium" id="painelStatusProfissional"></section>
+<section class="painel-profissional-grid painel-profissional-grid-premium">
+<div class="painel-card-principal painel-card-principal-premium" id="painelResumoProfissional"></div>
+<aside class="painel-acoes-profissional painel-acoes-premium">
+<div class="painel-acoes-topo">
+<span>Ações rápidas</span>
+<h3>Gerenciar conta</h3>
+</div>
+<a class="painel-acao destaque" href="/editar-perfil">Editar meu perfil</a>
+<a class="painel-acao" href="/planos?origem=painel">Ver planos de destaque</a>
+<a class="painel-acao" href="#" id="linkPerfilPublico">Ver perfil público</a>
+<button class="painel-acao sair" onclick="sairProfissional()" type="button">Sair da conta</button>
+</aside>
+</section>
+<section class="painel-profissional-extra-grid">
+<div class="painel-extra-card" id="painelPlanoProfissional"></div>
+<div class="painel-extra-card" id="painelDicasProfissional"></div>
+</section>
+<section class="painel-extra-card painel-indicacoes-card" id="painelIndicacoesProfissional"></section>
+<section class="painel-extra-card painel-privacidade-card" id="painelPrivacidadeDados">
+<div class="painel-privacidade-topo">
+<span class="painel-box-badge">LGPD</span>
+<h3>Privacidade e Dados</h3>
+<p>Gerencie seus dados pessoais cadastrados na Norte Servic.</p>
+</div>
+<div class="painel-privacidade-acoes">
+<button onclick="baixarMeusDados()" type="button">Baixar meus dados</button>
+<a href="/editar-perfil">Editar meus dados</a>
+<button class="alerta" onclick="solicitarExclusaoConta()" type="button">Solicitar exclusão da conta</button>
+</div>
+<small>A exclusão será enviada ao painel administrativo para análise. Após aprovação, os dados poderão ser removidos ou anonimizados.</small>
+</section>
+</main>
+<footer class="rodape-minimo rodape-legal">
+<nav>
+<a href="/documentos-legais#termos">Termos de Uso</a>
+<a href="/documentos-legais#privacidade">Privacidade</a>
+<a href="/documentos-legais#cookies">Cookies</a>
+<a href="/documentos-legais#lgpd">LGPD</a>
+<a href="/admin">Área Administrativa</a>
+<a href="/cidade">Cidade Parceira</a>
+<a href="https://wa.me/5563992472236" rel="noopener" target="_blank">Contato Norte Servic</a>
+</nav>
+<p>Norte Servic — CNPJ 63.906.559/0001-03</p>
+<p>© 2026 Norte Servic. Todos os direitos reservados.</p>
+</footer>
+<script src="/assets/js/core/catalog.js?v=37"></script>
+<script src="/assets/js/core/runtime.js?v=37"></script>
+<script src="/assets/js/features/public.js?v=37"></script>
+<script src="/assets/js/features/professional.js?v=37"></script>
+<script src="/assets/js/features/admin.js?v=37"></script>
+<script src="/assets/js/features/interface.js?v=37"></script>
+<script src="/assets/js/features/admin-operations.js?v=37"></script>
+<script src="/assets/js/core/shell.js?v=37"></script>
+<script src="/assets/js/app.js?v=37"></script>
 </body>
 </html>

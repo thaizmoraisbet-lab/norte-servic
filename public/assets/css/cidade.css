@@ -4,35 +4,35 @@
 .cidade-header-fixo *, .cidade-header-login * { color:#fff; }
 .cidade-header-fixo a, .cidade-header-login a { color:#fff !important; }
 .cidade-nav-btn { min-height:38px; display:inline-flex; align-items:center; justify-content:center; padding:0 12px; border:1px solid rgba(255,255,255,.15); border-radius:9px; background:rgba(255,255,255,.07); color:#fff !important; font-size:11px; font-weight:750; }
-.cidade-nav-destaque { background:var(--ns-primary); border-color:var(--ns-primary); }
+.cidade-nav-destaque { background:var(--ns-primary); border-color:var(--ns-primary); color:var(--ns-primary-contrast) !important; }
 .cidade-badge, .cidade-tag { display:inline-flex; align-items:center; width:fit-content; padding:5px 8px; border-radius:999px; background:var(--ns-primary-soft); color:var(--ns-primary-hover); font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; }
-.cidade-hero-premium { padding:64px 20px; background:linear-gradient(135deg,var(--ns-navy),#173875); color:#fff; }
+.cidade-hero-premium { padding:64px 20px; background:linear-gradient(135deg,#050d15,#101f2e); color:#fff; }
 .cidade-hero-content { width:min(1000px,100%); margin:0 auto; text-align:center; }
 .cidade-hero-content h1, .cidade-hero-content h2 { color:#fff; font-size:clamp(32px,5vw,52px); }
-.cidade-hero-content p { max-width:720px; margin:14px auto 0; color:#dbeafe; }
+.cidade-hero-content p { max-width:720px; margin:14px auto 0; color:#d7c7a2; }
 .cidade-hero-acoes { display:flex; justify-content:center; gap:9px; flex-wrap:wrap; margin-top:24px; }
-.cidade-btn, .cidade-btn-premium { min-height:42px; display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:0 13px; border:1px solid var(--ns-border-strong); border-radius:10px; background:#fff; color:var(--ns-text-2); font-size:11px; font-weight:800; text-align:center; }
+.cidade-btn, .cidade-btn-premium { min-height:42px; display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:0 13px; border:1px solid var(--ns-border-strong); border-radius:10px; background:var(--ns-surface); color:var(--ns-text-2); font-size:11px; font-weight:800; text-align:center; }
 .cidade-btn svg, .cidade-btn-icon { width:18px; height:18px; flex:0 0 18px; }
-.cidade-btn-azul, .cidade-btn-cheio, .cidade-btn-premium { background:var(--ns-primary); border-color:var(--ns-primary); color:#fff !important; }
-.cidade-btn-claro { background:#fff; border-color:var(--ns-border); color:var(--ns-text-2) !important; }
-.cidade-btn-limpar { background:#fff; color:var(--ns-danger) !important; }
+.cidade-btn-azul, .cidade-btn-cheio, .cidade-btn-premium { background:var(--ns-primary); border-color:var(--ns-primary); color:var(--ns-primary-contrast) !important; }
+.cidade-btn-claro { background:var(--ns-surface); border-color:var(--ns-border); color:var(--ns-text-2) !important; }
+.cidade-btn-limpar { background:var(--ns-surface); color:var(--ns-danger) !important; }
 .cidade-grid-section, .cidade-coletor-area, .cidade-coletor-main, .cidade-consulta-hero, .cidade-profissionais-mini { width:min(var(--ns-container),calc(100% - 40px)); margin:0 auto; padding:34px 0; }
 .cidade-metricas { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
-.cidade-metricas article, .cidade-card-grande, .cidade-card-transicao, .cidade-profissao-card, .cidade-setor-item, .cidade-ranking-item, .cidade-coleta-item { min-width:0; padding:18px; border:1px solid var(--ns-border); border-radius:16px; background:#fff; color:var(--ns-text); box-shadow:var(--ns-shadow-sm); }
+.cidade-metricas article, .cidade-card-grande, .cidade-card-transicao, .cidade-profissao-card, .cidade-setor-item, .cidade-ranking-item, .cidade-coleta-item { min-width:0; padding:18px; border:1px solid var(--ns-border); border-radius:16px; background:var(--ns-surface); color:var(--ns-text); box-shadow:var(--ns-shadow-sm); }
 .cidade-metricas strong { display:block; color:var(--ns-text); font-size:24px; }
 .cidade-metricas span, .cidade-metricas small { color:var(--ns-muted); }
 .cidade-lista-profissoes, .cidade-setores-lista, .cidade-ranking, .cidade-minhas-coletas, .cidade-minhas-coletas-app { display:grid; gap:10px; }
 .cidade-profissao-card h3, .cidade-setor-item h3, .cidade-ranking-item h3, .cidade-coleta-item h3 { color:var(--ns-text); }
 .cidade-profissao-card p, .cidade-setor-item p, .cidade-ranking-item p, .cidade-coleta-item p { color:var(--ns-muted); }
 .cidade-status-linha, .cidade-info-compacta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-.cidade-status, .cidade-status-elite { display:inline-flex; align-items:center; padding:5px 8px; border-radius:999px; background:#f1f5f9; color:#475569; font-size:9px; font-weight:800; }
+.cidade-status, .cidade-status-elite { display:inline-flex; align-items:center; padding:5px 8px; border-radius:999px; background:var(--ns-surface-3); color:var(--ns-text-2); font-size:9px; font-weight:800; }
 
 /* Login Cidade */
 .cidade-login-page-unica, .cidade-login-only { min-height:calc(100vh - 68px); display:grid; place-items:center; padding:28px 20px; }
-.cidade-login-card-premium, .cidade-login-card { width:min(940px,100%); display:grid; grid-template-columns:1fr 420px; overflow:hidden; border:1px solid var(--ns-border); border-radius:24px; background:#fff; box-shadow:var(--ns-shadow); }
-.cidade-login-visual, .cidade-login-visual-premium { padding:36px; background:linear-gradient(135deg,var(--ns-navy),#173875); color:#fff; }
+.cidade-login-card-premium, .cidade-login-card { width:min(940px,100%); display:grid; grid-template-columns:1fr 420px; overflow:hidden; border:1px solid var(--ns-border); border-radius:24px; background:var(--ns-surface); box-shadow:var(--ns-shadow); }
+.cidade-login-visual, .cidade-login-visual-premium { padding:36px; background:linear-gradient(135deg,#050d15,#101f2e); color:#fff; }
 .cidade-login-visual h1, .cidade-login-visual h2, .cidade-login-visual-premium h1, .cidade-login-visual-premium h2 { color:#fff; }
-.cidade-login-visual p, .cidade-login-visual-premium p { color:#dbeafe; }
+.cidade-login-visual p, .cidade-login-visual-premium p { color:#d7c7a2; }
 .cidade-login-passos { display:grid; gap:8px; margin-top:20px; }
 .cidade-login-passos p { margin:0; padding:9px 11px; border-radius:9px; background:rgba(255,255,255,.08); color:#fff; }
 .cidade-coletor-login, .cidade-coletor-login-centro { padding:30px; display:grid; gap:12px; }
@@ -58,52 +58,52 @@
 .cidade-coletor-app-stats span, .cidade-coletor-app-stats small { display:block; color:#cbd5e1; font-size:9px; }
 .cidade-coletor-app-stats strong { display:block; font-size:17px; }
 .cidade-coletor-app-acoes { display:flex; gap:7px; }
-.cidade-comissao-card, .cidade-pix-card, .cidade-sucesso-card, .cidade-sucesso-coleta { padding:18px; border:1px solid var(--ns-border); border-radius:17px; background:#fff; color:var(--ns-text); box-shadow:var(--ns-shadow-sm); }
+.cidade-comissao-card, .cidade-pix-card, .cidade-sucesso-card, .cidade-sucesso-coleta { padding:18px; border:1px solid var(--ns-border); border-radius:17px; background:var(--ns-surface); color:var(--ns-text); box-shadow:var(--ns-shadow-sm); }
 .cidade-comissao-card h3, .cidade-pix-card h3, .cidade-sucesso-card h3 { color:var(--ns-text); }
 .cidade-comissao-card p, .cidade-pix-card p, .cidade-sucesso-card p { color:var(--ns-muted); }
 .cidade-comissao-valor { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin:12px 0; }
 .cidade-comissao-valor strong { color:var(--ns-text); font-size:26px; }
 .cidade-comissao-valor small { color:var(--ns-muted); }
-.cidade-comissao-barra { height:8px; border-radius:999px; background:#e2e8f0; overflow:hidden; }
+.cidade-comissao-barra { height:8px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden; }
 .cidade-comissao-barra i { display:block; height:100%; border-radius:inherit; background:var(--ns-success); }
 .cidade-saque-status { font-size:11px; }
 .cidade-pix-topo, .cidade-minhas-topo, .cidade-profissao-topo { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
-.cidade-pix-status { display:inline-flex; padding:5px 8px; border-radius:999px; background:var(--ns-warning-soft); color:#92400e; font-size:9px; font-weight:800; }
+.cidade-pix-status { display:inline-flex; padding:5px 8px; border-radius:999px; background:var(--ns-warning-soft); color:#f6d28d; font-size:9px; font-weight:800; }
 .cidade-pix-form { display:grid; gap:12px; margin-top:14px; }
 .cidade-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
 .cidade-form-grid label, .cidade-profissao-searchbox label { min-width:0; display:grid; gap:6px; color:var(--ns-text-2); font-size:11px; font-weight:700; }
 .cidade-form-grid label small { color:var(--ns-muted); font-weight:500; }
 .cidade-form-coleta-rapida, .cidade-form-app { display:grid; gap:14px; }
-.cidade-bloco-form { padding:18px; border:1px solid var(--ns-border); border-radius:16px; background:#fff; color:var(--ns-text); box-shadow:var(--ns-shadow-sm); }
+.cidade-bloco-form { padding:18px; border:1px solid var(--ns-border); border-radius:16px; background:var(--ns-surface); color:var(--ns-text); box-shadow:var(--ns-shadow-sm); }
 .cidade-bloco-header, .cidade-bloco-header-app { display:flex; align-items:flex-start; gap:11px; margin-bottom:14px; }
-.cidade-bloco-header > span, .cidade-bloco-header-app > span { width:30px; height:30px; flex:0 0 30px; display:grid; place-items:center; border-radius:9px; background:var(--ns-primary); color:#fff; font-size:11px; font-weight:800; }
+.cidade-bloco-header > span, .cidade-bloco-header-app > span { width:30px; height:30px; flex:0 0 30px; display:grid; place-items:center; border-radius:9px; background:var(--ns-primary); color:var(--ns-primary-contrast); font-size:11px; font-weight:800; }
 .cidade-bloco-header > div, .cidade-bloco-header-app > div { min-width:0; }
 .cidade-bloco-header h4, .cidade-bloco-header-app h4 { margin:0; color:var(--ns-text); font-size:14px; }
 .cidade-bloco-header p, .cidade-bloco-header-app p { margin:2px 0 0; color:var(--ns-muted); font-size:10px; }
-.cidade-bloco-destaque { border-color:#bfdbfe; background:#f8fbff; }
+.cidade-bloco-destaque { border-color:#6b5930; background:#0d1c2b; }
 .cidade-profissao-searchbox { display:grid; gap:8px; margin-bottom:12px; }
 .cidade-profissao-rapida, .cidade-profissao-sugestoes, .cidade-servicos-rapidos { display:flex; flex-wrap:wrap; gap:6px; }
-.cidade-chip-profissao, .cidade-chip-servico, .cidade-profissao-rapida button, .cidade-servicos-rapidos button { min-height:32px; display:inline-flex; align-items:center; border:1px solid var(--ns-border); border-radius:999px; background:#fff; color:var(--ns-text-2); padding:0 9px; font-size:9px; font-weight:700; }
-.cidade-chip-profissao.ativo, .cidade-chip-servico.ativo, .cidade-profissao-rapida button.ativo { background:var(--ns-primary); border-color:var(--ns-primary); color:#fff; }
-.cidade-checkbox, .cidade-switch-site, .cidade-switch-app { display:flex; align-items:flex-start; gap:10px; padding:12px; border:1px solid var(--ns-border); border-radius:12px; background:#f8fafc; cursor:pointer; }
+.cidade-chip-profissao, .cidade-chip-servico, .cidade-profissao-rapida button, .cidade-servicos-rapidos button { min-height:32px; display:inline-flex; align-items:center; border:1px solid var(--ns-border); border-radius:999px; background:var(--ns-surface); color:var(--ns-text-2); padding:0 9px; font-size:9px; font-weight:700; }
+.cidade-chip-profissao.ativo, .cidade-chip-servico.ativo, .cidade-profissao-rapida button.ativo { background:var(--ns-primary); border-color:var(--ns-primary); color:var(--ns-primary-contrast); }
+.cidade-checkbox, .cidade-switch-site, .cidade-switch-app { display:flex; align-items:flex-start; gap:10px; padding:12px; border:1px solid var(--ns-border); border-radius:12px; background:var(--ns-surface-2); cursor:pointer; }
 .cidade-checkbox input { width:17px; height:17px; margin:2px 0 0; flex:0 0 17px; accent-color:var(--ns-primary); }
 .cidade-checkbox > span { min-width:0; display:grid; gap:2px; }
 .cidade-checkbox strong { color:var(--ns-text); font-size:11px; }
 .cidade-checkbox small { color:var(--ns-muted); font-size:9px; }
 .cidade-checklist-empreendedor { display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
 .cidade-checklist-empreendedor > strong { width:100%; color:var(--ns-text); font-size:11px; }
-.cidade-checklist-empreendedor label { display:flex; align-items:center; gap:5px; padding:7px 8px; border:1px solid var(--ns-border); border-radius:8px; background:#fff; color:var(--ns-text-2); font-size:9px; }
+.cidade-checklist-empreendedor label { display:flex; align-items:center; gap:5px; padding:7px 8px; border:1px solid var(--ns-border); border-radius:8px; background:var(--ns-surface); color:var(--ns-text-2); font-size:9px; }
 .cidade-checklist-empreendedor input { accent-color:var(--ns-primary); }
 .cidade-form-acoes { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .cidade-form-acoes-mobile { display:none; }
 .cidade-alerta-duplicado { color:var(--ns-warning); }
-.cidade-acesso-profissional-info { padding:12px; border-radius:11px; background:var(--ns-primary-soft); color:#1e40af; font-size:10px; }
+.cidade-acesso-profissional-info { padding:12px; border-radius:11px; background:var(--ns-primary-soft); color:#d8bd7d; font-size:10px; }
 .cidade-minhas-coletas { margin-top:16px; }
 .cidade-coleta-item { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; }
 .cidade-coleta-item > div { min-width:0; }
 .cidade-mini-loader-lista { display:flex; align-items:center; gap:8px; padding:14px; color:var(--ns-muted); }
-.cidade-mini-loader-lista span { width:16px; height:16px; border:2px solid #dbeafe; border-top-color:var(--ns-primary); border-radius:50%; animation:spin .8s linear infinite; }
-.cidade-vazio, .cidade-vazio-card, .cidade-servicos-vazio { padding:22px; border:1px dashed var(--ns-border-strong); border-radius:13px; background:#f8fafc; color:var(--ns-muted); text-align:center; }
+.cidade-mini-loader-lista span { width:16px; height:16px; border:2px solid rgba(244,183,62,.16); border-top-color:var(--ns-primary-hover); border-radius:50%; animation:spin .8s linear infinite; }
+.cidade-vazio, .cidade-vazio-card, .cidade-servicos-vazio { padding:22px; border:1px dashed var(--ns-border-strong); border-radius:13px; background:var(--ns-surface-2); color:var(--ns-muted); text-align:center; }
 .cidade-vazio-card h3 { color:var(--ns-text); }
 .cidade-toast { position:fixed; right:18px; bottom:18px; z-index:9999; max-width:360px; padding:12px 14px; border-radius:11px; background:var(--ns-navy); color:#fff; box-shadow:var(--ns-shadow); font-size:11px; }
 
@@ -114,10 +114,10 @@
 .cidade-profissionais-mini { padding-top:0; }
 
 /* número destaque */
-.cidade-numero-box, .cidade-numero-box-elite { padding:24px; border-radius:20px; background:linear-gradient(135deg,var(--ns-navy),#173875); color:#fff; text-align:center; }
+.cidade-numero-box, .cidade-numero-box-elite { padding:24px; border-radius:20px; background:linear-gradient(135deg,#050d15,#101f2e); color:#fff; text-align:center; }
 .cidade-numero-box *, .cidade-numero-box-elite * { color:#fff; }
 .cidade-numero-valor-elite, .cidade-numero-display-elite { font-size:clamp(42px,8vw,74px); font-weight:800; line-height:1; }
-.cidade-numero-subtitulo-elite, .cidade-numero-rodape-elite { color:#dbeafe !important; }
+.cidade-numero-subtitulo-elite, .cidade-numero-rodape-elite { color:#d7c7a2 !important; }
 
 @media (max-width:900px) {
   .cidade-login-card-premium, .cidade-login-card { grid-template-columns:1fr; }
@@ -136,22 +136,22 @@
   .cidade-coletor-app-stats { grid-template-columns:1fr 1fr; }
   .cidade-coletor-app-acoes { display:grid; grid-template-columns:1fr 1fr; }
   .cidade-form-acoes-desktop { display:none; }
-  .cidade-form-acoes-mobile { display:flex; position:sticky; bottom:8px; z-index:20; padding:8px; border:1px solid var(--ns-border); border-radius:12px; background:rgba(255,255,255,.94); box-shadow:var(--ns-shadow); backdrop-filter:blur(10px); }
+  .cidade-form-acoes-mobile { display:flex; position:sticky; bottom:8px; z-index:20; padding:8px; border:1px solid var(--ns-border); border-radius:12px; background:rgba(7,17,29,.94); box-shadow:var(--ns-shadow); backdrop-filter:blur(10px); }
   .cidade-form-acoes-mobile .cidade-btn { flex:1; }
   .cidade-bloco-form, .cidade-comissao-card, .cidade-pix-card { padding:15px 13px; }
   .cidade-toast { left:12px; right:12px; bottom:12px; max-width:none; }
 }
-.cidade-sucesso-coleta { position:fixed; inset:0; z-index:10000; display:none; place-items:center; padding:20px; background:rgba(11,23,57,.58); backdrop-filter:blur(6px); }
+.cidade-sucesso-coleta { position:fixed; inset:0; z-index:10000; display:none; place-items:center; padding:20px; background:rgba(4,11,18,.82); backdrop-filter:blur(6px); }
 .cidade-sucesso-coleta.ativo { display:grid; }
-.cidade-sucesso-coleta .cidade-sucesso-card { width:min(520px,100%); max-height:88vh; overflow:auto; padding:25px; border-radius:20px; background:#fff; color:var(--ns-text); box-shadow:var(--ns-shadow-lg); }
+.cidade-sucesso-coleta .cidade-sucesso-card { width:min(520px,100%); max-height:88vh; overflow:auto; padding:25px; border-radius:20px; background:var(--ns-surface); color:var(--ns-text); box-shadow:var(--ns-shadow-lg); }
 .cidade-sucesso-coleta .cidade-sucesso-card h2, .cidade-sucesso-coleta .cidade-sucesso-card h3, .cidade-sucesso-coleta .cidade-sucesso-card strong { color:var(--ns-text); }
 .cidade-sucesso-coleta .cidade-sucesso-card p, .cidade-sucesso-coleta .cidade-sucesso-card span { color:var(--ns-text-2); }
 .cidade-sucesso-status { display:grid; gap:8px; margin:14px 0; }
-.cidade-sucesso-status .cidade-status-linha { margin:0; padding:10px; border-radius:10px; background:#f8fafc; }
-.cidade-status-linha.ok { background:var(--ns-success-soft); color:#047857; }
-.cidade-status-linha.ok strong, .cidade-status-linha.ok span { color:#047857; }
-.cidade-status-linha.alerta { background:var(--ns-danger-soft); color:#b91c1c; }
-.cidade-status-linha.alerta strong, .cidade-status-linha.alerta span { color:#b91c1c; }
+.cidade-sucesso-status .cidade-status-linha { margin:0; padding:10px; border-radius:10px; background:var(--ns-surface-2); }
+.cidade-status-linha.ok { background:var(--ns-success-soft); color:#8fe0b4; }
+.cidade-status-linha.ok strong, .cidade-status-linha.ok span { color:#8fe0b4; }
+.cidade-status-linha.alerta { background:var(--ns-danger-soft); color:#ffaaa8; }
+.cidade-status-linha.alerta strong, .cidade-status-linha.alerta span { color:#ffaaa8; }
 .cidade-sucesso-principais { display:flex; gap:8px; flex-wrap:wrap; }
 .cidade-sucesso-principais .cidade-btn { flex:1; }
 .cidade-btn-loading { pointer-events:none; opacity:.72; }
@@ -161,14 +161,14 @@ html.cidade-sucesso-aberto, body.cidade-sucesso-aberto { overflow:hidden !import
 /* Correção estrutural do login municipal */
 body.cidade-login-only { min-height:100vh; display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start; }
 body.cidade-login-only > main { flex:1; display:flex; align-items:center; }
-.cidade-login-page-unica { width:min(940px,calc(100% - 40px)); min-height:0; margin:32px auto; padding:0; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:stretch; overflow:hidden; border:1px solid var(--ns-border); border-radius:24px; background:#fff; box-shadow:var(--ns-shadow); }
-.cidade-login-page-unica > .cidade-login-card { width:auto; display:grid; grid-template-columns:1fr; gap:12px; padding:34px; border:0; border-radius:0; box-shadow:none; background:#fff; }
+.cidade-login-page-unica { width:min(940px,calc(100% - 40px)); min-height:0; margin:32px auto; padding:0; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:stretch; overflow:hidden; border:1px solid var(--ns-border); border-radius:24px; background:var(--ns-surface); box-shadow:var(--ns-shadow); }
+.cidade-login-page-unica > .cidade-login-card { width:auto; display:grid; grid-template-columns:1fr; gap:12px; padding:34px; border:0; border-radius:0; box-shadow:none; background:var(--ns-surface); }
 .cidade-login-page-unica > .cidade-login-visual { border-radius:0; }
 .cidade-login-card > h1 { margin:0; font-size:32px; }
 .cidade-login-card > p { margin:0 0 6px; color:var(--ns-muted); font-size:13px; }
 .cidade-senha-linha { display:grid; grid-template-columns:minmax(0,1fr) 44px; gap:7px; }
 .cidade-senha-linha input { min-width:0; }
-.cidade-senha-linha button { width:44px; min-width:44px; min-height:48px; display:grid; place-items:center; padding:0; border:1px solid var(--ns-border-strong); border-radius:11px; background:#f8fafc; color:var(--ns-text); }
+.cidade-senha-linha button { width:44px; min-width:44px; min-height:48px; display:grid; place-items:center; padding:0; border:1px solid var(--ns-border-strong); border-radius:11px; background:var(--ns-surface-2); color:var(--ns-text); }
 .cidade-login-passos article { display:flex; align-items:center; gap:9px; padding:9px 10px; border-radius:9px; background:rgba(255,255,255,.08); }
 .cidade-login-passos article strong { width:24px; height:24px; flex:0 0 24px; display:grid; place-items:center; border-radius:7px; background:rgba(255,255,255,.12); color:#fff; font-size:10px; }
 .cidade-login-passos article span { color:#fff; font-size:11px; }
@@ -196,7 +196,7 @@ body.cidade-login-only > main { flex:1; display:flex; align-items:center; }
   border:1px solid rgba(255,255,255,.12);
   border-radius:999px;
   background:rgba(255,255,255,.07);
-  color:#dbeafe !important;
+  color:#d7c7a2 !important;
   font-size:10px;
   font-weight:650;
   white-space:nowrap;
@@ -220,16 +220,16 @@ body.cidade-login-only > main { flex:1; display:flex; align-items:center; }
   border:1px solid var(--ns-primary);
   border-radius:11px;
   background:var(--ns-primary);
-  color:#fff;
+  color:var(--ns-primary-contrast);
   font-weight:800;
   cursor:pointer;
-  box-shadow:0 10px 22px rgba(37,99,235,.18);
+  box-shadow:0 10px 22px rgba(244,183,62,.18);
   transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
 }
 .cidade-coletor-login > #btnEntrarColetor:hover {
   background:var(--ns-primary-hover);
   transform:translateY(-1px);
-  box-shadow:0 13px 28px rgba(37,99,235,.24);
+  box-shadow:0 13px 28px rgba(244,183,62,.24);
 }
 @media (max-width:900px) {
   .cidade-metricas { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -241,10 +241,10 @@ body.cidade-login-only > main { flex:1; display:flex; align-items:center; }
 }
 
 /* Componentes municipais dinâmicos V35 */
-.cidade-barra, .cidade-comissao-barra { height:8px; overflow:hidden; border-radius:999px; background:#e2e8f0; }
-.cidade-barra > i, .cidade-comissao-barra > i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--ns-primary),#60a5fa); transition:width .25s ease; }
+.cidade-barra, .cidade-comissao-barra { height:8px; overflow:hidden; border-radius:999px; background:rgba(255,255,255,.08); }
+.cidade-barra > i, .cidade-comissao-barra > i { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--ns-primary),#ffc95f); transition:width .25s ease; }
 .cidade-coletor-cta { width:min(var(--ns-container),calc(100% - 40px)); margin:22px auto 56px; }
-.cidade-coletor-cta-card { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:22px; padding:25px; border:1px solid #bfdbfe; border-radius:18px; background:linear-gradient(135deg,#fff,#f8fbff); color:var(--ns-text); box-shadow:var(--ns-shadow-sm); }
+.cidade-coletor-cta-card { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:22px; padding:25px; border:1px solid #6b5930; border-radius:18px; background:linear-gradient(135deg,#0b1825,#0d1c2b); color:var(--ns-text); box-shadow:var(--ns-shadow-sm); }
 .cidade-coletor-cta-texto { min-width:0; }
 .cidade-coletor-cta-texto h2 { margin:7px 0; color:var(--ns-text); font-size:clamp(22px,3vw,32px); }
 .cidade-coletor-cta-texto p { max-width:700px; margin:0; color:var(--ns-muted); }
@@ -252,7 +252,7 @@ body.cidade-login-only > main { flex:1; display:flex; align-items:center; }
 .cidade-detalhes-grid, .cidade-detalhes-opcionais { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
 .cidade-detalhes-full { grid-column:1 / -1; }
 .cidade-checklist-premium-coletor { display:grid; gap:8px; }
-.cidade-comissao-card-compacta { padding:14px; border:1px solid var(--ns-border); border-radius:13px; background:#f8fafc; color:var(--ns-text); }
+.cidade-comissao-card-compacta { padding:14px; border:1px solid var(--ns-border); border-radius:13px; background:var(--ns-surface-2); color:var(--ns-text); }
 .cidade-pix-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
 .cidade-profissao-searchbox-app { min-width:0; }
 .cidade-sucesso-acoes-extras { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }

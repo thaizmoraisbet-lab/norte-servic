@@ -1,307 +1,248 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
-  
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
-<meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Editar Perfil - Norte Servic</title>
-  <link rel="stylesheet" href="/assets/css/base.css?v=36">
+<link href="/favicon.ico" rel="icon" type="image/x-icon"/>
+<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="/site.webmanifest" rel="manifest"/>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="#07111d" name="theme-color"/>
+<title>Editar Perfil - Norte Servic</title>
+<link href="/assets/css/base.css?v=37" rel="stylesheet"/>
 </head>
 <body>
-
-  <div class="mini-loading" id="miniLoading">
-    <div class="loader-bolinha"></div>
-    <p>Salvando alterações...</p>
-  </div>
-
-  <header class="ns-header ns-header-v36">
-  <a href="/" class="ns-logo" aria-label="Voltar para o início">
-    <span class="ns-logo-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-    <span class="ns-logo-word">Norte <b>Servic</b><em>.</em></span>
-  </a>
-
-  <nav class="ns-nav" aria-label="Menu principal">
-    <a href="/">Início</a>
-    <a href="/cadastro">Cadastrar</a>
-    <a href="/planos">Planos</a>
-    <a href="/login">Área profissional</a>
-  </nav>
+<div class="mini-loading" id="miniLoading">
+<div class="loader-bolinha"></div>
+<p>Salvando alterações...</p>
+</div>
+<header class="ns-header ns-header-v36">
+<a aria-label="Voltar para o início" class="ns-logo" href="/">
+<span aria-hidden="true" class="ns-logo-mark"><i></i><i></i><i></i><i></i></span>
+<span class="ns-logo-word">Norte <b>Servic</b><em>.</em></span>
+</a>
+<nav aria-label="Menu principal" class="ns-nav">
+<a href="/">Início</a>
+<a href="/cadastro">Cadastrar</a>
+<a href="/planos">Planos</a>
+<a href="/login">Área profissional</a>
+</nav>
 </header>
-
-  <main class="cadastro-premium-page editar-profissional-premium-page">
-    <section class="cadastro-premium-hero">
-      <span>Minha conta</span>
-      <h1>Atualize as informações do seu perfil.</h1>
-      <p>Altere seus dados, serviços, cidades atendidas e apresentação profissional.</p>
-
-      <div class="editar-mini-alerta">
-        <span>✓ Edição segura</span>
-        <span>✓ Serviços em tags</span>
-        <span>✓ Cidades inteligentes</span>
-      </div>
-    </section>
-
-    <section class="cadastro-premium-layout editar-layout">
-      <aside class="cadastro-beneficios">
-        <div class="cadastro-beneficios-topo">
-          <span>Painel do profissional</span>
-          <h2>Mantenha seu perfil sempre atualizado.</h2>
-          <p>Informações completas aumentam a confiança e melhoram sua chance de receber contatos.</p>
-        </div>
-
-        <div class="cadastro-beneficio-lista">
-          <div>
-            <strong>01</strong>
-            <h3>Dados corretos</h3>
-            <p>Confira WhatsApp, cidade, profissão e descrição.</p>
-          </div>
-
-          <div>
-            <strong>02</strong>
-            <h3>Serviços bem marcados</h3>
-            <p>Escolha as tags que representam seu trabalho.</p>
-          </div>
-
-          <div>
-            <strong>03</strong>
-            <h3>Plano de destaque</h3>
-            <p>Depois você poderá contratar destaque para aparecer melhor.</p>
-          </div>
-        </div>
-
-        <a href="/painel-profissional" class="painel-acao voltar-painel">Voltar ao painel</a>
-      </aside>
-
-      <section class="cadastro-form-card">
-        <div class="cadastro-form-topo">
-          <span>Editar perfil</span>
-          <h2>Informações do profissional</h2>
-          <p>As alterações serão salvas no seu perfil. Dados sensíveis podem voltar para análise.</p>
-        </div>
-
-        <form id="formEditarPerfil">
-
-          <div class="grupo-form-premium">
-            <h3>Informações principais</h3>
-
-            <div class="form-grid-2">
-              <div>
-                <label>Nome completo</label>
-                <input type="text" id="nome" required>
-              </div>
-
-              <div>
-                <label>Tipo de profissional</label>
-                <select id="tipoProfissional" required>
-                  <option value="">Selecione</option>
-                  <option value="Autônomo">Autônomo</option>
-                  <option value="MEI">MEI</option>
-                  <option value="Empresa / CNPJ">Empresa / CNPJ</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div class="grupo-form-premium">
-            <h3>Categoria e profissão</h3>
-
-            <div class="form-grid-2">
-              <div>
-                <label>Categoria</label>
-                <select id="categoria" required>
-                  <option value="">Selecione uma categoria</option>
-                </select>
-              </div>
-
-              <div>
-                <label>Profissão principal</label>
-                <select id="profissao" required>
-                  <option value="">Selecione primeiro uma categoria</option>
-                </select>
-              </div>
-            </div>
-
-            <label>Serviços que realiza</label>
-
-            <div class="servicos-tags-box" id="servicosTagsBox">
-              <p class="servicos-placeholder">Selecione uma profissão para ver os serviços disponíveis.</p>
-            </div>
-
-            <input type="hidden" id="servicos" required>
-
-            <div class="servicos-selecionados" id="servicosSelecionados"></div>
-
-            <div class="servico-extra-box">
-              <label>Outro serviço que realiza</label>
-
-              <div class="servico-extra-linha">
-                <input type="text" id="servicoExtra" placeholder="Ex: assentamento de porcelanato">
-
-                <button type="button" onclick="adicionarServicoExtra()">
+<main class="cadastro-premium-page editar-profissional-premium-page">
+<section class="cadastro-premium-hero">
+<span>Minha conta</span>
+<h1>Atualize as informações do seu perfil.</h1>
+<p>Altere seus dados, serviços, cidades atendidas e apresentação profissional.</p>
+<div class="editar-mini-alerta">
+<span>✓ Edição segura</span>
+<span>✓ Serviços em tags</span>
+<span>✓ Cidades inteligentes</span>
+</div>
+</section>
+<section class="cadastro-premium-layout editar-layout">
+<aside class="cadastro-beneficios">
+<div class="cadastro-beneficios-topo">
+<span>Painel do profissional</span>
+<h2>Mantenha seu perfil sempre atualizado.</h2>
+<p>Informações completas aumentam a confiança e melhoram sua chance de receber contatos.</p>
+</div>
+<div class="cadastro-beneficio-lista">
+<div>
+<strong>01</strong>
+<h3>Dados corretos</h3>
+<p>Confira WhatsApp, cidade, profissão e descrição.</p>
+</div>
+<div>
+<strong>02</strong>
+<h3>Serviços bem marcados</h3>
+<p>Escolha as tags que representam seu trabalho.</p>
+</div>
+<div>
+<strong>03</strong>
+<h3>Plano de destaque</h3>
+<p>Depois você poderá contratar destaque para aparecer melhor.</p>
+</div>
+</div>
+<a class="painel-acao voltar-painel" href="/painel-profissional">Voltar ao painel</a>
+</aside>
+<section class="cadastro-form-card">
+<div class="cadastro-form-topo">
+<span>Editar perfil</span>
+<h2>Informações do profissional</h2>
+<p>As alterações serão salvas no seu perfil. Dados sensíveis podem voltar para análise.</p>
+</div>
+<form id="formEditarPerfil">
+<div class="grupo-form-premium">
+<h3>Informações principais</h3>
+<div class="form-grid-2">
+<div>
+<label>Nome completo</label>
+<input id="nome" required="" type="text"/>
+</div>
+<div>
+<label>Tipo de profissional</label>
+<select id="tipoProfissional" required="">
+<option value="">Selecione</option>
+<option value="Autônomo">Autônomo</option>
+<option value="MEI">MEI</option>
+<option value="Empresa / CNPJ">Empresa / CNPJ</option>
+</select>
+</div>
+</div>
+</div>
+<div class="grupo-form-premium">
+<h3>Categoria e profissão</h3>
+<div class="form-grid-2">
+<div>
+<label>Categoria</label>
+<select id="categoria" required="">
+<option value="">Selecione uma categoria</option>
+</select>
+</div>
+<div>
+<label>Profissão principal</label>
+<select id="profissao" required="">
+<option value="">Selecione primeiro uma categoria</option>
+</select>
+</div>
+</div>
+<label>Serviços que realiza</label>
+<div class="servicos-tags-box" id="servicosTagsBox">
+<p class="servicos-placeholder">Selecione uma profissão para ver os serviços disponíveis.</p>
+</div>
+<input id="servicos" required="" type="hidden"/>
+<div class="servicos-selecionados" id="servicosSelecionados"></div>
+<div class="servico-extra-box">
+<label>Outro serviço que realiza</label>
+<div class="servico-extra-linha">
+<input id="servicoExtra" placeholder="Ex: assentamento de porcelanato" type="text"/>
+<button onclick="adicionarServicoExtra()" type="button">
                   Adicionar
                 </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="grupo-form-premium">
-            <h3>Área de atendimento</h3>
-
-            <div class="form-grid-2">
-              <div>
-                <label>Cidade principal</label>
-
-                <div class="campo-cidade-inteligente">
-                  <input type="text" id="cidade" placeholder="Digite sua cidade" autocomplete="off" required>
-                  <div class="sugestoes-cidade" id="sugestoesCidade"></div>
-                </div>
-              </div>
-
-              <div>
-                <label>Bairro</label>
-                <input type="text" id="bairro" required>
-              </div>
-            </div>
-
-            <div class="form-grid-2">
-              <div>
-                <label>Atende outras cidades?</label>
-                <select id="atendeOutrasCidades" onchange="alternarCidadesAtendidas()" required>
-                  <option value="">Selecione</option>
-                  <option value="Não">Não, somente minha cidade</option>
-                  <option value="Sim">Sim, atendo cidades próximas</option>
-                  <option value="Depende do serviço">Depende do serviço</option>
-                </select>
-              </div>
-
-              <div>
-                <label>Forma de atendimento</label>
-                <select id="formaAtendimento" required>
-                  <option value="">Selecione</option>
-                  <option value="Presencial">Presencial</option>
-                  <option value="Online">Online</option>
-                  <option value="Presencial e online">Presencial e online</option>
-                </select>
-              </div>
-            </div>
-
-            <div id="boxCidadesAtendidas" class="box-cidades-atendidas escondido">
-              <label>Cidades que também atende</label>
-
-              <div class="campo-cidade-inteligente">
-                <input type="text" id="cidadeAtendidaInput" placeholder="Digite uma cidade e selecione" autocomplete="off">
-                <div class="sugestoes-cidade" id="sugestoesCidadeAtendida"></div>
-              </div>
-
-              <div class="cidades-selecionadas" id="cidadesSelecionadas"></div>
-            </div>
-          </div>
-
-          <div class="grupo-form-premium">
-            <h3>Contato</h3>
-
-            <div class="form-grid-2">
-              <div>
-                <label>WhatsApp</label>
-                <input type="text" id="whatsapp" required>
-              </div>
-
-              <div>
-                <label>Instagram</label>
-                <input type="text" id="instagram">
-              </div>
-            </div>
-          </div>
-
-          <div class="grupo-form-premium">
-            <h3>Apresentação do serviço</h3>
-
-            <label>Descrição do trabalho</label>
-            <textarea id="descricao" rows="5" required></textarea>
-          </div>
-
-          <div class="grupo-form-premium grupo-imagens-edicao">
-            <h3>Imagens do perfil</h3>
-
-            <div class="form-grid-2">
-              <div>
-                <label>Trocar foto de perfil</label>
-                <input
-                  type="file"
-                  id="fotoPerfilEditar"
-                  accept="image/*"
-                >
-                <small class="campo-ajuda-foto">Opcional: para trocar, envie uma imagem quadrada. O sistema otimiza automaticamente.</small>
-              </div>
-
-              <div>
-                <label>Adicionar fotos dos serviços</label>
-                <input
-                  type="file"
-                  id="fotosTrabalhosEditar"
-                  accept="image/*"
-                  multiple
-                >
-                <small class="campo-ajuda-foto">As fotos entram no carrossel do seu perfil. Plano gratuito: até 3 fotos.</small>
-              </div>
-            </div>
-
-            <div class="preview-imagens-edicao" id="previewImagensEdicao"></div>
-          </div>
-
-          <div class="grupo-form-premium">
-            <h3>Atualizar senha</h3>
-
-            <div class="form-grid-2">
-              <div>
-                <label>Nova senha</label>
-                <input type="password" id="novaSenhaPerfil" placeholder="Deixe vazio para manter">
-              </div>
-
-              <div>
-                <label>Confirmar nova senha</label>
-                <input type="password" id="confirmarNovaSenhaPerfil" placeholder="Repita a nova senha">
-              </div>
-            </div>
-          </div>
-
-          <button type="submit" class="botao-cadastro-premium">
+</div>
+</div>
+</div>
+<div class="grupo-form-premium">
+<h3>Área de atendimento</h3>
+<div class="form-grid-2">
+<div>
+<label>Cidade principal</label>
+<div class="campo-cidade-inteligente">
+<input autocomplete="off" id="cidade" placeholder="Digite sua cidade" required="" type="text"/>
+<div class="sugestoes-cidade" id="sugestoesCidade"></div>
+</div>
+</div>
+<div>
+<label>Bairro</label>
+<input id="bairro" required="" type="text"/>
+</div>
+</div>
+<div class="form-grid-2">
+<div>
+<label>Atende outras cidades?</label>
+<select id="atendeOutrasCidades" onchange="alternarCidadesAtendidas()" required="">
+<option value="">Selecione</option>
+<option value="Não">Não, somente minha cidade</option>
+<option value="Sim">Sim, atendo cidades próximas</option>
+<option value="Depende do serviço">Depende do serviço</option>
+</select>
+</div>
+<div>
+<label>Forma de atendimento</label>
+<select id="formaAtendimento" required="">
+<option value="">Selecione</option>
+<option value="Presencial">Presencial</option>
+<option value="Online">Online</option>
+<option value="Presencial e online">Presencial e online</option>
+</select>
+</div>
+</div>
+<div class="box-cidades-atendidas escondido" id="boxCidadesAtendidas">
+<label>Cidades que também atende</label>
+<div class="campo-cidade-inteligente">
+<input autocomplete="off" id="cidadeAtendidaInput" placeholder="Digite uma cidade e selecione" type="text"/>
+<div class="sugestoes-cidade" id="sugestoesCidadeAtendida"></div>
+</div>
+<div class="cidades-selecionadas" id="cidadesSelecionadas"></div>
+</div>
+</div>
+<div class="grupo-form-premium">
+<h3>Contato</h3>
+<div class="form-grid-2">
+<div>
+<label>WhatsApp</label>
+<input id="whatsapp" required="" type="text"/>
+</div>
+<div>
+<label>Instagram</label>
+<input id="instagram" type="text"/>
+</div>
+</div>
+</div>
+<div class="grupo-form-premium">
+<h3>Apresentação do serviço</h3>
+<label>Descrição do trabalho</label>
+<textarea id="descricao" required="" rows="5"></textarea>
+</div>
+<div class="grupo-form-premium grupo-imagens-edicao">
+<h3>Imagens do perfil</h3>
+<div class="form-grid-2">
+<div>
+<label>Trocar foto de perfil</label>
+<input accept="image/*" id="fotoPerfilEditar" type="file"/>
+<small class="campo-ajuda-foto">Opcional: para trocar, envie uma imagem quadrada. O sistema otimiza automaticamente.</small>
+</div>
+<div>
+<label>Adicionar fotos dos serviços</label>
+<input accept="image/*" id="fotosTrabalhosEditar" multiple="" type="file"/>
+<small class="campo-ajuda-foto">As fotos entram no carrossel do seu perfil. Plano gratuito: até 3 fotos.</small>
+</div>
+</div>
+<div class="preview-imagens-edicao" id="previewImagensEdicao"></div>
+</div>
+<div class="grupo-form-premium">
+<h3>Atualizar senha</h3>
+<div class="form-grid-2">
+<div>
+<label>Nova senha</label>
+<input id="novaSenhaPerfil" placeholder="Deixe vazio para manter" type="password"/>
+</div>
+<div>
+<label>Confirmar nova senha</label>
+<input id="confirmarNovaSenhaPerfil" placeholder="Repita a nova senha" type="password"/>
+</div>
+</div>
+</div>
+<button class="botao-cadastro-premium" type="submit">
             Salvar alterações
           </button>
-        </form>
-
-        <p id="mensagemEditarPerfil"></p>
-      </section>
-    </section>
-  </main>
-
-  <footer class="rodape-minimo rodape-legal">
-    <nav>
-      <a href="/documentos-legais#termos">Termos de Uso</a>
-      <a href="/documentos-legais#privacidade">Privacidade</a>
-      <a href="/documentos-legais#cookies">Cookies</a>
-      <a href="/documentos-legais#lgpd">LGPD</a>
-      <a href="/admin">Área Administrativa</a>
-      <a href="/cidade">Cidade Parceira</a>
-      <a href="https://wa.me/5563992472236" target="_blank" rel="noopener">Contato Norte Servic</a>
-    </nav>
-    <p>Norte Servic — CNPJ 63.906.559/0001-03</p>
-    <p>© 2026 Norte Servic. Todos os direitos reservados.</p>
-  </footer>
-  <script src="/assets/js/core/catalog.js?v=36"></script>
-  <script src="/assets/js/core/runtime.js?v=36"></script>
-  <script src="/assets/js/features/public.js?v=36"></script>
-  <script src="/assets/js/features/professional.js?v=36"></script>
-  <script src="/assets/js/features/admin.js?v=36"></script>
-  <script src="/assets/js/features/interface.js?v=36"></script>
-  <script src="/assets/js/features/admin-operations.js?v=36"></script>
-  <script src="/assets/js/core/shell.js?v=36"></script>
-  <script src="/assets/js/app.js?v=36"></script>
+</form>
+<p id="mensagemEditarPerfil"></p>
+</section>
+</section>
+</main>
+<footer class="rodape-minimo rodape-legal">
+<nav>
+<a href="/documentos-legais#termos">Termos de Uso</a>
+<a href="/documentos-legais#privacidade">Privacidade</a>
+<a href="/documentos-legais#cookies">Cookies</a>
+<a href="/documentos-legais#lgpd">LGPD</a>
+<a href="/admin">Área Administrativa</a>
+<a href="/cidade">Cidade Parceira</a>
+<a href="https://wa.me/5563992472236" rel="noopener" target="_blank">Contato Norte Servic</a>
+</nav>
+<p>Norte Servic — CNPJ 63.906.559/0001-03</p>
+<p>© 2026 Norte Servic. Todos os direitos reservados.</p>
+</footer>
+<script src="/assets/js/core/catalog.js?v=37"></script>
+<script src="/assets/js/core/runtime.js?v=37"></script>
+<script src="/assets/js/features/public.js?v=37"></script>
+<script src="/assets/js/features/professional.js?v=37"></script>
+<script src="/assets/js/features/admin.js?v=37"></script>
+<script src="/assets/js/features/interface.js?v=37"></script>
+<script src="/assets/js/features/admin-operations.js?v=37"></script>
+<script src="/assets/js/core/shell.js?v=37"></script>
+<script src="/assets/js/app.js?v=37"></script>
 </body>
 </html>
